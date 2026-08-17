@@ -62,3 +62,31 @@ Stage Summary:
 - Verification loop architecture in place
 - Tauri desktop shell and mobile (React Native) deferred per spec
 - GUI tools honestly fail in headless sandbox — no fake successes
+
+---
+Task ID: 6
+Agent: main
+Task: OpenJarvis Phase 6 — Memory System
+
+Work Log:
+- Migrated MemoryEntry schema: added tags (JSON array), missionId (FK to missions), source (agent/user/system/import), importance (1-5), accessCount, lastAccessedAt, expiresAt, updatedAt
+- Created MemoryAssociation table with from/to relations, strength (0-1), unique constraint on pairs
+- Rewrote memoryService with 15+ methods: CRUD, search (keyword + relevance scoring), recallForContext, touch, consolidate, purgeExpired, getStats, createAssociation, getAssociated, bulkRemove, removeByScope, listByMission
+- Built MemoryContextBuilder (agent/memory/contextBuilder.ts): formats relevant memories as `<memory-context>` XML block for system prompt injection, groups by scope with labels, respects token/entry limits, auto-touches recalled memories
+- Created 4 agent memory tools (agent/memory/memoryTools.ts): memory_store, memory_recall, memory_search, memory_forget — all low risk, full JSON Schema input/output definitions
+- Wired context_retrieval stage in agent loop to MemoryContextBuilder — builds memory context from goal before first model call
+- Enhanced memory_update stage to store episodic results with goal-derived tags, missionId linkage, and source tracking
+- Rewrote memory REST API (routes/memory.ts): GET /memory/search, GET /memory/stats, GET /memory/scopes, GET /memory/:id, GET /memory/:id/associations, POST /memory (enhanced), PATCH /memory/:id, POST /memory/consolidate, POST /memory/purge-expired, POST /memory/bulk-delete
+- Updated frontend types (openjarvis-types.ts): MemoryScope now 5 scopes, added MemorySource, MemorySearchResult, MemoryStats, enhanced MemoryEntry
+- Updated API client (openjarvis-api.ts): searchMemory, getMemoryStats, getMemoryById, updateMemory, consolidateMemory, purgeExpiredMemory, bulkDeleteMemory
+- Rewrote MemoryTab component: search bar, scope filter dropdown, create form (key/value/scope/tags/importance), stats panel, consolidate button, purge button, importance stars, tag badges, source/access display, group-hover delete
+- Fixed Phase 1 test (memory update API changed from positional to named {value} param)
+- Fixed SQLite compatibility: removed Prisma `or` filter for null date, moved expiry filtering to application layer
+- Fixed search scoring: require text relevance > 0 before including results (prevents importance/recency alone from surfacing irrelevant entries)
+- Fixed DB query ordering: use createdAt desc instead of importance desc to avoid missing recent entries in search
+
+Stage Summary:
+- Phase 6 complete with 46/46 tests passing
+- 156/156 total tests pass (Phase 1-6)
+- Key architecture: keyword search with relevance scoring, context injection into agent prompt, 4 agent tools, memory lifecycle management
+- BUILD_STATE.md updated with Phase 6 completion and 11 acceptance criteria checked

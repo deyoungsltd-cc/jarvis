@@ -1,7 +1,7 @@
 # OpenJarvis Build State
 
 ## Current Phase
-Phase 5 — Voice (COMPLETED)
+Phase 6 — Memory (COMPLETED)
 
 ## Completed Milestones
 - **Phase 0 — Discovery** (2026-08-17)
@@ -61,6 +61,19 @@ Phase 5 — Voice (COMPLETED)
   - **41/41 Phase 5 tests pass**
   - **110/110 total tests pass** (Phase 1-5)
 
+- **Phase 6 — Memory** (2026-08-17)
+  - Enhanced `MemoryEntry` schema: tags, missionId, source, importance (1-5), accessCount, lastAccessedAt, expiresAt
+  - New `MemoryAssociation` table with strength-based links between memories
+  - Memory search with keyword matching (key, value, tags) + relevance scoring + recency/access/importance boosts
+  - Memory context builder: injects relevant memories into agent system prompt during `context_retrieval` stage
+  - 4 agent-callable memory tools: `memory_store`, `memory_recall`, `memory_search`, `memory_forget`
+  - Agent loop `memory_update` stage now stores episodic results with goal-derived tags and mission linkage
+  - Enhanced REST API: `GET /memory/search`, `GET /memory/stats`, `GET /memory/scopes`, `PATCH /memory/:id`, `GET /memory/:id/associations`, `POST /memory/consolidate`, `POST /memory/purge-expired`, `POST /memory/bulk-delete`
+  - Memory lifecycle: TTL/expiry, consolidation (dedup by scope+key with association tracking), purge
+  - Frontend MemoryTab: search bar, scope filter, create form (key/value/scope/tags/importance), stats panel, consolidate, purge, importance stars, tag badges, source/access display
+  - **46/46 Phase 6 tests pass**
+  - **156/156 total tests pass** (Phase 1-6)
+
 ## Acceptance Criteria Checklist
 
 ### Phase 0
@@ -111,6 +124,18 @@ Phase 5 — Voice (COMPLETED)
 - [x] 41/41 Phase 5 tests pass
 - [ ] **E2E voice test with real Gemini/Groq STT** — BLOCKED: no API keys in environment
 
+### Phase 6
+- [x] Enhanced MemoryEntry schema with tags, missionId, source, importance, accessCount, lastAccessedAt, expiresAt
+- [x] MemoryAssociation table for linking related memories with strength scores
+- [x] Memory search with keyword matching + relevance scoring (key/value/tags + recency + access frequency + importance boosts)
+- [x] MemoryContextBuilder injects relevant memories into agent system prompt during context_retrieval stage
+- [x] 4 agent memory tools: memory_store, memory_recall, memory_search, memory_forget — all low risk, full schemas
+- [x] Agent loop context_retrieval wired to MemoryContextBuilder; memory_update stores tagged episodic results
+- [x] Enhanced REST API: search, stats, scopes, PATCH update, associations, consolidate, purge-expired, bulk-delete
+- [x] Memory lifecycle: TTL/expiry with purge, consolidation (dedup scope+key with association tracking)
+- [x] Frontend MemoryTab: search, scope filter, create form, stats panel, consolidate, purge, importance stars, tags
+- [x] 46/46 Phase 6 tests pass
+
 ## Known Failures / Blockers
 - Supabase specified in master spec but sandbox provides SQLite/Prisma; schema matches spec exactly, swap via `datasource` + `DATABASE_URL`
 - Groq limitation: structured output and function calling cannot be used simultaneously (adapter handles this)
@@ -120,14 +145,15 @@ Phase 5 — Voice (COMPLETED)
 
 ## Last Verified Working
 - Express API server boots on port 3001, health check returns real DB status
-- **110/110 tests pass** (`bun test tests/` in `mini-services/openjarvis-api/`)
+- **156/156 tests pass** (`bun test tests/` in `mini-services/openjarvis-api/`)
+- Memory system: search, recall, context building, associations, consolidation, purge, 4 agent tools
+- Memory REST API: search, stats, CRUD, associations, consolidate, purge all functional
+- Dashboard MemoryTab: search bar, scope filter, create form, stats panel, importance stars
 - Voice system: browser provider active, session CRUD, status transitions, transcript management
-- Voice REST API: `/voice/status`, `/voice/stt`, `/voice/tts`, `/voice/sessions` all verified via curl
-- Dashboard renders with Voice Input card, mic button, audio visualization
-- All previous phases verified: missions, events, tools, memory, permissions, computer-control
+- All previous phases verified: missions, events, tools, permissions, computer-control, voice
 
 ## Next Action
-Phase 5 complete. Ready for Phase 6 (Memory) spec execution when requested.
+Phase 6 complete. Ready for Phase 7 (Mobile) spec execution when requested.
 
 ## Architecture Decisions Log
 - 2026-08-17: Pinned stack per Phase 0-2 spec (TS/Express/Prisma-SQLite-local/Gemini+Groq)
@@ -152,6 +178,16 @@ Phase 5 complete. Ready for Phase 6 (Memory) spec execution when requested.
 - 2026-08-17: **Phase 5**: Voice REST API follows same structured error format as all other endpoints
 - 2026-08-17: **Phase 5**: WebSocket voice events (`subscribe:voice`, `voice:transcript`, `voice:status`) for real-time relay
 - 2026-08-17: **Phase 5**: Frontend VoiceControl with audio level visualization, transcript history, TTS toggle
+- 2026-08-17: **Phase 6**: Enhanced MemoryEntry schema (tags, missionId FK, source, importance 1-5, accessCount, expiresAt)
+- 2026-08-17: **Phase 6**: MemoryAssociation table for linking related memories with strength scores
+- 2026-08-17: **Phase 6**: Keyword-based search with relevance scoring (text match + recency + access frequency + importance boosts)
+- 2026-08-17: **Phase 6**: MemoryContextBuilder — builds `<memory-context>` block for agent system prompt injection
+- 2026-08-17: **Phase 6**: 4 agent memory tools (memory_store/recall/search/forget) — all low risk, full JSON Schema
+- 2026-08-17: **Phase 6**: Agent loop `context_retrieval` stage wired to MemoryContextBuilder
+- 2026-08-17: **Phase 6**: Agent `memory_update` stores episodic results with goal-derived tags and mission linkage
+- 2026-08-17: **Phase 6**: Memory lifecycle — TTL/expiry, consolidation (dedup + association tracking), purge
+- 2026-08-17: **Phase 6**: Enhanced REST API — search, stats, PATCH, associations, consolidate, purge, bulk-delete
+- 2026-08-17: **Phase 6**: Frontend MemoryTab — search, filters, create form, stats, consolidate, purge, importance stars
 
 ## File Structure
 ```
@@ -195,7 +231,7 @@ mini-services/openjarvis-api/
 ├── package.json
 ├── tsconfig.json
 ├── prisma/
-│   └── schema.prisma                 # 4 core tables
+│   └── schema.prisma                 # 5 tables (added memory_associations)
 ├── src/
 │   ├── voice/                         # Phase 5: Voice system
 │   │   ├── types.ts                  # VoiceProvider interface, STT/TTS types
@@ -223,8 +259,11 @@ mini-services/openjarvis-api/
 │   │   ├── missionService.ts
 │   │   ├── missionEventService.ts
 │   │   ├── toolService.ts
-│   │   └── memoryService.ts
+│   │   └── memoryService.ts          # Phase 6: Enhanced (search, recall, associations, stats)
 │   ├── agent/
+│   │   ├── memory/                    # Phase 6: Memory subsystem
+│   │   │   ├── contextBuilder.ts      # Builds <memory-context> for agent prompt
+│   │   │   └── memoryTools.ts          # 4 agent tools: store/recall/search/forget
 │   │   ├── types.ts                  # Core types + state machine
 │   │   ├── modelProvider.ts          # ModelProvider interface + adapters
 │   │   ├── toolRegistry.ts           # Tool registration + retry + timeout
@@ -250,7 +289,8 @@ mini-services/openjarvis-api/
 │       ├── phase1.test.ts               # 23 tests
 │       ├── phase2.test.ts               # 23 tests
 │       ├── phase4.test.ts               # 23 tests
-│       └── phase5.test.ts               # 41 tests
+│       ├── phase5.test.ts               # 41 tests
+│       └── phase6.test.ts               # 46 tests
 ```
 
 ## Environment Inventory

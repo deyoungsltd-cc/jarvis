@@ -201,7 +201,7 @@ describe('Phase 1 — Memory CRUD', () => {
   });
 
   it('updates value', async () => {
-    const updated = await memoryService.update(memoryId, { task: 'updated' });
+    const updated = await memoryService.update(memoryId, { value: { task: 'updated' } });
     expect(updated.value).toBe(JSON.stringify({ task: 'updated' }));
   });
 

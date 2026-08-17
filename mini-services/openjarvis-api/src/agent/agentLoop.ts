@@ -20,6 +20,7 @@ import { MissionStateMachine } from './missionStateMachine.js';
 import { missionService } from '../services/missionService.js';
 import { missionEventService } from '../services/missionEventService.js';
 import { memoryService } from '../services/memoryService.js';
+import { buildMemoryContext } from './memory/contextBuilder.js';
 import { logger } from '../utils/logger.js';
 
 const SYSTEM_PROMPT = `You are an autonomous AI agent. You receive a goal from the user and must accomplish it using the tools available to you.
@@ -76,8 +77,26 @@ export class AgentLoop {
       await this.recordStage('interpret', { goal });
 
       // Build initial messages
+      let systemPrompt = SYSTEM_PROMPT;
+
+      // Phase 6: context_retrieval — build memory context
+      await this.recordStage('context_retrieval', { goal });
+      try {
+        const memCtx = await buildMemoryContext({
+          goal,
+          missionId,
+          requestId,
+        });
+        if (memCtx.entryCount > 0) {
+          systemPrompt += `\n\nRelevant context from your memory:\n${memCtx.contextString}`;
+          logger.info(requestId, `Injected ${memCtx.entryCount} memories into context`);
+        }
+      } catch (err: any) {
+        logger.warn(requestId, `Memory context build failed (non-fatal): ${err.message}`);
+      }
+
       this.messages = [
-        { role: 'system', content: SYSTEM_PROMPT },
+        { role: 'system', content: systemPrompt },
         { role: 'user', content: goal },
       ];
 
@@ -164,12 +183,15 @@ export class AgentLoop {
         // No tool calls — model produced final content
         if (response.content) {
           await this.recordStage('verify', { content: response.content });
+
+          // Phase 6: Enhanced memory_update — store structured result + goal→result association
           await this.recordStage('memory_update', {
             scope: 'episodic',
             key: `mission_${missionId}_result`,
           });
 
-          // Store result in episodic memory
+          // Store episodic result with tags derived from the goal
+          const goalTokens = goal.toLowerCase().split(/\s+/).slice(0, 5);
           await memoryService.create({
             scope: 'episodic',
             key: `mission_${missionId}_result`,
@@ -179,6 +201,10 @@ export class AgentLoop {
               tokensUsed: this.totalTokensUsed,
               toolCalls: this.totalToolCalls,
             },
+            tags: goalTokens,
+            missionId,
+            source: 'agent',
+            importance: 3,
           });
 
           await this.recordStage('complete', { content: response.content });

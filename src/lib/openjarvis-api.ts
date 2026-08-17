@@ -9,6 +9,8 @@ import type {
   UpdateToolBody,
   MemoryEntry,
   CreateMemoryBody,
+  MemorySearchResult,
+  MemoryStats,
   AgentRunBody,
   StateTransition,
   HealthCheck,
@@ -121,9 +123,26 @@ export function deleteTool(name: string): Promise<void> {
   });
 }
 
-// ─── Memory ────────────────────────────────────────────────
-export function getMemory(): Promise<MemoryEntry[]> {
-  return request('/memory');
+// ─── Memory (Phase 6 Enhanced) ──────────────────────────────
+export function getMemory(scope?: string): Promise<MemoryEntry[]> {
+  const query = scope ? `?scope=${scope}` : '';
+  return request(`/memory${query}`);
+}
+
+export function searchMemory(query: string, options?: { scope?: string; limit?: number; tags?: string[] }): Promise<MemorySearchResult[]> {
+  const params = new URLSearchParams({ q: query });
+  if (options?.scope) params.set('scope', options.scope);
+  if (options?.limit) params.set('limit', String(options.limit));
+  if (options?.tags) params.set('tags', options.tags.join(','));
+  return request(`/memory/search?${params}`);
+}
+
+export function getMemoryStats(): Promise<MemoryStats> {
+  return request('/memory/stats');
+}
+
+export function getMemoryById(id: string): Promise<MemoryEntry> {
+  return request(`/memory/${id}`);
 }
 
 export function createMemory(body: CreateMemoryBody): Promise<MemoryEntry> {
@@ -133,8 +152,30 @@ export function createMemory(body: CreateMemoryBody): Promise<MemoryEntry> {
   });
 }
 
+export function updateMemory(id: string, body: { value?: unknown; tags?: string[]; importance?: number }): Promise<MemoryEntry> {
+  return request(`/memory/${id}`, {
+    method: 'PATCH',
+    body: JSON.stringify(body),
+  });
+}
+
 export function deleteMemory(id: string): Promise<void> {
   return request(`/memory/${id}`, { method: 'DELETE' });
+}
+
+export function consolidateMemory(): Promise<{ merged: number }> {
+  return request('/memory/consolidate', { method: 'POST' });
+}
+
+export function purgeExpiredMemory(): Promise<{ purged: number }> {
+  return request('/memory/purge-expired', { method: 'POST' });
+}
+
+export function bulkDeleteMemory(ids: string[]): Promise<{ deleted: number }> {
+  return request('/memory/bulk-delete', {
+    method: 'POST',
+    body: JSON.stringify({ ids }),
+  });
 }
 
 // ─── Agent ─────────────────────────────────────────────────

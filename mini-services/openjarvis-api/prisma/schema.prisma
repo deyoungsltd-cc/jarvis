@@ -26,7 +26,8 @@ model Mission {
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
 
-  events MissionEvent[]
+  events  MissionEvent[]
+  memories MemoryEntry[]
 
   @@map("missions")
 }
@@ -58,13 +59,43 @@ model Tool {
 }
 
 model MemoryEntry {
-  id        String   @id @default(uuid())
-  scope     String   // working|episodic|semantic|preference|project
-  key       String
-  value     String?  // JSON string
-  createdAt DateTime @default(now())
+  id            String   @id @default(uuid())
+  scope         String   // working|episodic|semantic|preference|project
+  key           String
+  value         String?  // JSON string
+  tags          String?  // JSON array string — e.g. ["python", "debugging"]
+  missionId     String?  // link to mission that created this memory
+  source        String   @default("agent") // agent|user|system|import
+  importance    Int      @default(3) // 1-5 scale, 5 = most important
+  accessCount   Int      @default(0)
+  lastAccessedAt DateTime? // updated on each recall
+  expiresAt     DateTime? // null = never expires
+  createdAt     DateTime @default(now())
+  updatedAt     DateTime @updatedAt
+
+  mission      Mission?              @relation(fields: [missionId], references: [id], onDelete: SetNull)
+  associations MemoryAssociation[]     @relation("Associations")
+  reverseAssociations MemoryAssociation[] @relation("ReverseAssociations")
 
   @@index([scope])
   @@index([key])
+  @@index([missionId])
+  @@index([importance])
   @@map("memory_entries")
+}
+
+model MemoryAssociation {
+  id              String   @id @default(uuid())
+  fromMemoryId    String
+  toMemoryId      String
+  strength        Float    @default(1.0) // 0.0-1.0 association strength
+  createdAt       DateTime @default(now())
+
+  from MemoryEntry @relation("Associations", fields: [fromMemoryId], references: [id], onDelete: Cascade)
+  to   MemoryEntry @relation("ReverseAssociations", fields: [toMemoryId], references: [id], onDelete: Cascade)
+
+  @@unique([fromMemoryId, toMemoryId])
+  @@index([fromMemoryId])
+  @@index([toMemoryId])
+  @@map("memory_associations")
 }

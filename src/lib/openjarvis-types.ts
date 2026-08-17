@@ -93,15 +93,22 @@ export interface UpdateToolBody {
   enabled?: boolean;
 }
 
-// ─── Memory ─────────────────────────────────────────────────
-export type MemoryScope = 'global' | 'mission' | 'session';
+// ─── Memory (Phase 6 Enhanced) ────────────────────────────────
+export type MemoryScope = 'working' | 'episodic' | 'semantic' | 'preference' | 'project';
+export type MemorySource = 'agent' | 'user' | 'system' | 'import';
 
 export interface MemoryEntry {
   id: string;
   scope: MemoryScope;
   key: string;
   value: unknown;
+  tags: string[];
   missionId?: string;
+  source: MemorySource;
+  importance: number;
+  accessCount: number;
+  lastAccessedAt?: string;
+  expiresAt?: string;
   createdAt: string;
   updatedAt: string;
 }
@@ -109,8 +116,34 @@ export interface MemoryEntry {
 export interface CreateMemoryBody {
   scope: MemoryScope;
   key: string;
-  value: unknown;
+  value?: unknown;
+  tags?: string[];
   missionId?: string;
+  source?: MemorySource;
+  importance?: number;
+  expiresAt?: string;
+}
+
+export interface MemorySearchResult {
+  id: string;
+  scope: string;
+  key: string;
+  value: unknown;
+  tags: string[];
+  importance: number;
+  source: string;
+  missionId?: string;
+  createdAt: string;
+  score: number;
+}
+
+export interface MemoryStats {
+  totalEntries: number;
+  byScope: Record<string, number>;
+  byImportance: Record<number, number>;
+  bySource: Record<string, number>;
+  expiredCount: number;
+  averageAccessCount: number;
 }
 
 // ─── Agent ──────────────────────────────────────────────────
