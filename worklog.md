@@ -91,3 +91,42 @@ Stage Summary:
 - Key architecture: keyword search with relevance scoring, context injection into agent prompt, 4 agent tools, memory lifecycle management
 - BUILD_STATE.md updated with Phase 6 completion and 11 acceptance criteria checked
 \n---\nTask ID: 7\nAgent: main\nTask: OpenJarvis Phase 7 — Mobile API Layer\n\nWork Log:\n- Added mobile_clients table: name, platform (ios/android/web), unique apiKey, enabled, lastSeenAt\n- Created mobile client service: register, authenticate, revoke, enable, regenerateApiKey, list, delete\n- Built API key auth middleware: requireMobileAuth() — validates X-API-Key header or api_key query param, optional mode\n- Created pagination utility: parsePagination (page/limit clamping) + buildPaginatedResponse (data + metadata envelope)\n- Created mobile types: PaginatedRequest/Response, MobileClient, MobileMissionSummary, MobileAgentRunResponse\n- Built versioned mobile API at /mobile/v1/ with 10 endpoints:\n  - POST /register (open), GET /missions (paginated summary), GET /missions/:id (detail with event count),\n  - GET /missions/:id/events (paginated), GET /missions/:id/events/stream (SSE),\n  - GET /memory (paginated), GET /memory/search, GET /tools (lightweight),\n  - POST /agent/run (combined create+start), GET /health\n- Built admin routes at /mobile/admin/clients: list, revoke, enable, regenerate, delete\n- SSE event stream: sends existing events, polls for new, auto-timeout at 5min, no WebSocket dependency\n- Added unauthorized() error factory to errors.ts\n- Added Mobile API info card to Settings tab in frontend\n- React Native app shell deferred — no mobile SDK/toolchain in sandbox\n\nStage Summary:\n- Phase 7 complete with 22/22 tests passing\n- 178/178 total tests pass (Phase 1-7)\n- Key architecture: versioned API, API key auth, pagination, SSE streaming, client management\n- BUILD_STATE.md updated with Phase 7 completion and 9 acceptance criteria checked
+
+---
+Task ID: 7b
+Agent: main
+Task: OpenJarvis Phase 7 — React Native Mobile Client
+
+Work Log:
+- Initialized Expo SDK 57 project with React Native 0.86, React 19
+- Installed dependencies: @react-navigation/native, bottom-tabs, native-stack, react-native-screens, safe-area-context, async-storage
+- Built API client layer (src/api/client.ts): OpenJarvisClient class with loadConfig, register, health, listMissions, getMission, createMission, listEvents, runAgent, listMemory, searchMemory, listTools, SSE streamEvents with ReadableStream parsing, AbortController support
+- Built API types (src/api/types.ts): 17 types mirroring backend /mobile/v1 contract — PaginatedRequest/Response, MobileClient, MissionSummary/Detail, MissionEvent, AgentRunResponse, MemoryEntry, MemorySearchResponse, ToolSummary, HealthResponse, ApiError
+- Built formatting utilities (src/utils/formatters.ts): timeAgo, formatDateTime, truncate, statusColor, riskColor, riskLabel, formatNumber, stageLabel
+- Built theme system (src/theme/index.ts): Colors (dark-first), Spacing, Radius, FontSize constants
+- Built common UI components (src/components/common.tsx): Badge, Button, EmptyState, SectionHeader, ListItem, LoadingSpinner
+- Built Screen wrapper component with safe area and optional scroll
+- Built AppContext (src/store/AppContext.tsx): global state for client config, registration, server URL, logout/refresh
+- Built 6 screens:
+  - SetupScreen: server URL config → device registration (2-step first-run flow)
+  - MissionsScreen: paginated mission cards with status badges, tool call/token stats, timeAgo, load more
+  - MissionDetailScreen: mission info, 4-stat cards (calls/tokens/events/risk), event timeline with SSE live streaming, connector lines, stage labels
+  - AgentScreen: multiline goal input (500 char), run/stop/reset buttons, live SSE progress list with stage labels
+  - MemoryScreen: search bar, horizontal scope filter chips (all/working/episodic/semantic/preference/preference/project), memory cards with importance stars, tags, scope badges
+  - ToolsScreen: tool catalog with name, description, risk level badges
+  - SettingsScreen: server URL config with save, health check dot, device info, disconnect button
+- Built navigation: bottom tabs (Missions/Agent/Memory/Tools/Settings) + stack navigator for MissionDetail
+- Built App.tsx root: NavigationContainer with dark theme, AppProvider + AppGate (setup vs main)
+- Wrote 55 unit tests across 3 test suites:
+  - formatters.test.ts (31 tests): timeAgo (6), truncate (4), statusColor (5), riskColor (5), riskLabel (1), formatNumber (4), stageLabel (2), formatDateTime (1), plus edge cases
+  - apiClient.test.ts (21 tests): Config Management (7), HTTP Requests (4), API Endpoints (9), SSE Streaming (3), ApiClientError (1)
+  - types.test.ts (3 tests): barrel exports, ApiClientError instanceof, module loading
+- All tests pass: 55/55 mobile + 178/178 backend = 233 total
+
+Stage Summary:
+- Phase 7 React Native mobile client is code-complete
+- 55/55 mobile tests, 178/178 backend tests — all green
+- 233 total tests across the full OpenJarvis project
+- Key architecture: Expo SDK 57, API key auth, SSE streaming, AsyncStorage persistence, 5-tab navigation
+- Mobile app connects to existing /mobile/v1 backend endpoints (no backend changes needed)
+- BUILD_STATE.md updated with Phase 7 mobile completion
