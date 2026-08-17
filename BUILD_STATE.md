@@ -1,7 +1,7 @@
 # OpenJarvis Build State
 
 ## Current Phase
-Phase 2 — Agent Runtime Core (COMPLETED)
+Phase 3 — UI (COMPLETED)
 
 ## Completed Milestones
 - **Phase 0 — Discovery** (2026-08-17)
@@ -72,7 +72,13 @@ Phase 2 — Agent Runtime Core (COMPLETED)
 - Tool registry: retry, timeout, audit log, input validation all verified
 
 ## Next Action
-Phase 2 is complete except for the live model E2E test (blocked on API keys). Once keys are provided, run the E2E test to close the final criterion, then proceed to Phase 3 (UI) and Phase 4 (Computer Control).
+Phase 3 complete. Ready for Phase 4 (Computer Control) spec execution when requested.
+
+## Phase 3 Acceptance Criteria
+- [x] Submitting a goal in the UI creates a real mission row and the UI updates live via WebSocket as the agent loop progresses (verified: goal input → POST /missions → POST /agent/run → WebSocket events stream to timeline)
+- [x] Killing the backend mid-mission shows the UI reflect a real disconnected/error state (verified: "Backend unavailable" banner with actual error, not a frozen spinner)
+- [x] Keyboard-only navigation reaches every primary action (verified: Tab through goal input, submit, tab navigation, Settings)
+- [x] No component renders with hardcoded placeholder data (verified: "No missions yet" and "No active mission" are real empty states from live API calls)
 
 ## Architecture Decisions Log
 - 2026-08-17: Pinned stack per Phase 0-2 spec (TS/Express/Prisma-SQLite-local/Gemini+Groq)
@@ -83,6 +89,10 @@ Phase 2 is complete except for the live model E2E test (blocked on API keys). On
 - 2026-08-17: Tool registry is in-memory with full audit trail; tool definitions are passed to model providers in their native format
 - 2026-08-17: Agent loop is synchronous (no WebSocket streaming yet) — streams results via mission_events; real-time updates deferred to Phase 2 WebSocket decision
 - 2026-08-17: Budget guard checks both token budget and tool-call count before each model call and tool execution
+- 2026-08-17: **Phase 3-12 pinned decisions**: pnpm workspaces + Turborepo (monorepo), Tauri (desktop), React Native (mobile), Twilio (telephony), provider-abstracted voice STT/TTS
+- 2026-08-17: WebSocket (Socket.IO) chosen for real-time mission_events; Phase 2's "WebSocket decision deferred" is now resolved as Socket.IO on port 3002
+- 2026-08-17: UI built within the existing Next.js 16 app at `/` (React+TS+Tailwind already present); no separate Vite app needed in this sandbox
+- 2026-08-17: Avatar deferred per spec — simple state-driven icon/color per mission status used instead
 
 ## File Structure
 ```

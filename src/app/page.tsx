@@ -1,31 +1,202 @@
-'use client'
+'use client';
 
-export default function Home() {
+import { useState, useCallback, useEffect, useMemo } from 'react';
+import { useJarvisSocket } from '@/hooks/useJarvisSocket';
+import { checkHealth } from '@/lib/openjarvis-api';
+import type { Mission } from '@/lib/openjarvis-types';
+
+import { GoalInput } from '@/components/openjarvis/goal-input';
+import { AgentState } from '@/components/openjarvis/agent-state';
+import { ActivityTimeline } from '@/components/openjarvis/activity-timeline';
+import { MissionsTab } from '@/components/openjarvis/missions-tab';
+import { ToolsTab } from '@/components/openjarvis/tools-tab';
+import { MemoryTab } from '@/components/openjarvis/memory-tab';
+import { SettingsTab } from '@/components/openjarvis/settings-tab';
+import { ConnectionBanner } from '@/components/openjarvis/Connection-banner';
+
+import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
+import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
+import { Separator } from '@/components/ui/separator';
+import { ScrollArea } from '@/components/ui/scroll-area';
+import { Bot, ListTodo, Wrench, Brain, Settings } from 'lucide-react';
+
+export default function Dashboard() {
+  // ─── Backend connectivity ──────────────────────────────────
+  const [backendError, setBackendError] = useState<string | null>(null);
+  const [backendOk, setBackendOk] = useState(false);
+
+  useEffect(() => {
+    checkHealth()
+      .then(() => {
+        setBackendOk(true);
+        setBackendError(null);
+      })
+      .catch((err) => {
+        setBackendOk(false);
+        setBackendError(err instanceof Error ? err.message : 'Connection failed');
+      });
+  }, []);
+
+  // ─── State ─────────────────────────────────────────────────
+  const [activeMission, setActiveMission] = useState<Mission | null>(null);
+  const [provider, setProvider] = useState('gemini');
+
+  const {
+    connected: wsConnected,
+    events: wsEvents,
+    currentStatus: wsStatus,
+    currentMission: wsData,
+    subscribe,
+    subscribedMissionId,
+  } = useJarvisSocket();
+
+  // When a mission is created, subscribe to its WebSocket channel
+  const handleMissionCreated = useCallback(
+    (mission: Mission) => {
+      setActiveMission(mission);
+      subscribe(mission.id);
+    },
+    [subscribe]
+  );
+
+  // When selecting a mission from the Missions tab
+  const handleSelectMission = useCallback(
+    (mission: Mission) => {
+      setActiveMission(mission);
+      subscribe(mission.id);
+    },
+    [subscribe]
+  );
+
+  // Derive the effective mission display from base + ws updates
+  const effectiveMission = useMemo(() => {
+    if (!activeMission) return null;
+    if (!wsData || subscribedMissionId !== activeMission.id) return activeMission;
+    return { ...activeMission, ...wsData };
+  }, [activeMission, wsData, subscribedMissionId]);
+
+  const isExecuting = wsStatus === 'running';
+
   return (
-    <div style={{
-      display: 'flex',
-      flexDirection: 'column',
-      alignItems: 'center',
-      justifyContent: 'center',
-      minHeight: '100vh',
-      gap: '2rem',
-      padding: '1rem'
-    }}>
-      <div style={{
-        position: 'relative',
-        width: '6rem',
-        height: '6rem'
-      }}>
-        <img
-          src="/logo.svg"
-          alt="Z.ai Logo"
-          style={{
-            width: '100%',
-            height: '100%',
-            objectFit: 'contain'
-          }}
-        />
-      </div>
+    <div className="min-h-screen flex flex-col bg-background text-foreground">
+      {/* Connection Banner */}
+      <ConnectionBanner backendError={backendError} wsConnected={wsConnected} />
+
+      {/* Header */}
+      <header className="border-b border-border px-4 py-3 flex items-center gap-3">
+        <Bot className="h-6 w-6 text-emerald-500" aria-hidden="true" />
+        <h1 className="text-lg font-semibold tracking-tight">OpenJarvis</h1>
+        {wsConnected && backendOk && (
+          <span className="ml-auto flex items-center gap-1.5 text-xs text-emerald-600 dark:text-emerald-400">
+            <span className="h-2 w-2 rounded-full bg-emerald-500" aria-hidden="true" />
+            Connected
+          </span>
+        )}
+      </header>
+
+      {/* Main Content */}
+      <main className="flex-1 flex flex-col lg:flex-row gap-0 lg:gap-0 overflow-hidden">
+        {/* ─── Left Panel ─────────────────────────────────── */}
+        <aside className="w-full lg:w-80 xl:w-96 shrink-0 border-b lg:border-b-0 lg:border-r border-border flex flex-col">
+          <ScrollArea className="flex-1">
+            <div className="flex flex-col gap-4 p-4">
+              <Card>
+                <CardHeader className="pb-3">
+                  <CardTitle className="text-sm">New Mission</CardTitle>
+                </CardHeader>
+                <CardContent>
+                  <GoalInput
+                    onMissionCreated={handleMissionCreated}
+                    disabled={isExecuting}
+                    provider={provider}
+                  />
+                </CardContent>
+              </Card>
+
+              <Separator />
+
+              <div>
+                <h2 className="text-sm font-medium mb-3">Agent State</h2>
+                <AgentState
+                  mission={effectiveMission}
+                  wsStatus={wsStatus}
+                  wsData={wsData}
+                  wsConnected={wsConnected}
+                />
+              </div>
+            </div>
+          </ScrollArea>
+        </aside>
+
+        {/* ─── Center Panel ───────────────────────────────── */}
+        <section className="flex-1 flex flex-col min-w-0" aria-label="Activity Timeline">
+          <div className="px-4 py-3 border-b border-border flex items-center gap-2">
+            <h2 className="text-sm font-semibold">Activity</h2>
+            {subscribedMissionId && (
+              <span className="text-xs text-muted-foreground font-mono">
+                {subscribedMissionId.slice(0, 8)}
+              </span>
+            )}
+          </div>
+          <ActivityTimeline
+            events={wsEvents}
+            missionId={subscribedMissionId}
+          />
+        </section>
+
+        {/* ─── Right Panel ────────────────────────────────── */}
+        <aside className="w-full lg:w-80 xl:w-96 shrink-0 border-t lg:border-t-0 lg:border-l border-border flex flex-col">
+          <Tabs defaultValue="missions" className="flex flex-col h-full">
+            <div className="px-2 pt-2">
+              <TabsList className="w-full grid grid-cols-4">
+                <TabsTrigger value="missions" className="text-xs gap-1">
+                  <ListTodo className="h-3.5 w-3.5" aria-hidden="true" />
+                  <span className="hidden sm:inline">Missions</span>
+                </TabsTrigger>
+                <TabsTrigger value="tools" className="text-xs gap-1">
+                  <Wrench className="h-3.5 w-3.5" aria-hidden="true" />
+                  <span className="hidden sm:inline">Tools</span>
+                </TabsTrigger>
+                <TabsTrigger value="memory" className="text-xs gap-1">
+                  <Brain className="h-3.5 w-3.5" aria-hidden="true" />
+                  <span className="hidden sm:inline">Memory</span>
+                </TabsTrigger>
+                <TabsTrigger value="settings" className="text-xs gap-1">
+                  <Settings className="h-3.5 w-3.5" aria-hidden="true" />
+                  <span className="hidden sm:inline">Settings</span>
+                </TabsTrigger>
+              </TabsList>
+            </div>
+
+            <TabsContent value="missions" className="flex-1 min-h-0">
+              <MissionsTab
+                onSelectMission={handleSelectMission}
+                activeMissionId={subscribedMissionId}
+              />
+            </TabsContent>
+
+            <TabsContent value="tools" className="flex-1 min-h-0">
+              <ToolsTab />
+            </TabsContent>
+
+            <TabsContent value="memory" className="flex-1 min-h-0">
+              <MemoryTab />
+            </TabsContent>
+
+            <TabsContent value="settings" className="flex-1 min-h-0">
+              <SettingsTab provider={provider} onProviderChange={setProvider} />
+            </TabsContent>
+          </Tabs>
+        </aside>
+      </main>
+
+      {/* Footer */}
+      <footer className="border-t border-border px-4 py-2 text-xs text-muted-foreground mt-auto">
+        <div className="flex items-center justify-between gap-2">
+          <span>OpenJarvis Agent Dashboard</span>
+          <span className="font-mono">v3.0</span>
+        </div>
+      </footer>
     </div>
-  )
+  );
 }
