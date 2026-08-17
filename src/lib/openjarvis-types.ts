@@ -299,7 +299,7 @@ export interface ApprovalRule {
 }
 
 export interface WsApprovalEvent {
-  type: 'approval:created' | 'approval:resolved';
+  type: 'approval:created' | 'approval:resolved' | 'capability:grant_changed';
   data: {
     id: string;
     missionId: string;
@@ -308,5 +308,30 @@ export interface WsApprovalEvent {
     status?: string;
     resolvedBy?: string;
     timestamp: string;
+    [key: string]: unknown;
   };
+}
+
+// ─── Capability Grant (Authorization Model) ──────────────────
+export type GrantStatus = 'allowed' | 'denied' | 'undefined';
+export type ScopeType = 'permanent' | 'mission' | 'session';
+
+export interface CapabilityGrant {
+  id: string;
+  capability: string;
+  allowed: boolean;
+  scopeType: ScopeType;
+  scopeContext?: Record<string, unknown>;
+  missionId?: string;
+  source: 'manual' | 'approval_always_allow';
+  approvalRequestId?: string;
+  createdAt: string;
+  updatedAt: string;
+}
+
+export interface CapabilityGrantList {
+  items: CapabilityGrant[];
+  total: number;
+  limit: number;
+  offset: number;
 }

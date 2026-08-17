@@ -20,8 +20,12 @@ import {
   rejectRequest,
   cancelRequest,
   getApprovalStats,
+  getCapabilityGrants,
+  getCapabilityStatuses,
+  revokeCapabilityGrant,
+  revokeAllCapabilityGrants,
 } from '@/lib/openjarvis-api';
-import type { ApprovalRequest, ApprovalStats, ApprovalStatus } from '@/lib/openjarvis-types';
+import type { ApprovalRequest, ApprovalStats, ApprovalStatus, CapabilityGrant, GrantStatus } from '@/lib/openjarvis-types';
 import { cn } from '@/lib/utils';
 
 const RISK_COLORS: Record<string, string> = {
@@ -51,11 +55,13 @@ function timeAgo(dateStr: string): string {
 function ApprovalCard({
   request,
   onApprove,
+  onAlwaysAllow,
   onReject,
   onCancel,
 }: {
   request: ApprovalRequest;
   onApprove: (id: string) => void;
+  onAlwaysAllow: (id: string) => void;
   onReject: (id: string, response?: string) => void;
   onCancel: (id: string) => void;
 }) {
@@ -140,8 +146,18 @@ function ApprovalCard({
               className="flex items-center gap-1.5 px-3 py-1.5 rounded-md bg-green-600 hover:bg-green-700 text-white text-sm font-medium transition-colors"
             >
               <CheckCircle2 className="w-4 h-4" />
-              Approve
+              Approve Once
             </button>
+            {request.capability && (
+              <button
+                onClick={() => onAlwaysAllow(request.id)}
+                className="flex items-center gap-1.5 px-3 py-1.5 rounded-md bg-emerald-600 hover:bg-emerald-700 text-white text-sm font-medium transition-colors"
+                title="Approve this and create a permanent grant — no future prompts for this capability"
+              >
+                <CheckCircle2 className="w-4 h-4" />
+                Always Allow
+              </button>
+            )}
             {!showRejectInput ? (
               <button
                 onClick={() => setShowRejectInput(true)}
@@ -197,7 +213,7 @@ function ApprovalCard({
 }
 
 export function ApprovalQueue() {
-  const [activeTab, setActiveTab] = useState<'pending' | 'history'>('pending');
+  const [activeTab, setActiveTab] = useState<'pending' | 'history' | 'registry'>('pending');
   const [pending, setPending] = useState<ApprovalRequest[]>([]);
   const [history, setHistory] = useState<ApprovalRequest[]>([]);
   const [stats, setStats] = useState<ApprovalStats | null>(null);
@@ -250,10 +266,21 @@ export function ApprovalQueue() {
   const handleApprove = async (id: string) => {
     setActionLoading(id);
     try {
-      await approveRequest(id);
+      await approveRequest(id, { alwaysAllow: false });
       await fetchPending();
     } catch (err) {
       console.error('Failed to approve:', err);
+    }
+    setActionLoading(null);
+  };
+
+  const handleAlwaysAllow = async (id: string) => {
+    setActionLoading(id);
+    try {
+      await approveRequest(id, { alwaysAllow: true });
+      await fetchPending();
+    } catch (err) {
+      console.error('Failed to always-allow:', err);
     }
     setActionLoading(null);
   };
@@ -336,6 +363,17 @@ export function ApprovalQueue() {
         >
           History
         </button>
+        <button
+          onClick={() => setActiveTab('registry')}
+          className={cn(
+            'px-4 py-2 text-sm font-medium border-b-2 transition-colors',
+            activeTab === 'registry'
+              ? 'border-yellow-500 text-yellow-500'
+              : 'border-transparent text-muted-foreground hover:text-foreground',
+          )}
+        >
+          Registry
+        </button>
       </div>
 
       {/* Content */}
@@ -357,28 +395,164 @@ export function ApprovalQueue() {
                 key={req.id}
                 request={req}
                 onApprove={handleApprove}
+                onAlwaysAllow={handleAlwaysAllow}
                 onReject={handleReject}
                 onCancel={handleCancel}
               />
             ))
           )
-        ) : history.length === 0 ? (
-          <div className="flex flex-col items-center justify-center py-8 text-muted-foreground">
-            <Clock className="w-8 h-8 mb-2 opacity-30" />
-            <p className="text-sm">No approval history</p>
-          </div>
+        ) : activeTab === 'history' ? (
+          history.length === 0 ? (
+            <div className="flex flex-col items-center justify-center py-8 text-muted-foreground">
+              <Clock className="w-8 h-8 mb-2 opacity-30" />
+              <p className="text-sm">No approval history</p>
+            </div>
+          ) : (
+            history.map((req) => (
+              <ApprovalCard
+                key={req.id}
+                request={req}
+                onApprove={handleApprove}
+                onAlwaysAllow={handleAlwaysAllow}
+                onReject={handleReject}
+                onCancel={handleCancel}
+              />
+            ))
+          )
         ) : (
-          history.map((req) => (
-            <ApprovalCard
-              key={req.id}
-              request={req}
-              onApprove={handleApprove}
-              onReject={handleReject}
-              onCancel={handleCancel}
-            />
-          ))
+          <CapabilityRegistryPanel />
         )}
       </div>
+    </div>
+  );
+}
+
+/** Capability Registry Panel — shows all capability grants and their status */
+function CapabilityRegistryPanel() {
+  const [grants, setGrants] = useState<CapabilityGrant[]>([]);
+  const [statuses, setStatuses] = useState<Record<string, { status: GrantStatus; grantId?: string; scopeType?: string }>>({});
+  const [loading, setLoading] = useState(true);
+
+  const fetchGrants = useCallback(async () => {
+    try {
+      const result = await getCapabilityGrants();
+      setGrants(result.items);
+      const s = await getCapabilityStatuses();
+      setStatuses(s);
+    } catch (err) {
+      console.error('Failed to fetch capability grants:', err);
+    }
+    setLoading(false);
+  }, []);
+
+  useEffect(() => { fetchGrants(); }, [fetchGrants]);
+
+  const handleRevoke = async (id: string) => {
+    try {
+      await revokeCapabilityGrant(id);
+      await fetchGrants();
+    } catch (err) {
+      console.error('Failed to revoke grant:', err);
+    }
+  };
+
+  const handleRevokeAll = async (capability: string) => {
+    try {
+      await revokeAllCapabilityGrants(capability);
+      await fetchGrants();
+    } catch (err) {
+      console.error('Failed to revoke all:', err);
+    }
+  };
+
+  const STATUS_COLORS: Record<GrantStatus, string> = {
+    allowed: 'text-green-500',
+    denied: 'text-red-500',
+    undefined: 'text-muted-foreground',
+  };
+
+  const allCapabilities = [
+    'screenshot', 'mouse_move', 'mouse_click', 'mouse_scroll',
+    'key_type', 'key_press', 'clipboard_read', 'clipboard_write',
+    'filesystem_read', 'filesystem_write', 'filesystem_delete',
+    'shell_execute', 'app_launch', 'app_close',
+    'window_list', 'window_focus', 'window_info',
+  ];
+
+  if (loading) {
+    return (
+      <div className="flex items-center justify-center py-8 text-muted-foreground">
+        <Zap className="w-4 h-4 mr-2 animate-pulse" />
+        Loading registry...
+      </div>
+    );
+  }
+
+  return (
+    <div className="space-y-3">
+      <p className="text-xs text-muted-foreground">
+        "The admin is the policy." Every capability starts undefined until you explicitly grant or deny it.
+        Undefined capabilities pause JARVIS and ask you. Revocation takes effect immediately.
+      </p>
+      <div className="space-y-2">
+        {allCapabilities.map((cap) => {
+          const status = statuses[cap];
+          const statusLabel = status?.status || 'undefined';
+          const capGrants = grants.filter(g => g.capability === cap);
+          return (
+            <div key={cap} className="flex items-center justify-between px-3 py-2 rounded-md bg-muted/30 border border-border/50">
+              <div className="flex items-center gap-3">
+                <span className="font-mono text-sm">{cap}</span>
+                <span className={cn('text-xs font-medium uppercase', STATUS_COLORS[statusLabel])}>
+                  {statusLabel}
+                </span>
+                {status?.scopeType && status.scopeType !== 'permanent' && (
+                  <span className="text-xs text-muted-foreground">({status.scopeType})</span>
+                )}
+                {capGrants.length > 0 && (
+                  <span className="text-xs text-muted-foreground">{capGrants.length} grant(s)</span>
+                )}
+              </div>
+              {capGrants.length > 0 && (
+                <div className="flex gap-1">
+                  <button
+                    onClick={() => handleRevokeAll(cap)}
+                    className="flex items-center gap-1 px-2 py-1 rounded text-xs bg-red-500/10 text-red-500 hover:bg-red-500/20 transition-colors"
+                  >
+                    <Trash2 className="w-3 h-3" />
+                    Revoke All
+                  </button>
+                </div>
+              )}
+            </div>
+          );
+        })}
+      </div>
+      {grants.length > 0 && (
+        <div className="mt-4">
+          <h4 className="text-sm font-medium mb-2">Active Grants ({grants.length})</h4>
+          <div className="space-y-1">
+            {grants.map((g) => (
+              <div key={g.id} className="flex items-center justify-between px-3 py-1.5 rounded bg-muted/20 text-xs">
+                <div className="flex items-center gap-2">
+                  <span className={cn('font-medium', g.allowed ? 'text-green-500' : 'text-red-500')}>
+                    {g.allowed ? 'ALLOW' : 'DENY'}
+                  </span>
+                  <span className="font-mono">{g.capability}</span>
+                  <span className="text-muted-foreground">{g.scopeType}</span>
+                  <span className="text-muted-foreground">via {g.source}</span>
+                </div>
+                <button
+                  onClick={() => handleRevoke(g.id)}
+                  className="text-muted-foreground hover:text-red-500 transition-colors"
+                >
+                  <Trash2 className="w-3 h-3" />
+                </button>
+              </div>
+            ))}
+          </div>
+        </div>
+      )}
     </div>
   );
 }

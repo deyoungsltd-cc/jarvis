@@ -393,7 +393,7 @@ describe('Phase 10 — Approval Gate', () => {
     expect(result.proceed).toBe(true);
   });
 
-  it('allows medium-risk tools without approval (no hard-blocked capability)', async () => {
+  it('tools WITH undefined capability pause and ask (Authorization Model: undefined ≠ allowed)', async () => {
     const result = await checkApprovalGate({
       toolName: 'screenshot',
       riskLevel: 'medium',
@@ -403,7 +403,10 @@ describe('Phase 10 — Approval Gate', () => {
       requestId: 'test',
     });
 
-    expect(result.proceed).toBe(true);
+    // Authorization Model: capability is undefined → pause and ask, NOT auto-proceed
+    expect(result.proceed).toBe(false);
+    expect(result.status).toBe('waiting_approval');
+    expect(result.reason).toContain('not yet granted');
   });
 
   it('requires approval for hard-blocked capabilities', async () => {

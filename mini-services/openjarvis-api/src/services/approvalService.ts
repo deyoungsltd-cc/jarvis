@@ -122,7 +122,19 @@ export const approvalService = {
   // Approve / Reject / Cancel
   // =================================================================
 
-  async approve(id: string, resolvedBy: string = 'user', response?: string, requestId: string = '-') {
+  /**
+   * Approve a pending request.
+   *
+   * Authorization Model: "approve once" vs "always allow"
+   *  - alwaysAllow=false (default): approve this instance only. Capability stays undefined for next time.
+   *  - alwaysAllow=true: approve AND write a permanent capability grant to the registry.
+   *    No future prompt for the same capability.
+   *
+   * This is the mechanism that prevents repeated approvals from turning into
+   * reflexive rubber-stamping — you should only be asked once per capability
+   * you actually want to keep controlling manually.
+   */
+  async approve(id: string, resolvedBy: string = 'user', response?: string, requestId: string = '-', options?: { alwaysAllow?: boolean }) {
     const request = await db.approvalRequest.findUnique({ where: { id } });
     if (!request) throw new Error(`Approval request not found: ${id}`);
     if (request.status !== 'pending') {
@@ -145,12 +157,39 @@ export const approvalService = {
       },
     });
 
-    logger.info(requestId, `Approval request ${id} APPROVED by ${resolvedBy}`);
-    eventBus.emit('approval:resolved', { id, missionId: request.missionId, status: 'approved', toolName: request.toolName, resolvedBy });
+    // Authorization Model: if "always allow", create a permanent capability grant
+    let grantCreated = false;
+    if (options?.alwaysAllow && request.capability) {
+      try {
+        const { capabilityRegistry } = await import('./capabilityRegistry.js');
+        await capabilityRegistry.grant({
+          capability: request.capability,
+          allowed: true,
+          scopeType: 'permanent',
+          source: 'approval_always_allow',
+          approvalRequestId: id,
+        }, requestId);
+        grantCreated = true;
+        logger.info(requestId, `Approval request ${id}: "always allow" — created permanent grant for capability '${request.capability}'`);
+      } catch (grantErr: any) {
+        logger.error(requestId, `Approval request ${id}: failed to create capability grant: ${grantErr.message}`);
+        // Don't fail the approval itself — the one-time approval still stands
+      }
+    }
+
+    logger.info(requestId, `Approval request ${id} APPROVED by ${resolvedBy}${grantCreated ? ' (always allow)' : ' (once)'}`);
+    eventBus.emit('approval:resolved', { id, missionId: request.missionId, status: 'approved', toolName: request.toolName, resolvedBy, alwaysAllow: grantCreated });
 
     return this._toPublic(updated);
   },
 
+  /**
+   * Reject a pending request.
+   *
+   * Authorization Model: On denial, the mission step is marked failed/blocked,
+   * logged with full context. JARVIS does not re-attempt the same action through
+   * a different route without a fresh request.
+   */
   async reject(id: string, resolvedBy: string = 'user', response?: string, requestId: string = '-') {
     const request = await db.approvalRequest.findUnique({ where: { id } });
     if (!request) throw new Error(`Approval request not found: ${id}`);

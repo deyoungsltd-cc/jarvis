@@ -63,12 +63,17 @@ router.get('/:id', async (req: Request, res: Response, next: NextFunction) => {
   } catch (err) { next(err); }
 });
 
-/** POST /approvals/:id/approve — approve a pending request */
+/** POST /approvals/:id/approve — approve a pending request
+ *
+ * Authorization Model: supports "approve once" vs "always allow"
+ *  - { alwaysAllow: false } (default) — approve this instance only
+ *  - { alwaysAllow: true } — approve + create permanent capability grant
+ */
 router.post('/:id/approve', async (req: Request, res: Response, next: NextFunction) => {
   try {
     const requestId = (req as Record<string, unknown>).requestId as string;
-    const { resolvedBy = 'user', response } = req.body;
-    const result = await approvalService.approve(req.params.id, resolvedBy, response, requestId);
+    const { resolvedBy = 'user', response, alwaysAllow } = req.body;
+    const result = await approvalService.approve(req.params.id, resolvedBy, response, requestId, { alwaysAllow });
     res.json(result);
   } catch (err) { next(err); }
 });

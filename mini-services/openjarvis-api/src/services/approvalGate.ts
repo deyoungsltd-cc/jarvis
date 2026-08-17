@@ -1,23 +1,25 @@
 /**
- * Approval Gate — Phase 10
+ * Approval Gate — Phase 10 Authorization Model
  *
- * Called by the agent loop before executing a tool.
- * Determines if a tool call requires approval:
- *  1. Check auto-approval rules first (high priority rules first)
- *  2. If no rule matches or rule says require_manual, check risk level
- *  3. hard-blocked capabilities always require manual approval (unless auto-approved by rule)
- *  4. high/critical risk tools require approval unless auto-approved
- *  5. low/medium risk tools with granted capabilities proceed normally
+ * Implements the authorization flow from the spec:
+ *   1. Check auto-approval rules first (highest priority — admin-configured policy overrides)
+ *   2. If no rule matches, check the capability registry:
+ *      - ALLOWED → execute immediately
+ *      - DENIED → block (no retry, no workaround)
+ *      - UNDEFINED → pause and ask the admin
+ *   3. For tools without a capability (e.g. web_search, memory tools),
+ *      fall back to risk-level-based gating:
+ *      - low/medium → proceed
+ *      - high/critical → pause and ask
  *
  * Returns:
  *  - { proceed: true } — tool can execute
- *  - { proceed: false, approvalId: string, status: 'waiting_approval' } — mission must pause
- *  - { proceed: false, status: 'blocked', reason: string } — tool is blocked (auto-rejected)
+ *  - { proceed: false, approvalId, status: 'waiting_approval' } — mission must pause
+ *  - { proceed: false, status: 'blocked', reason } — tool is blocked (denied or auto-rejected)
  */
 import { approvalService } from './approvalService.js';
-import { getHardBlockedCapabilities } from '../agent/permissions/types.js';
+import { capabilityRegistry } from './capabilityRegistry.js';
 import { logger } from '../utils/logger.js';
-import { eventBus } from '../utils/eventBus.js';
 
 export interface ApprovalGateResult {
   proceed: boolean;
@@ -38,7 +40,7 @@ export interface ApprovalGateInput {
 export async function checkApprovalGate(input: ApprovalGateInput): Promise<ApprovalGateResult> {
   const { toolName, riskLevel, capability, toolInput, missionId, requestId } = input;
 
-  // Step 1: Check auto-approval rules
+  // Step 1: Check auto-approval rules (admin-configured policy)
   const autoResult = await approvalService.checkAutoApproval(
     toolName,
     riskLevel,
@@ -56,20 +58,45 @@ export async function checkApprovalGate(input: ApprovalGateInput): Promise<Appro
     return { proceed: false, status: 'blocked', reason: autoResult.reason };
   }
 
-  // Step 2: Determine if manual approval is required
-  const needsApproval =
-    // Hard-blocked capabilities always need approval
-    (capability && getHardBlockedCapabilities().has(capability)) ||
-    // High and critical risk tools need approval
-    riskLevel === 'high' || riskLevel === 'critical';
+  // Step 2: If this tool has a capability, check the capability registry
+  if (capability) {
+    const capResult = await capabilityRegistry.check(capability, {
+      missionId,
+      toolInput,
+    }, requestId);
 
-  if (!needsApproval) {
+    if (capResult.status === 'allowed') {
+      logger.info(requestId, `Approval gate: capability '${capability}' is ALLOWED by grant ${capResult.grantId}`);
+      return { proceed: true };
+    }
+
+    if (capResult.status === 'denied') {
+      logger.warn(requestId, `Approval gate: capability '${capability}' is DENIED by grant ${capResult.grantId}`);
+      return {
+        proceed: false,
+        status: 'blocked',
+        reason: `Capability '${capability}' has been explicitly denied by admin. ${capResult.reason}`,
+      };
+    }
+
+    // UNDEFINED — fall through to create approval request (pause and ask)
+    logger.info(requestId, `Approval gate: capability '${capability}' is UNDEFINED. Pausing to ask admin.`);
+  }
+
+  // Step 3: No auto-rule matched and capability is undefined (or no capability).
+  // Use risk-level-based fallback for tools without capabilities.
+  // For tools WITH capabilities that are undefined, always pause (never auto-proceed).
+  const needsManualApproval = capability
+    ? true // undefined capability → always ask
+    : (riskLevel === 'high' || riskLevel === 'critical'); // no capability → risk-based fallback
+
+  if (!needsManualApproval) {
     return { proceed: true };
   }
 
-  // Step 3: Create approval request and pause mission
+  // Step 4: Create approval request and pause mission
   const reason = capability
-    ? `Tool '${toolName}' requires capability '${capability}' which needs approval`
+    ? `Tool '${toolName}' requires capability '${capability}' which is not yet granted. Admin decision needed.`
     : `Tool '${toolName}' has risk level '${riskLevel}' which requires manual approval`;
 
   try {

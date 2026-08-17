@@ -142,6 +142,31 @@ model ApprovalRequest {
   @@map("approval_requests")
 }
 
+// ===========================================
+// Phase 10 — Authorization Model: Capability Registry
+// "The admin is the policy" — flat, admin-editable list.
+// Undefined ≠ denied: undefined pauses and asks.
+// Separate from tools table; grants persist independently.
+// ===========================================
+
+model CapabilityGrant {
+  id          String   @id @default(uuid())
+  capability  String   // capability_id — e.g. "filesystem_write", "shell_execute"
+  allowed     Boolean  @default(true) // true=granted, false=explicitly denied
+  scopeType   String   @default("permanent") // permanent|mission|session
+  scopeContext String?  // JSON string — optional scope constraint (e.g. {"pathPrefix":"/projects/"})
+  missionId   String?  // for mission-scoped grants
+  source      String   @default("manual") // manual|approval_always_allow
+  approvalRequestId String? // link back to the approval that created this grant
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+
+  @@index([capability])
+  @@index([allowed])
+  @@index([scopeType])
+  @@map("capability_grants")
+}
+
 model ApprovalRule {
   id          String   @id @default(uuid())
   name        String   @unique

@@ -198,3 +198,32 @@ Stage Summary:
 - Rules support: risk level matching, tool name exact/wildcard matching, capability matching, combined conditions, priority ordering, disabled state
 - Approval TTL defaults to 300s (5 min), configurable per request
 - Frontend shows approval queue as a tab with pending count badge
+---
+Task ID: 10
+Agent: main
+Task: Implement Phase 10 Authorization Model ("The admin is the policy")
+
+Work Log:
+- Explored existing codebase: found Phase 10 approval workflow existed but lacked the core Authorization Model
+- Added `capability_grants` table to Prisma schema with proper indexing
+- Created `capabilityRegistry` service (DB-backed, replaces in-memory PermissionManager)
+- Rewrote `approvalGate.ts` to implement the 3-state authorization flow: allowed→execute, denied→block, undefined→ask
+- Updated `approvalService.approve()` to support `alwaysAllow` option (creates permanent grant)
+- Added `/capabilities` REST routes (CRUD + statuses + revoke-all)
+- Updated `/permissions` routes to use DB-backed registry
+- Updated `/approvals/:id/approve` route to accept `alwaysAllow` body param
+- Updated frontend: `ApprovalQueue` now has "Approve Once" + "Always Allow" buttons + "Registry" tab
+- Added `CapabilityRegistryPanel` component showing all 17 capabilities with status
+- Added API client functions and TypeScript types for capability grants
+- Wrote 31 new Authorization Model tests covering: CRUD, 3-state check, scoped grants, scope context, gate integration, approve-once vs always-allow, immediate revocation
+- Fixed 1 existing test that relied on pre-authorization-model behavior
+- Full test suite: 289 pass, 0 fail
+
+Stage Summary:
+- The Authorization Model is now fully implemented per spec
+- Core principle: "JARVIS has no opinions about what it should or shouldn't do beyond what you've configured"
+- Three states: undefined (pause+ask), allowed (execute), denied (block)
+- "Always Allow" button creates permanent grants so admin is only asked once per capability
+- Revocation takes immediate effect including for in-progress missions
+- Scoped grants support (permanent, mission, session) with scope context (pathPrefix, domain)
+- All 289 tests pass

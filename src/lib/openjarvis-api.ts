@@ -296,10 +296,10 @@ export function getApproval(id: string): Promise<ApprovalRequest> {
   return request(`/approvals/${id}`);
 }
 
-export function approveRequest(id: string, response?: string): Promise<ApprovalRequest> {
+export function approveRequest(id: string, options?: { response?: string; alwaysAllow?: boolean }): Promise<ApprovalRequest> {
   return request(`/approvals/${id}/approve`, {
     method: 'POST',
-    body: JSON.stringify({ response }),
+    body: JSON.stringify(options || {}),
   });
 }
 
@@ -346,4 +346,48 @@ export function updateApprovalRule(id: string, data: Partial<Omit<ApprovalRule, 
 
 export function deleteApprovalRule(id: string): Promise<{ deleted: boolean }> {
   return request(`/approvals/rules/${id}`, { method: 'DELETE' });
+}
+
+// ─── Capability Grants (Authorization Model) ──────────
+export function getCapabilityGrants(filters?: { capability?: string; allowed?: boolean; scopeType?: string; limit?: number; offset?: number }) {
+  const params = new URLSearchParams();
+  if (filters?.capability) params.set('capability', filters.capability);
+  if (filters?.allowed !== undefined) params.set('allowed', String(filters.allowed));
+  if (filters?.scopeType) params.set('scopeType', filters.scopeType);
+  if (filters?.limit) params.set('limit', String(filters.limit));
+  if (filters?.offset) params.set('offset', String(filters.offset));
+  const qs = params.toString();
+  return request(`/capabilities/grants${qs ? `?${qs}` : ''}`);
+}
+
+export function getCapabilityStatuses() {
+  return request('/capabilities/statuses');
+}
+
+export function createCapabilityGrant(data: {
+  capability: string;
+  allowed: boolean;
+  scopeType?: string;
+  scopeContext?: Record<string, unknown>;
+  missionId?: string;
+}) {
+  return request('/capabilities/grants', {
+    method: 'POST',
+    body: JSON.stringify(data),
+  });
+}
+
+export function updateCapabilityGrant(id: string, data: { allowed?: boolean; scopeType?: string; scopeContext?: Record<string, unknown> | null }) {
+  return request(`/capabilities/grants/${id}`, {
+    method: 'PATCH',
+    body: JSON.stringify(data),
+  });
+}
+
+export function revokeCapabilityGrant(id: string) {
+  return request(`/capabilities/grants/${id}`, { method: 'DELETE' });
+}
+
+export function revokeAllCapabilityGrants(capability: string) {
+  return request(`/capabilities/grants/${capability}/revoke-all`, { method: 'DELETE' });
 }
