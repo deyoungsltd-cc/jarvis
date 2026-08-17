@@ -1,0 +1,70 @@
+generator client {
+  provider = "prisma-client-js"
+  output   = "../node_modules/.prisma/client"
+}
+
+datasource db {
+  provider = "sqlite"
+  url      = env("DATABASE_URL")
+}
+
+// ===========================================
+// Core Tables — match the Phase 1 spec exactly
+// ===========================================
+
+model Mission {
+  id        String   @id @default(uuid())
+  owner     String   @default("default")
+  goal      String
+  status    String   @default("draft") // draft|queued|running|waiting_approval|paused|blocked|failed|completed|cancelled|expired
+  plan      String?  // JSON string — stored as text in SQLite, parsed in app layer
+  riskLevel String?  @default("low") // low|medium|high|critical
+  budget    Int      @default(100000) // max token budget
+  maxToolCalls Int   @default(50) // max tool calls per mission
+  toolCallCount Int  @default(0) // actual tool calls made
+  tokenUsage    Int  @default(0) // approximate tokens consumed
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  events MissionEvent[]
+
+  @@map("missions")
+}
+
+model MissionEvent {
+  id        String   @id @default(uuid())
+  missionId String
+  type      String   // interpret|context_retrieval|plan|risk_check|tool_select|tool_execute|observe|verify|memory_update|adapt|escalate|complete|error|budget_exceeded
+  payload   String?  // JSON string
+  createdAt DateTime @default(now())
+
+  mission   Mission  @relation(fields: [missionId], references: [id], onDelete: Cascade)
+
+  @@index([missionId])
+  @@map("mission_events")
+}
+
+model Tool {
+  id          String   @id @default(uuid())
+  name        String   @unique
+  description String
+  inputSchema String?  // JSON string — JSON Schema for tool input
+  outputSchema String? // JSON string — JSON Schema for tool output
+  riskLevel   String   @default("low") // low|medium|high|critical
+  enabled     Boolean  @default(true)
+  createdAt   DateTime @default(now())
+
+  @@map("tools")
+}
+
+model MemoryEntry {
+  id        String   @id @default(uuid())
+  scope     String   // working|episodic|semantic|preference|project
+  key       String
+  value     String?  // JSON string
+  createdAt DateTime @default(now())
+
+  @@index([scope])
+  @@index([key])
+  @@map("memory_entries")
+}
