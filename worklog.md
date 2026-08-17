@@ -130,3 +130,40 @@ Stage Summary:
 - Key architecture: Expo SDK 57, API key auth, SSE streaming, AsyncStorage persistence, 5-tab navigation
 - Mobile app connects to existing /mobile/v1 backend endpoints (no backend changes needed)
 - BUILD_STATE.md updated with Phase 7 mobile completion
+
+---
+Task ID: 8
+Agent: main
+Task: OpenJarvis Phase 8 — MCP / Plugin System
+
+Work Log:
+- Added McpServer table: name (unique), transport (stdio|sse|in-process), command, args (JSON array), url, env (JSON object), enabled, status (disconnected|connecting|connected|error), lastError, toolCount, connectedAt
+- Added McpTool table: serverId FK, name (namespaced "mcp__servername__toolname"), mcpName (original), description, inputSchema (JSON), riskLevel (default medium), enabled; unique constraint on (serverId, mcpName)
+- Created MCP types (src/mcp/types.ts): JSON-RPC 2.0 request/response, MCP protocol types (initialize, listTools, callTool, tool definition), server config, transport interface, plugin manager types
+- Built McpProtocolClient (src/mcp/mcpClient.ts): JSON-RPC 2.0 over transport, initialize with client info, listTools, callTool with typed responses, McpError class
+- Built 3 transport implementations (src/mcp/transports.ts):
+  - StdioTransport: spawns child process, stdin/stdout JSON-RPC, stderr logging, 10s connect timeout, 30s request timeout, pending request map with timeout cleanup
+  - SseTransport: HTTP SSE connect, parses endpoint event, POST for requests, session ID tracking
+  - InProcessTransport: in-memory tool collection, synchronous JSON-RPC handling, perfect for testing and built-in plugins
+- Built MCP Plugin Manager (src/mcp/pluginManager.ts):
+  - Server CRUD (DB-backed): createServer, listServers, getServer, updateServer, deleteServer with validation (transport/command/url requirements)
+  - Connection lifecycle: connectServer (transport creation → initialize → listTools → syncTools → status update), disconnectServer, error handling with status tracking
+  - Tool sync: _syncTools deletes old tools, creates new McpTool records with namespaced names (mcp__servername__toolname)
+  - Tool bridging: buildToolHandlers() creates ToolHandler[] from all connected MCP servers, each handler calls client.callTool() and extracts text content from MCP response
+  - Status: getStatus returns totalServers, connected, error, totalMcpTools counts
+  - In-process registration: registerInProcess for testing/built-in plugins
+- Built REST API (src/routes/mcp.ts): 8 endpoints
+  - GET/POST /mcp/servers (list, create), GET/PATCH/DELETE /mcp/servers/:id (CRUD)
+  - POST /mcp/servers/:id/connect, /mcp/servers/:id/disconnect (lifecycle)
+  - GET /mcp/servers/:id/tools, GET /mcp/tools (tool listing)
+  - GET /mcp/status (system status)
+- Wired /mcp routes into index.ts Express app
+- 36/36 Phase 8 tests pass covering: MCP types (3), In-Process Transport (9), Protocol Client (4), Plugin Manager CRUD (9), In-Process Connect (4), buildToolHandlers (3), Status (1), McpError (1)
+
+Stage Summary:
+- Phase 8 complete with 36/36 tests passing
+- 269 total tests pass (214 backend + 55 mobile)
+- Key architecture: JSON-RPC 2.0 over 3 transports, DB-backed plugin registry, namespaced tool bridging into existing ToolRegistry
+- MCP tools default to "medium" risk level (external code)
+- Stdio transport ready for npx/node based MCP servers (e.g. @anthropic/mcp-server-*), SSE transport ready for remote MCP servers
+- BUILD_STATE.md updated with Phase 8 completion

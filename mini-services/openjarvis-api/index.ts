@@ -12,6 +12,7 @@ import permissionRoutes from './src/routes/permissions.js';
 import voiceRoutes from './src/routes/voice.js';
 import mobileRoutes from './src/routes/mobile.js';
 import mobileAdminRoutes from './src/routes/mobileAdmin.js';
+import mcpRoutes from './src/routes/mcp.js';
 import { logger } from './src/utils/logger.js';
 import { setSocketIO } from './src/utils/eventBus.js';
 
@@ -33,6 +34,7 @@ app.use('/permissions', permissionRoutes);
 app.use('/voice', voiceRoutes);
 app.use('/mobile/v1', mobileRoutes);
 app.use('/mobile/admin', mobileAdminRoutes);
+app.use('/mcp', mcpRoutes);
 
 app.use((_req, res) => {
   const requestId = (_req as Record<string, unknown>).requestId as string || '-';

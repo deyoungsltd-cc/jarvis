@@ -114,3 +114,51 @@ model MobileClient {
   @@index([platform])
   @@map("mobile_clients")
 }
+
+// ===========================================
+// Phase 8 — MCP / Plugin System
+// ===========================================
+
+model McpServer {
+  id          String   @id @default(uuid())
+  name        String   @unique
+  description String?
+  transport   String   // "stdio" | "sse" | "in-process"
+  command     String?  // for stdio: executable path
+  args        String?  // for stdio: JSON array string of args
+  url         String?  // for sse: server URL
+  env         String?  // JSON object string of env vars for stdio
+  enabled     Boolean  @default(true)
+  status      String   @default("disconnected") // disconnected|connecting|connected|error
+  lastError   String?
+  toolCount   Int      @default(0)
+  connectedAt DateTime?
+  createdAt   DateTime  @default(now())
+  updatedAt   DateTime  @updatedAt
+
+  tools       McpTool[]
+
+  @@index([status])
+  @@index([enabled])
+  @@map("mcp_servers")
+}
+
+model McpTool {
+  id          String    @id @default(uuid())
+  serverId    String
+  name        String    // e.g. "mcp__servername__toolname"
+  mcpName     String    // original tool name from MCP server
+  description String?
+  inputSchema String?   // JSON string — JSON Schema
+  riskLevel   String    @default("medium") // MCP tools default to medium risk
+  enabled     Boolean   @default(true)
+  createdAt   DateTime  @default(now())
+  updatedAt   DateTime  @updatedAt
+
+  server      McpServer @relation(fields: [serverId], references: [id], onDelete: Cascade)
+
+  @@unique([serverId, mcpName])
+  @@index([serverId])
+  @@index([name])
+  @@map("mcp_tools")
+}
