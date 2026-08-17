@@ -1,7 +1,7 @@
 # OpenJarvis Build State
 
 ## Current Phase
-Phase 4 — Computer Control (COMPLETED)
+Phase 5 — Voice (COMPLETED)
 
 ## Completed Milestones
 - **Phase 0 — Discovery** (2026-08-17)
@@ -22,17 +22,44 @@ Phase 4 — Computer Control (COMPLETED)
 
 - **Phase 2 — Agent Runtime Core** (2026-08-17)
   - Model provider abstraction (`ModelProvider` interface) with Gemini + Groq adapters
-   - Swapping Gemini ↔ Groq requires zero changes outside the adapter
-   - Tool registry with `web_search` tool fully wired (z-ai-web-dev-sdk)
-   - Tool execution: input/output schema validation, timeout, retry with backoff, audit log
-   - Agent loop implements all Section 4.1 states as real code paths:
+  - Swapping Gemini ↔ Groq requires zero changes outside the adapter
+  - Tool registry with `web_search` tool fully wired (z-ai-web-dev-sdk)
+  - Tool execution: input/output schema validation, timeout, retry with backoff, audit log
+  - Agent loop implements all Section 4.1 states as real code paths:
     `interpret → context_retrieval → plan → risk_check → tool_select → tool_execute → observe → verify → memory_update → complete`
   - Mission state machine with guarded transitions (10 statuses, VALID_TRANSITIONS map)
   - Budget/iteration cap: missions halt and go `blocked` when token budget or tool-call limit exceeded
   - Agent execution endpoint: `POST /agent/run`
   - Transitions endpoint: `GET /agent/transitions`
-  - **23/23 Phase 2 tests pass** (state machine, tool registry with retry/timeout/audit, event trail, budget guard)
-  - **46/46 total tests pass**
+  - **23/23 Phase 2 tests pass**
+
+- **Phase 3 — UI** (2026-08-17)
+  - Dashboard at `/` with real-time WebSocket updates (Socket.IO on port 3002)
+  - Goal input creates real missions, agent loop streams events to timeline
+  - Connection banner shows real backend status
+  - Keyboard-only navigation verified
+  - No hardcoded placeholder data
+
+- **Phase 4 — Computer Control** (2026-08-17)
+  - Permission system with 17 capabilities, per-capability grants checked at execution time
+  - 17 computer-control tools with real schemas and permission checks
+  - Verification loop: screenshot_diff for UI tools, output_check for others
+  - GUI-dependent tools return honest ENVIRONMENT_UNAVAILABLE errors
+  - Hard-block: `filesystem_delete` and `shell_execute` always require approval
+  - **23/23 Phase 4 tests pass**
+
+- **Phase 5 — Voice** (2026-08-17)
+  - Voice provider abstraction (`VoiceProvider` interface) mirroring ModelProvider pattern
+  - 3 adapters: BrowserRelayProvider (always available), GeminiVoiceProvider (STT via multimodal), GroqVoiceProvider (STT via Whisper)
+  - Browser STT/TTS via Web Speech API (SpeechRecognition + SpeechSynthesis)
+  - Voice session management with guarded state transitions (idle/listening/processing/speaking/error)
+  - REST API: `GET /voice/status`, `POST /voice/provider`, `POST /voice/stt`, `POST /voice/tts`, CRUD `/voice/sessions`
+  - WebSocket voice events: `subscribe:voice`, `voice:transcript`, `voice:status`
+  - Frontend: VoiceControl component with mic button, audio level visualization, transcript history, TTS toggle
+  - Voice → mission bridge: voice transcripts create real missions via `createMission` + `runAgent`
+  - `.env.example` updated with VOICE_PROVIDER, VOICE_LANGUAGE, VOICE_TTS_VOICE, VOICE_MAX_AUDIO_SIZE, WS_PORT
+  - **41/41 Phase 5 tests pass**
+  - **110/110 total tests pass** (Phase 1-5)
 
 ## Acceptance Criteria Checklist
 
@@ -55,28 +82,52 @@ Phase 4 — Computer Control (COMPLETED)
 - [x] A mission's full event trail (interpret → plan → tool calls → observe → complete) is visible in `mission_events`
 - [x] Budget/iteration cap tested — mission tracks counters; agent loop halts and marks `blocked` if exceeded
 - [x] No mocked model responses or hardcoded "success" in Phase 2 code
-- [ ] **End-to-end test with a real model call** — BLOCKED: no `GEMINI_API_KEY` or `GROQ_API_KEY` in this environment. The code path is complete and tested up to the model adapter boundary. Supply keys via `.env` and run `POST /agent/run` with a real mission to close this criterion.
+- [ ] **End-to-end test with a real model call** — BLOCKED: no `GEMINI_API_KEY` or `GROQ_API_KEY` in this environment.
+
+### Phase 3
+- [x] Submitting a goal in the UI creates a real mission row and the UI updates live via WebSocket
+- [x] Killing the backend mid-mission shows the UI reflect a real disconnected/error state
+- [x] Keyboard-only navigation reaches every primary action
+- [x] No component renders with hardcoded placeholder data
+
+### Phase 4
+- [x] Permission system with 17 capabilities, hard-block list, grant/revoke API
+- [x] 17 computer-control tools with real schemas and real permission checks
+- [x] Verification loop architecture (screenshot_diff for UI, output_check for others)
+- [x] GUI-dependent tools return honest ENVIRONMENT_UNAVAILABLE errors, not fake success
+- [x] Filesystem read/write tools execute against real files
+
+### Phase 5
+- [x] VoiceProvider interface with provider-abstracted STT/TTS (same pattern as ModelProvider)
+- [x] Swapping voice providers (browser/gemini/groq) requires no changes outside the adapter
+- [x] Browser-native STT via SpeechRecognition API, TTS via SpeechSynthesis API
+- [x] Gemini STT adapter: audio → Gemini multimodal → transcript (code path complete, blocked on API key for E2E)
+- [x] Groq STT adapter: audio → Groq Whisper → transcript (code path complete, blocked on API key for E2E)
+- [x] Voice session management with guarded state transitions (5 states, valid transition map)
+- [x] REST API: status, provider switch, STT, TTS, session CRUD, transcript, status update
+- [x] WebSocket voice events: session subscription, transcript relay, status broadcast
+- [x] Frontend VoiceControl component: mic button, audio level bars, transcript history, TTS toggle
+- [x] Voice → mission bridge: browser transcript creates real mission via API
+- [x] 41/41 Phase 5 tests pass
+- [ ] **E2E voice test with real Gemini/Groq STT** — BLOCKED: no API keys in environment
 
 ## Known Failures / Blockers
 - Supabase specified in master spec but sandbox provides SQLite/Prisma; schema matches spec exactly, swap via `datasource` + `DATABASE_URL`
 - Groq limitation: structured output and function calling cannot be used simultaneously (adapter handles this)
-- **No API keys in environment** — end-to-end model call test blocked until `GEMINI_API_KEY` or `GROQ_API_KEY` is provided in `.env`
+- **No API keys in environment** — E2E model call and E2E voice STT tests blocked until keys provided
 - Module system: ESM (`"type": "module"`) used instead of CommonJS due to Bun/Next.js sandbox; switch to CJS for standalone Node.js deployment
+- Tauri desktop shell deferred — no Rust toolchain in sandbox
 
 ## Last Verified Working
 - Express API server boots on port 3001, health check returns real DB status
-- **69/69 tests pass** (`bun test tests/` in `mini-services/openjarvis-api/`)
-- All CRUD operations verified via curl: missions, events, tools, memory
-- Structured error format confirmed on 404, validation, and conflict errors
-- State machine rejects invalid transitions (e.g., `completed → running`)
-- Tool registry: retry, timeout, audit log, input validation all verified
-- Dashboard renders with live data: "Connected" status, real missions list, real empty states
-- Permission system: hard-block returns `requires_approval`, grant/revoke works at execution time
-- Filesystem read/write tools execute against real files
-- Verification loop: screenshot_diff for UI tools, output_check for others
+- **110/110 tests pass** (`bun test tests/` in `mini-services/openjarvis-api/`)
+- Voice system: browser provider active, session CRUD, status transitions, transcript management
+- Voice REST API: `/voice/status`, `/voice/stt`, `/voice/tts`, `/voice/sessions` all verified via curl
+- Dashboard renders with Voice Input card, mic button, audio visualization
+- All previous phases verified: missions, events, tools, memory, permissions, computer-control
 
 ## Next Action
-Phase 4 complete. Ready for Phase 5 (Voice) spec execution when requested. Note: Tauri desktop shell deferred — no Rust toolchain in sandbox. GUI-dependent tools (screenshot, mouse, keyboard) return honest ENVIRONMENT_UNAVAILABLE errors, not fake success.
+Phase 5 complete. Ready for Phase 6 (Memory) spec execution when requested.
 
 ## Architecture Decisions Log
 - 2026-08-17: Pinned stack per Phase 0-2 spec (TS/Express/Prisma-SQLite-local/Gemini+Groq)
@@ -88,40 +139,19 @@ Phase 4 complete. Ready for Phase 5 (Voice) spec execution when requested. Note:
 - 2026-08-17: Agent loop is synchronous — streams results via mission_events + WebSocket
 - 2026-08-17: Budget guard checks both token budget and tool-call count
 - 2026-08-17: **Phase 3-12 pinned decisions**: pnpm workspaces + Turborepo, Tauri (desktop), React Native (mobile), Twilio (telephony), provider-abstracted voice
-- 2026-08-17: WebSocket (Socket.IO) on port 3002 for real-time mission events
+- 2026-08-17: WebSocket (Socket.IO) on port 3002 for real-time mission + voice events
 - 2026-08-17: UI built within Next.js 16 app at `/` (React+TS+Tailwind+shadcn/ui)
-- 2026-08-17: Avatar deferred — simple state-driven icon/color per mission status
 - 2026-08-17: **Phase 4**: Permission system with 17 capabilities, per-capability grants checked at execution time
-- 2026-08-17: **Phase 4**: Hard-block list enforced via `getHardBlockedCapabilities()` (returns fresh Set to avoid Bun ESM singleton issues)
-- 2026-08-17: **Phase 4**: 17 computer-control tools with real schemas, real permission checks
-- 2026-08-17: **Phase 4**: Verification loop architecture — screenshot_diff for UI tools, output_check for others
-- 2026-08-17: **Phase 4**: GUI-dependent tools (screenshot, mouse, keyboard) return honest ENVIRONMENT_UNAVAILABLE, not fake success
-- 2026-08-17: **Phase 4**: `filesystem_delete` and `shell_execute` return `requires_approval` even if permission granted — double protection
-- 2026-08-17: **Phase 4**: Permission API (`/permissions/grant`, `/permissions/revoke`, `GET /permissions`) wired into Express
-- 2026-08-17: **Phase 4**: Permissions API client added to frontend `openjarvis-api.ts`
-
-## Next Action
-Phase 3 complete. Ready for Phase 4 (Computer Control) spec execution when requested.
-
-## Phase 3 Acceptance Criteria
-- [x] Submitting a goal in the UI creates a real mission row and the UI updates live via WebSocket as the agent loop progresses (verified: goal input → POST /missions → POST /agent/run → WebSocket events stream to timeline)
-- [x] Killing the backend mid-mission shows the UI reflect a real disconnected/error state (verified: "Backend unavailable" banner with actual error, not a frozen spinner)
-- [x] Keyboard-only navigation reaches every primary action (verified: Tab through goal input, submit, tab navigation, Settings)
-- [x] No component renders with hardcoded placeholder data (verified: "No missions yet" and "No active mission" are real empty states from live API calls)
-
-## Architecture Decisions Log
-- 2026-08-17: Pinned stack per Phase 0-2 spec (TS/Express/Prisma-SQLite-local/Gemini+Groq)
-- 2026-08-17: Using Prisma ORM locally (SQLite) with schema matching Supabase Postgres design; migration to Supabase requires only `datasource` + `DATABASE_URL` change
-- 2026-08-17: Express backend runs as a mini-service on port 3001 per sandbox architecture rules
-- 2026-08-17: ESM module system (`"type": "module"`) for Bun compatibility; CJS for standalone deployment
-- 2026-08-17: Model provider abstraction uses a factory pattern (`createModelProvider('gemini'|'groq')`); adapters use `require()` for SDK imports to handle missing packages gracefully
-- 2026-08-17: Tool registry is in-memory with full audit trail; tool definitions are passed to model providers in their native format
-- 2026-08-17: Agent loop is synchronous (no WebSocket streaming yet) — streams results via mission_events; real-time updates deferred to Phase 2 WebSocket decision
-- 2026-08-17: Budget guard checks both token budget and tool-call count before each model call and tool execution
-- 2026-08-17: **Phase 3-12 pinned decisions**: pnpm workspaces + Turborepo (monorepo), Tauri (desktop), React Native (mobile), Twilio (telephony), provider-abstracted voice STT/TTS
-- 2026-08-17: WebSocket (Socket.IO) chosen for real-time mission_events; Phase 2's "WebSocket decision deferred" is now resolved as Socket.IO on port 3002
-- 2026-08-17: UI built within the existing Next.js 16 app at `/` (React+TS+Tailwind already present); no separate Vite app needed in this sandbox
-- 2026-08-17: Avatar deferred per spec — simple state-driven icon/color per mission status used instead
+- 2026-08-17: **Phase 4**: Hard-block list enforced via `getHardBlockedCapabilities()`
+- 2026-08-17: **Phase 4**: 17 computer-control tools, verification loop, honest ENVIRONMENT_UNAVAILABLE for GUI tools
+- 2026-08-17: **Phase 5**: VoiceProvider interface mirrors ModelProvider pattern — swap providers, zero changes outside adapter
+- 2026-08-17: **Phase 5**: BrowserRelayProvider always available (no API key), client-side Web Speech API for STT/TTS
+- 2026-08-17: **Phase 5**: GeminiVoiceProvider STT via multimodal audio input, GroqVoiceProvider STT via Whisper API
+- 2026-08-17: **Phase 5**: TTS not available via Gemini/Grok API keys — browser SpeechSynthesis handles TTS client-side
+- 2026-08-17: **Phase 5**: Voice session state machine with 5 states and guarded transitions
+- 2026-08-17: **Phase 5**: Voice REST API follows same structured error format as all other endpoints
+- 2026-08-17: **Phase 5**: WebSocket voice events (`subscribe:voice`, `voice:transcript`, `voice:status`) for real-time relay
+- 2026-08-17: **Phase 5**: Frontend VoiceControl with audio level visualization, transcript history, TTS toggle
 
 ## File Structure
 ```
@@ -135,11 +165,11 @@ home/z/my-project/
 │   └── schema.prisma                 # Next.js app DB (separate from OpenJarvis)
 ├── src/
 │   ├── app/
-│   │   ├── page.tsx                  # OpenJarvis dashboard
+│   │   ├── page.tsx                  # OpenJarvis dashboard (with Voice Input)
 │   │   ├── layout.tsx                # ThemeProvider
 │   │   └── globals.css
 │   ├── components/
-│   │   ├── openjarvis/               # Phase 3 UI components
+│   │   ├── openjarvis/               # Phase 3 + 5 UI components
 │   │   │   ├── agent-state.tsx
 │   │   │   ├── activity-timeline.tsx
 │   │   │   ├── Connection-banner.tsx
@@ -147,15 +177,16 @@ home/z/my-project/
 │   │   │   ├── missions-tab.tsx
 │   │   │   ├── settings-tab.tsx
 │   │   │   ├── tools-tab.tsx
-│   │   │   └── memory-tab.tsx
+│   │   │   ├── memory-tab.tsx
+│   │   │   └── voice-control.tsx      # Phase 5: Mic, waveform, transcript
 │   │   └── ui/                        # shadcn/ui components
 │   ├── hooks/
 │   │   ├── useJarvisSocket.ts       # Phase 3: WebSocket hook
 │   │   ├── use-toast.ts
 │   │   └── use-mobile.ts
 │   └── lib/
-│       ├── openjarvis-api.ts            # API client
-│       ├── openjarvis-types.ts         # TypeScript types
+│       ├── openjarvis-api.ts            # API client (with voice endpoints)
+│       ├── openjarvis-types.ts         # TypeScript types (with voice types)
 │       ├── status-utils.ts            # Status → color mapping
 │       ├── utils.ts                   # cn() utility
 │       └── db.ts                      # Next.js Prisma client
@@ -166,6 +197,12 @@ mini-services/openjarvis-api/
 ├── prisma/
 │   └── schema.prisma                 # 4 core tables
 ├── src/
+│   ├── voice/                         # Phase 5: Voice system
+│   │   ├── types.ts                  # VoiceProvider interface, STT/TTS types
+│   │   ├── voiceManager.ts           # Provider factory, session management
+│   │   ├── browserRelayProvider.ts   # Client-side STT/TTS relay
+│   │   ├── geminiVoiceProvider.ts    # Gemini multimodal STT
+│   │   └── groqVoiceProvider.ts      # Groq Whisper STT
 │   ├── utils/
 │   │   ├── db.ts                     # Prisma client + health check
 │   │   ├── errors.ts                 # AppError + structured format
@@ -180,7 +217,8 @@ mini-services/openjarvis-api/
 │   │   ├── tools.ts
 │   │   ├── memory.ts
 │   │   ├── agent.ts                  # POST /agent/run
-│   │   └── permissions.ts           # GET/POST /permissions
+│   │   ├── permissions.ts           # GET/POST /permissions
+│   │   └── voice.ts                  # Phase 5: Voice REST API
 │   ├── services/
 │   │   ├── missionService.ts
 │   │   ├── missionEventService.ts
@@ -211,7 +249,8 @@ mini-services/openjarvis-api/
 │   └── tests/
 │       ├── phase1.test.ts               # 23 tests
 │       ├── phase2.test.ts               # 23 tests
-│       └── phase4.test.ts               # 23 tests
+│       ├── phase4.test.ts               # 23 tests
+│       └── phase5.test.ts               # 41 tests
 ```
 
 ## Environment Inventory
@@ -241,6 +280,7 @@ mini-services/openjarvis-api/
 - **Streaming**: ✅ Supported via `streamGenerateContent`.
 - **Structured output**: ✅ Supported via `responseSchema` (JSON Schema).
   - Docs: https://ai.google.dev/gemini-api/docs/structured-output
+- **Multimodal audio**: ✅ Supports audio input for transcription (used by GeminiVoiceProvider STT)
 - **SDK**: `@google/generative-ai` v0.24.1
 
 ### Groq API
@@ -249,4 +289,6 @@ mini-services/openjarvis-api/
 - **Streaming**: ✅ Supported.
 - **Structured output**: ⚠️ Cannot be used simultaneously with function calling.
   - Docs: https://console.groq.com/docs/tool-use/local-tool-calling
+- **Speech-to-Text**: ✅ Whisper (whisper-large-v3-turbo) for audio transcription.
+  - Docs: https://console.groq.com/docs/speech-to-text
 - **SDK**: `groq-sdk` v1.5.0

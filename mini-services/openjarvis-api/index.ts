@@ -9,6 +9,7 @@ import toolRoutes from './src/routes/tools.js';
 import memoryRoutes from './src/routes/memory.js';
 import agentRoutes from './src/routes/agent.js';
 import permissionRoutes from './src/routes/permissions.js';
+import voiceRoutes from './src/routes/voice.js';
 import { logger } from './src/utils/logger.js';
 import { setSocketIO } from './src/utils/eventBus.js';
 
@@ -27,6 +28,7 @@ app.use('/tools', toolRoutes);
 app.use('/memory', memoryRoutes);
 app.use('/agent', agentRoutes);
 app.use('/permissions', permissionRoutes);
+app.use('/voice', voiceRoutes);
 
 app.use((_req, res) => {
   const requestId = (_req as Record<string, unknown>).requestId as string || '-';
@@ -63,6 +65,45 @@ io.on('connection', (socket) => {
 
   socket.on('unsubscribe:mission', (missionId: string) => {
     socket.leave(`mission:${missionId}`);
+  });
+
+  // Phase 5: Voice session subscriptions
+  socket.on('subscribe:voice', (sessionId: string) => {
+    socket.join(`voice:${sessionId}`);
+    logger.info('-', `Socket ${socket.id} subscribed to voice session ${sessionId}`);
+  });
+
+  socket.on('unsubscribe:voice', (sessionId: string) => {
+    socket.leave(`voice:${sessionId}`);
+  });
+
+  // Phase 5: Browser-relayed voice transcript
+  socket.on('voice:transcript', (data: { sessionId: string; text: string; confidence?: number; direction?: 'user' | 'agent' }) => {
+    const { sessionId, text, confidence, direction } = data;
+    if (!sessionId || !text) return;
+
+    // Broadcast to all clients subscribed to this voice session
+    io.to(`voice:${sessionId}`).emit('voice:transcript', {
+      sessionId,
+      text,
+      confidence,
+      direction: direction || 'user',
+      timestamp: new Date().toISOString(),
+    });
+
+    logger.info('voice:ws', `Transcript relayed: ${direction || 'user'}: "${text.substring(0, 60)}"`);
+  });
+
+  // Phase 5: Voice session status updates
+  socket.on('voice:status', (data: { sessionId: string; status: string }) => {
+    const { sessionId, status } = data;
+    if (!sessionId || !status) return;
+
+    io.to(`voice:${sessionId}`).emit('voice:status', {
+      sessionId,
+      status,
+      timestamp: new Date().toISOString(),
+    });
   });
 
   socket.on('disconnect', () => {

@@ -149,6 +149,62 @@ export interface WsMissionUpdate {
 
 export type WsPayload = WsMissionEvent | WsMissionStatus | WsMissionUpdate;
 
+// ─── Voice (Phase 5) ──────────────────────────────────────
+export type VoiceCapability = 'stt' | 'tts' | 'streaming_stt' | 'streaming_tts';
+export type VoiceSessionStatus = 'idle' | 'listening' | 'processing' | 'speaking' | 'error';
+
+export interface VoiceInfo {
+  id: string;
+  name: string;
+  language: string;
+  gender: 'male' | 'female' | 'neutral';
+}
+
+export interface VoiceStatus {
+  availableProviders: string[];
+  activeProvider: string;
+  capabilities: VoiceCapability[];
+  availableVoices: VoiceInfo[];
+}
+
+export interface STTResponse {
+  text: string;
+  confidence: number;
+  language: string;
+  durationMs: number;
+  provider: string;
+}
+
+export interface TTSResponse {
+  audio: string;
+  format: string;
+  sampleRate: number;
+  durationMs: number;
+  provider: string;
+}
+
+export interface VoiceSession {
+  id: string;
+  missionId?: string;
+  status: VoiceSessionStatus;
+  provider: string;
+  language: string;
+  voice: string;
+  createdAt: string;
+  lastActivityAt: string;
+  transcript?: VoiceTranscriptEntry[];
+  transcriptCount?: number;
+}
+
+export interface VoiceTranscriptEntry {
+  id: string;
+  timestamp: string;
+  direction: 'user' | 'agent';
+  text: string;
+  confidence?: number;
+  audioDurationMs?: number;
+}
+
 // ─── Agent Display State ────────────────────────────────────
 export type AgentDisplayState =
   | 'idle'

@@ -12,6 +12,10 @@ import type {
   AgentRunBody,
   StateTransition,
   HealthCheck,
+  VoiceStatus,
+  STTResponse,
+  TTSResponse,
+  VoiceSession,
 } from './openjarvis-types';
 
 const PORT = '3001';
@@ -161,5 +165,64 @@ export function revokePermission(body: { capability: string }): Promise<{ grante
   return request('/permissions/revoke', {
     method: 'POST',
     body: JSON.stringify(body),
+  });
+}
+
+// ─── Voice (Phase 5) ──────────────────────────────────────
+export function getVoiceStatus(): Promise<VoiceStatus> {
+  return request('/voice/status');
+}
+
+export function switchVoiceProvider(provider: string): Promise<VoiceStatus> {
+  return request('/voice/provider', {
+    method: 'POST',
+    body: JSON.stringify({ provider }),
+  });
+}
+
+export function speechToText(audio: string, format: string, language?: string): Promise<STTResponse> {
+  return request('/voice/stt', {
+    method: 'POST',
+    body: JSON.stringify({ audio, format, language }),
+  });
+}
+
+export function textToSpeech(text: string, options?: { language?: string; voice?: string; speed?: number }): Promise<TTSResponse> {
+  return request('/voice/tts', {
+    method: 'POST',
+    body: JSON.stringify({ text, ...options }),
+  });
+}
+
+export function getVoiceSessions(): Promise<VoiceSession[]> {
+  return request('/voice/sessions');
+}
+
+export function createVoiceSession(opts?: { missionId?: string; provider?: string; language?: string; voice?: string }): Promise<VoiceSession> {
+  return request('/voice/sessions', {
+    method: 'POST',
+    body: JSON.stringify(opts || {}),
+  });
+}
+
+export function getVoiceSession(id: string): Promise<VoiceSession> {
+  return request(`/voice/sessions/${id}`);
+}
+
+export function deleteVoiceSession(id: string): Promise<{ deleted: boolean }> {
+  return request(`/voice/sessions/${id}`, { method: 'DELETE' });
+}
+
+export function addVoiceTranscript(sessionId: string, text: string, direction: 'user' | 'agent', confidence?: number): Promise<{ id: string; timestamp: string; direction: string; text: string }> {
+  return request(`/voice/sessions/${sessionId}/transcript`, {
+    method: 'POST',
+    body: JSON.stringify({ text, direction, confidence }),
+  });
+}
+
+export function setVoiceSessionStatus(sessionId: string, status: string): Promise<{ id: string; status: string }> {
+  return request(`/voice/sessions/${sessionId}/status`, {
+    method: 'POST',
+    body: JSON.stringify({ status }),
   });
 }

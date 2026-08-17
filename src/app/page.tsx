@@ -2,7 +2,7 @@
 
 import { useState, useCallback, useEffect, useMemo } from 'react';
 import { useJarvisSocket } from '@/hooks/useJarvisSocket';
-import { checkHealth } from '@/lib/openjarvis-api';
+import { checkHealth, createMission, runAgent } from '@/lib/openjarvis-api';
 import type { Mission } from '@/lib/openjarvis-types';
 
 import { GoalInput } from '@/components/openjarvis/goal-input';
@@ -12,6 +12,7 @@ import { MissionsTab } from '@/components/openjarvis/missions-tab';
 import { ToolsTab } from '@/components/openjarvis/tools-tab';
 import { MemoryTab } from '@/components/openjarvis/memory-tab';
 import { SettingsTab } from '@/components/openjarvis/settings-tab';
+import { VoiceControl } from '@/components/openjarvis/voice-control';
 import { ConnectionBanner } from '@/components/openjarvis/Connection-banner';
 
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
@@ -109,6 +110,28 @@ export default function Dashboard() {
                     onMissionCreated={handleMissionCreated}
                     disabled={isExecuting}
                     provider={provider}
+                  />
+                </CardContent>
+              </Card>
+
+              {/* Phase 5: Voice Input */}
+              <Card>
+                <CardHeader className="pb-3">
+                  <CardTitle className="text-sm">Voice Input</CardTitle>
+                </CardHeader>
+                <CardContent>
+                  <VoiceControl
+                    onTranscript={async (text) => {
+                      // When voice transcript arrives, create a real mission via API
+                      if (text.trim() && !isExecuting) {
+                        try {
+                          const mission = await createMission({ goal: text.trim(), provider });
+                          handleMissionCreated(mission);
+                          await runAgent({ missionId: mission.id, provider });
+                        } catch {}
+                      }
+                    }}
+                    disabled={isExecuting}
                   />
                 </CardContent>
               </Card>

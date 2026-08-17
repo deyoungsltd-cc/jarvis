@@ -1,4 +1,36 @@
 ---
+Task ID: 5
+Agent: main
+Task: OpenJarvis Phase 5 — Voice System
+
+Work Log:
+- Created voice provider abstraction: `VoiceProvider` interface with `transcribe()`, `synthesize()`, `getVoices()`
+- Implemented `BrowserRelayProvider`: always available, no API key, client-side STT/TTS acknowledgment
+- Implemented `GeminiVoiceProvider`: STT via Gemini multimodal audio input, audio MIME type detection (WAV/MP3/OGG/WebM)
+- Implemented `GroqVoiceProvider`: STT via Groq Whisper API (`whisper-large-v3-turbo`), language code conversion
+- Both server-side adapters honestly return `TTS_NOT_SUPPORTED` — browser handles TTS via SpeechSynthesis
+- Created `voiceManager.ts`: provider factory, session CRUD, status transitions, transcript management
+- Voice session state machine: 5 states (idle/listening/processing/speaking/error) with guarded transitions
+- Added voice REST routes: `GET /voice/status`, `POST /voice/provider`, `POST /voice/stt`, `POST /voice/tts`, CRUD `/voice/sessions`, transcript, status updates
+- Added WebSocket voice events: `subscribe:voice`, `voice:transcript`, `voice:status` for real-time relay
+- Updated `.env.example` with voice variables: VOICE_PROVIDER, VOICE_LANGUAGE, VOICE_TTS_VOICE, VOICE_MAX_AUDIO_SIZE, WS_PORT
+- Created frontend `VoiceControl` component: mic button with pulse animation, 20-bar audio level visualization, real-time interim transcript, TTS toggle, transcript history with clear
+- Voice → mission bridge: browser STT transcript creates real mission via `createMission` + `runAgent` API calls
+- Updated frontend API client with 9 voice functions (status, provider switch, STT, TTS, sessions CRUD, transcript, status)
+- Updated TypeScript types with voice types (VoiceStatus, STTResponse, TTSResponse, VoiceSession, VoiceTranscriptEntry)
+- 41/41 Phase 5 tests pass, 110/110 total tests pass (Phases 1-5)
+
+Stage Summary:
+- Phase 5 code-complete
+- 110/110 tests passing
+- Voice provider abstraction mirrors ModelProvider pattern
+- Browser-native STT/TTS works immediately (no API keys needed)
+- Gemini/Groq STT adapters ready (blocked on API keys for E2E testing)
+- Voice sessions with guarded state machine and transcript persistence
+- Frontend voice control integrated into dashboard left panel
+- BUILD_STATE.md updated with all Phase 5 acceptance criteria
+
+---
 Task ID: 2
 Agent: main
 Task: OpenJarvis Phase 3-4 Build
