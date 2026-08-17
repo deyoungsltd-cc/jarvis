@@ -1,7 +1,7 @@
 # OpenJarvis Build State
 
 ## Current Phase
-Phase 3 — UI (COMPLETED)
+Phase 4 — Computer Control (COMPLETED)
 
 ## Completed Milestones
 - **Phase 0 — Discovery** (2026-08-17)
@@ -65,11 +65,40 @@ Phase 3 — UI (COMPLETED)
 
 ## Last Verified Working
 - Express API server boots on port 3001, health check returns real DB status
-- 46/46 tests pass (`bun test tests/` in `mini-services/openjarvis-api/`)
+- **69/69 tests pass** (`bun test tests/` in `mini-services/openjarvis-api/`)
 - All CRUD operations verified via curl: missions, events, tools, memory
 - Structured error format confirmed on 404, validation, and conflict errors
 - State machine rejects invalid transitions (e.g., `completed → running`)
 - Tool registry: retry, timeout, audit log, input validation all verified
+- Dashboard renders with live data: "Connected" status, real missions list, real empty states
+- Permission system: hard-block returns `requires_approval`, grant/revoke works at execution time
+- Filesystem read/write tools execute against real files
+- Verification loop: screenshot_diff for UI tools, output_check for others
+
+## Next Action
+Phase 4 complete. Ready for Phase 5 (Voice) spec execution when requested. Note: Tauri desktop shell deferred — no Rust toolchain in sandbox. GUI-dependent tools (screenshot, mouse, keyboard) return honest ENVIRONMENT_UNAVAILABLE errors, not fake success.
+
+## Architecture Decisions Log
+- 2026-08-17: Pinned stack per Phase 0-2 spec (TS/Express/Prisma-SQLite-local/Gemini+Groq)
+- 2026-08-17: Using Prisma ORM locally (SQLite) with schema matching Supabase Postgres design
+- 2026-08-17: Express backend runs as a mini-service on port 3001 per sandbox architecture rules
+- 2026-08-17: ESM module system (`"type": "module"`) for Bun compatibility
+- 2026-08-17: Model provider abstraction uses factory pattern; adapters use `require()` for SDK imports
+- 2026-08-17: Tool registry is in-memory with full audit trail
+- 2026-08-17: Agent loop is synchronous — streams results via mission_events + WebSocket
+- 2026-08-17: Budget guard checks both token budget and tool-call count
+- 2026-08-17: **Phase 3-12 pinned decisions**: pnpm workspaces + Turborepo, Tauri (desktop), React Native (mobile), Twilio (telephony), provider-abstracted voice
+- 2026-08-17: WebSocket (Socket.IO) on port 3002 for real-time mission events
+- 2026-08-17: UI built within Next.js 16 app at `/` (React+TS+Tailwind+shadcn/ui)
+- 2026-08-17: Avatar deferred — simple state-driven icon/color per mission status
+- 2026-08-17: **Phase 4**: Permission system with 17 capabilities, per-capability grants checked at execution time
+- 2026-08-17: **Phase 4**: Hard-block list enforced via `getHardBlockedCapabilities()` (returns fresh Set to avoid Bun ESM singleton issues)
+- 2026-08-17: **Phase 4**: 17 computer-control tools with real schemas, real permission checks
+- 2026-08-17: **Phase 4**: Verification loop architecture — screenshot_diff for UI tools, output_check for others
+- 2026-08-17: **Phase 4**: GUI-dependent tools (screenshot, mouse, keyboard) return honest ENVIRONMENT_UNAVAILABLE, not fake success
+- 2026-08-17: **Phase 4**: `filesystem_delete` and `shell_execute` return `requires_approval` even if permission granted — double protection
+- 2026-08-17: **Phase 4**: Permission API (`/permissions/grant`, `/permissions/revoke`, `GET /permissions`) wired into Express
+- 2026-08-17: **Phase 4**: Permissions API client added to frontend `openjarvis-api.ts`
 
 ## Next Action
 Phase 3 complete. Ready for Phase 4 (Computer Control) spec execution when requested.
@@ -96,9 +125,43 @@ Phase 3 complete. Ready for Phase 4 (Computer Control) spec execution when reque
 
 ## File Structure
 ```
+home/z/my-project/
+├── BUILD_STATE.md
+├── .env.example
+├── worklog.md
+├── package.json                          # Next.js 16 + shadcn/ui + Socket.IO client
+├── Caddyfile                            # Caddy gateway (port 81)
+├── prisma/
+│   └── schema.prisma                 # Next.js app DB (separate from OpenJarvis)
+├── src/
+│   ├── app/
+│   │   ├── page.tsx                  # OpenJarvis dashboard
+│   │   ├── layout.tsx                # ThemeProvider
+│   │   └── globals.css
+│   ├── components/
+│   │   ├── openjarvis/               # Phase 3 UI components
+│   │   │   ├── agent-state.tsx
+│   │   │   ├── activity-timeline.tsx
+│   │   │   ├── Connection-banner.tsx
+│   │   │   ├── goal-input.tsx
+│   │   │   ├── missions-tab.tsx
+│   │   │   ├── settings-tab.tsx
+│   │   │   ├── tools-tab.tsx
+│   │   │   └── memory-tab.tsx
+│   │   └── ui/                        # shadcn/ui components
+│   ├── hooks/
+│   │   ├── useJarvisSocket.ts       # Phase 3: WebSocket hook
+│   │   ├── use-toast.ts
+│   │   └── use-mobile.ts
+│   └── lib/
+│       ├── openjarvis-api.ts            # API client
+│       ├── openjarvis-types.ts         # TypeScript types
+│       ├── status-utils.ts            # Status → color mapping
+│       ├── utils.ts                   # cn() utility
+│       └── db.ts                      # Next.js Prisma client
+│
 mini-services/openjarvis-api/
-├── index.ts                          # Express server entry point
-├── package.json                      # Independent Bun project
+├── package.json
 ├── tsconfig.json
 ├── prisma/
 │   └── schema.prisma                 # 4 core tables
@@ -106,32 +169,49 @@ mini-services/openjarvis-api/
 │   ├── utils/
 │   │   ├── db.ts                     # Prisma client + health check
 │   │   ├── errors.ts                 # AppError + structured format
-│   │   └── logger.ts                 # JSON structured logging + requestId
+│   │   ├── logger.ts                 # JSON structured logging
+│   │   └── eventBus.ts               # WebSocket event emitter
 │   ├── middleware/
-│   │   ├── requestLogger.ts          # Attaches requestId, logs every request
-│   │   └── errorHandler.ts           # Guarantees structured error format
+│   │   ├── requestLogger.ts
+│   │   └── errorHandler.ts
 │   ├── routes/
-│   │   ├── health.ts                 # GET /health
-│   │   ├── missions.ts               # CRUD + events
-│   │   ├── tools.ts                  # CRUD
-│   │   ├── memory.ts                 # CRUD
-│   │   └── agent.ts                  # POST /agent/run, GET /agent/transitions
+│   │   ├── health.ts
+│   │   ├── missions.ts
+│   │   ├── tools.ts
+│   │   ├── memory.ts
+│   │   ├── agent.ts                  # POST /agent/run
+│   │   └── permissions.ts           # GET/POST /permissions
 │   ├── services/
-│   │   ├── missionService.ts         # Mission repository
-│   │   ├── missionEventService.ts    # Event repository
-│   │   ├── toolService.ts            # Tool repository
-│   │   └── memoryService.ts          # Memory repository
-│   └── agent/
-│       ├── types.ts                  # Core types + state machine config
-│       ├── modelProvider.ts          # ModelProvider interface + Gemini/Groq adapters
-│       ├── toolRegistry.ts           # Tool registration, validation, timeout, retry, audit
-│       ├── missionStateMachine.ts    # Guarded state transitions
-│       ├── agentLoop.ts              # Core execution engine
-│       └── tools/
-│           └── webSearchTool.ts      # web_search via z-ai-web-dev-sdk
-└── tests/
-    ├── phase1.test.ts               # 23 tests — health, CRUD, errors
-    └── phase2.test.ts               # 23 tests — state machine, tools, budget, event trail
+│   │   ├── missionService.ts
+│   │   ├── missionEventService.ts
+│   │   ├── toolService.ts
+│   │   └── memoryService.ts
+│   ├── agent/
+│   │   ├── types.ts                  # Core types + state machine
+│   │   ├── modelProvider.ts          # ModelProvider interface + adapters
+│   │   ├── toolRegistry.ts           # Tool registration + retry + timeout
+│   │   ├── missionStateMachine.ts    # Guarded state transitions
+│   │   ├── agentLoop.ts              # Core execution engine
+│   │   ├── verification.ts            # Verification loop
+│   │   ├── permissions/
+│   │   │   ├── types.ts               # Capability definitions + hard-block list
+│   │   │   └── permissionManager.ts    # Grant/revoke/check
+│   │   └── tools/
+│   │       ├── webSearchTool.ts        # Phase 2: web_search via z-ai-web-dev-sdk
+│   │       └── computer-control/   # Phase 4: 17 tools
+│   │           ├── index.ts
+│   │           ├── screenshot.ts
+│   │           ├── mouse.ts
+│   │           ├── keyboard.ts
+│   │           ├── window.ts
+│   │           ├── filesystem.ts
+│   │           ├── shell.ts
+│   │           ├── app.ts
+│   │           └── clipboard.ts
+│   └── tests/
+│       ├── phase1.test.ts               # 23 tests
+│       ├── phase2.test.ts               # 23 tests
+│       └── phase4.test.ts               # 23 tests
 ```
 
 ## Environment Inventory

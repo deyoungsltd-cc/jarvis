@@ -8,6 +8,7 @@ import missionRoutes from './src/routes/missions.js';
 import toolRoutes from './src/routes/tools.js';
 import memoryRoutes from './src/routes/memory.js';
 import agentRoutes from './src/routes/agent.js';
+import permissionRoutes from './src/routes/permissions.js';
 import { logger } from './src/utils/logger.js';
 import { setSocketIO } from './src/utils/eventBus.js';
 
@@ -25,6 +26,7 @@ app.use('/missions', missionRoutes);
 app.use('/tools', toolRoutes);
 app.use('/memory', memoryRoutes);
 app.use('/agent', agentRoutes);
+app.use('/permissions', permissionRoutes);
 
 app.use((_req, res) => {
   const requestId = (_req as Record<string, unknown>).requestId as string || '-';

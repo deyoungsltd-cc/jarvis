@@ -144,3 +144,22 @@ export function runAgent(body: AgentRunBody): Promise<{ missionId: string }> {
 export function getTransitions(): Promise<StateTransition[]> {
   return request('/agent/transitions');
 }
+
+// ─── Permissions ──────────────────────────────────────────
+export function getPermissions(): Promise<Array<Record<string, unknown>>> {
+  return request('/permissions');
+}
+
+export function grantPermission(body: { capability: string; scope?: string; missionId?: string }): Promise<{ granted: boolean }> {
+  return request('/permissions/grant', {
+    method: 'POST',
+    body: JSON.stringify(body),
+  });
+}
+
+export function revokePermission(body: { capability: string }): Promise<{ granted: boolean }> {
+  return request('/permissions/revoke', {
+    method: 'POST',
+    body: JSON.stringify(body),
+  });
+}
