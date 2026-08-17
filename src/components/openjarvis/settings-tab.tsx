@@ -9,7 +9,7 @@ import {
   SelectTrigger,
   SelectValue,
 } from '@/components/ui/select';
-import { Moon, Sun, Monitor } from 'lucide-react';
+import { Moon, Sun, Monitor, Smartphone, Key } from 'lucide-react';
 import { useSyncExternalStore } from 'react';
 
 interface SettingsTabProps {
@@ -88,6 +88,32 @@ export function SettingsTab({ provider, onProviderChange }: SettingsTabProps) {
         ) : (
           <div className="h-10" /> // placeholder to avoid layout shift
         )}
+      </div>
+
+      {/* Mobile API Info */
+      <div className="flex flex-col gap-2">
+        <Label className="text-sm font-medium">Mobile API</Label>
+        <div className="p-3 rounded-lg border border-border bg-muted/30 space-y-2">
+          <div className="flex items-center gap-2">
+            <Smartphone className="h-4 w-4 text-muted-foreground" />
+            <span className="text-sm">API Endpoint</span>
+          </div>
+          <code className="text-xs bg-background px-2 py-1 rounded block font-mono break-all">
+            /mobile/v1/register
+          </code>
+          <div className="flex items-center gap-2">
+            <Key className="h-4 w-4 text-muted-foreground" />
+            <span className="text-xs text-muted-foreground">
+              Register a client to receive an API key. Pass it via X-API-Key header.
+            </span>
+          </div>
+          <div className="text-xs text-muted-foreground space-y-1">
+            <p>POST /mobile/v1/register → Get API key</p>
+            <p>GET /mobile/v1/missions → Paginated missions</p>
+            <p>GET /mobile/v1/missions/:id/events/stream → SSE progress</p>
+            <p>GET /mobile/v1/memory/search → Search memories</p>
+          </div>
+        </div>
       </div>
     </div>
   );

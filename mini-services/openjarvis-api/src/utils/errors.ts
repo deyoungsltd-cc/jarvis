@@ -52,3 +52,7 @@ export function conflict(code: string, message: string, requestId: string): AppE
 export function internalError(code: string, message: string, requestId: string): AppError {
   return new AppError(code, message, 500, requestId);
 }
+
+export function unauthorized(code: string, message: string, requestId: string): AppError {
+  return new AppError(code, message, 401, requestId);
+}

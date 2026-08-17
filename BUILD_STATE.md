@@ -1,7 +1,7 @@
 # OpenJarvis Build State
 
 ## Current Phase
-Phase 6 — Memory (COMPLETED)
+Phase 7 — Mobile (COMPLETED)
 
 ## Completed Milestones
 - **Phase 0 — Discovery** (2026-08-17)
@@ -74,6 +74,20 @@ Phase 6 — Memory (COMPLETED)
   - **46/46 Phase 6 tests pass**
   - **156/156 total tests pass** (Phase 1-6)
 
+- **Phase 7 — Mobile** (2026-08-17)
+  - `mobile_clients` table: name, platform (ios/android/web), unique API key, enabled flag, lastSeenAt
+  - Mobile client service: register, authenticate, revoke, enable, regenerate API key, list, delete
+  - API key auth middleware: `requireMobileAuth()` validates X-API-Key header or ?api_key query param
+  - Pagination utility: `parsePagination()` + `buildPaginatedResponse()` — page/limit/skip/take with clamping
+  - Versioned mobile API: `/mobile/v1/` with 9 authenticated endpoints + 1 open registration endpoint
+  - Mobile endpoints: paginated missions (summary), mission detail (event count + types), paginated events, SSE event stream, paginated memory, memory search, lightweight tools list, combined agent run
+  - SSE endpoint: `GET /mobile/v1/missions/:id/events/stream` — sends existing events, then polls for new ones, auto-timeout at 5min
+  - Admin endpoints: `/mobile/admin/clients` (list, revoke, enable, regenerate key, delete)
+  - Frontend: Settings tab shows Mobile API info card with endpoint reference and auth instructions
+  - React Native app shell deferred — no mobile SDK/toolchain in sandbox
+  - **22/22 Phase 7 tests pass**
+  - **178/178 total tests pass** (Phase 1-7)
+
 ## Acceptance Criteria Checklist
 
 ### Phase 0
@@ -136,6 +150,18 @@ Phase 6 — Memory (COMPLETED)
 - [x] Frontend MemoryTab: search, scope filter, create form, stats panel, consolidate, purge, importance stars, tags
 - [x] 46/46 Phase 6 tests pass
 
+### Phase 7
+- [x] `mobile_clients` table with name, platform, unique API key, enabled, lastSeenAt
+- [x] Mobile client service: register, authenticate, revoke, enable, regenerate key, list, delete
+- [x] API key auth middleware validates X-API-Key header or api_key query param
+- [x] Pagination utility: parsePagination + buildPaginatedResponse with page/limit clamping
+- [x] Versioned mobile API `/mobile/v1/` with registration, missions, events, memory, tools, agent, health
+- [x] SSE event stream endpoint for mission progress (polling-based, 5min auto-timeout)
+- [x] Admin endpoints for client management: list, revoke, enable, regenerate, delete
+- [x] Mobile endpoints return lightweight payloads (no nested event payloads in list, field selection)
+- [x] 22/22 Phase 7 tests pass
+- [ ] **React Native app shell** — DEFERRED: no mobile SDK/toolchain in sandbox
+
 ## Known Failures / Blockers
 - Supabase specified in master spec but sandbox provides SQLite/Prisma; schema matches spec exactly, swap via `datasource` + `DATABASE_URL`
 - Groq limitation: structured output and function calling cannot be used simultaneously (adapter handles this)
@@ -145,7 +171,8 @@ Phase 6 — Memory (COMPLETED)
 
 ## Last Verified Working
 - Express API server boots on port 3001, health check returns real DB status
-- **156/156 tests pass** (`bun test tests/` in `mini-services/openjarvis-api/`)
+- **178/178 tests pass** (`bun test tests/` in `mini-services/openjarvis-api/`)
+- Mobile API: client registration, API key auth, pagination, SSE streaming, admin management
 - Memory system: search, recall, context building, associations, consolidation, purge, 4 agent tools
 - Memory REST API: search, stats, CRUD, associations, consolidate, purge all functional
 - Dashboard MemoryTab: search bar, scope filter, create form, stats panel, importance stars
@@ -153,7 +180,7 @@ Phase 6 — Memory (COMPLETED)
 - All previous phases verified: missions, events, tools, permissions, computer-control, voice
 
 ## Next Action
-Phase 6 complete. Ready for Phase 7 (Mobile) spec execution when requested.
+Phase 7 complete. Ready for Phase 8 (MCP/Plugins) spec execution when requested.
 
 ## Architecture Decisions Log
 - 2026-08-17: Pinned stack per Phase 0-2 spec (TS/Express/Prisma-SQLite-local/Gemini+Groq)
@@ -188,6 +215,12 @@ Phase 6 complete. Ready for Phase 7 (Mobile) spec execution when requested.
 - 2026-08-17: **Phase 6**: Memory lifecycle — TTL/expiry, consolidation (dedup + association tracking), purge
 - 2026-08-17: **Phase 6**: Enhanced REST API — search, stats, PATCH, associations, consolidate, purge, bulk-delete
 - 2026-08-17: **Phase 6**: Frontend MemoryTab — search, filters, create form, stats, consolidate, purge, importance stars
+- 2026-08-17: **Phase 7**: `mobile_clients` table with API key auth, platform, enabled flag, lastSeenAt
+- 2026-08-17: **Phase 7**: API key auth middleware — X-API-Key header or api_key query param
+- 2026-08-17: **Phase 7**: Versioned mobile API at `/mobile/v1/` with 10 endpoints
+- 2026-08-17: **Phase 7**: Pagination utility with page/limit clamping and PaginatedResponse envelope
+- 2026-08-17: **Phase 7**: SSE event stream for mobile (polling-based, 5min auto-timeout, no WebSocket dependency)
+- 2026-08-17: **Phase 7**: React Native app shell deferred — no mobile SDK/toolchain in sandbox
 
 ## File Structure
 ```
@@ -231,7 +264,7 @@ mini-services/openjarvis-api/
 ├── package.json
 ├── tsconfig.json
 ├── prisma/
-│   └── schema.prisma                 # 5 tables (added memory_associations)
+│   └── schema.prisma                 # 6 tables (added mobile_clients)
 ├── src/
 │   ├── voice/                         # Phase 5: Voice system
 │   │   ├── types.ts                  # VoiceProvider interface, STT/TTS types
@@ -246,12 +279,15 @@ mini-services/openjarvis-api/
 │   │   └── eventBus.ts               # WebSocket event emitter
 │   ├── middleware/
 │   │   ├── requestLogger.ts
-│   │   └── errorHandler.ts
+│   │   ├── errorHandler.ts
+│   │   └── mobileAuth.ts             # Phase 7: API key auth middleware
 │   ├── routes/
 │   │   ├── health.ts
 │   │   ├── missions.ts
 │   │   ├── tools.ts
 │   │   ├── memory.ts
+│   │   ├── mobile.ts                   # Phase 7: Versioned mobile API (v1)
+│   │   ├── mobileAdmin.ts             # Phase 7: Client management admin routes
 │   │   ├── agent.ts                  # POST /agent/run
 │   │   ├── permissions.ts           # GET/POST /permissions
 │   │   └── voice.ts                  # Phase 5: Voice REST API
@@ -259,12 +295,16 @@ mini-services/openjarvis-api/
 │   │   ├── missionService.ts
 │   │   ├── missionEventService.ts
 │   │   ├── toolService.ts
-│   │   └── memoryService.ts          # Phase 6: Enhanced (search, recall, associations, stats)
+│   │   ├── memoryService.ts          # Phase 6: Enhanced (search, recall, associations, stats)
+│   │   └── mobileClientService.ts    # Phase 7: Register, auth, revoke, regenerate
 │   ├── agent/
 │   │   ├── memory/                    # Phase 6: Memory subsystem
 │   │   │   ├── contextBuilder.ts      # Builds <memory-context> for agent prompt
 │   │   │   └── memoryTools.ts          # 4 agent tools: store/recall/search/forget
-│   │   ├── types.ts                  # Core types + state machine
+│   ├── mobile/                       # Phase 7: Mobile API infrastructure
+│   │   ├── types.ts                  # PaginatedResponse, MobileClient
+│   │   └── pagination.ts            # parsePagination, buildPaginatedResponse
+│   ├── types.ts                  # Core types + state machine
 │   │   ├── modelProvider.ts          # ModelProvider interface + adapters
 │   │   ├── toolRegistry.ts           # Tool registration + retry + timeout
 │   │   ├── missionStateMachine.ts    # Guarded state transitions
@@ -290,7 +330,8 @@ mini-services/openjarvis-api/
 │       ├── phase2.test.ts               # 23 tests
 │       ├── phase4.test.ts               # 23 tests
 │       ├── phase5.test.ts               # 41 tests
-│       └── phase6.test.ts               # 46 tests
+│       ├── phase6.test.ts               # 46 tests
+│       └── phase7.test.ts               # 22 tests
 ```
 
 ## Environment Inventory

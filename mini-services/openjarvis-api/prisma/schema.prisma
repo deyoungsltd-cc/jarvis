@@ -99,3 +99,18 @@ model MemoryAssociation {
   @@index([toMemoryId])
   @@map("memory_associations")
 }
+
+model MobileClient {
+  id          String    @id @default(uuid())
+  name        String
+  platform    String    // ios|android|web
+  apiKey      String    @unique
+  enabled     Boolean   @default(true)
+  lastSeenAt  DateTime?
+  createdAt   DateTime  @default(now())
+  updatedAt   DateTime  @updatedAt
+
+  @@index([apiKey])
+  @@index([platform])
+  @@map("mobile_clients")
+}
