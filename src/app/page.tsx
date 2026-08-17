@@ -14,12 +14,13 @@ import { MemoryTab } from '@/components/openjarvis/memory-tab';
 import { SettingsTab } from '@/components/openjarvis/settings-tab';
 import { VoiceControl } from '@/components/openjarvis/voice-control';
 import { ConnectionBanner } from '@/components/openjarvis/Connection-banner';
+import { ApprovalQueue, ApprovalBadge } from '@/components/openjarvis/approval-queue';
 
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Separator } from '@/components/ui/separator';
 import { ScrollArea } from '@/components/ui/scroll-area';
-import { Bot, ListTodo, Wrench, Brain, Settings } from 'lucide-react';
+import { Bot, ListTodo, Wrench, Brain, Settings, Shield } from 'lucide-react';
 
 export default function Dashboard() {
   // ─── Backend connectivity ──────────────────────────────────
@@ -75,6 +76,10 @@ export default function Dashboard() {
     if (!wsData || subscribedMissionId !== activeMission.id) return activeMission;
     return { ...activeMission, ...wsData };
   }, [activeMission, wsData, subscribedMissionId]);
+
+  // ─── Approval State (Phase 10) ─────────────────────────
+  const [pendingApprovals, setPendingApprovals] = useState(0);
+  const [showApprovalPanel, setShowApprovalPanel] = useState(false);
 
   const isExecuting = wsStatus === 'running';
 
@@ -171,7 +176,7 @@ export default function Dashboard() {
         <aside className="w-full lg:w-80 xl:w-96 shrink-0 border-t lg:border-t-0 lg:border-l border-border flex flex-col">
           <Tabs defaultValue="missions" className="flex flex-col h-full">
             <div className="px-2 pt-2">
-              <TabsList className="w-full grid grid-cols-4">
+              <TabsList className="w-full grid grid-cols-5">
                 <TabsTrigger value="missions" className="text-xs gap-1">
                   <ListTodo className="h-3.5 w-3.5" aria-hidden="true" />
                   <span className="hidden sm:inline">Missions</span>
@@ -187,6 +192,15 @@ export default function Dashboard() {
                 <TabsTrigger value="settings" className="text-xs gap-1">
                   <Settings className="h-3.5 w-3.5" aria-hidden="true" />
                   <span className="hidden sm:inline">Settings</span>
+                </TabsTrigger>
+                <TabsTrigger value="approvals" className="text-xs gap-1 relative">
+                  <Shield className="h-3.5 w-3.5" aria-hidden="true" />
+                  <span className="hidden sm:inline">Approvals</span>
+                  {pendingApprovals > 0 && (
+                    <span className="absolute -top-1 -right-1 flex items-center justify-center w-4 h-4 rounded-full bg-red-500 text-white text-[10px] font-bold">
+                      {pendingApprovals > 9 ? '9+' : pendingApprovals}
+                    </span>
+                  )}
                 </TabsTrigger>
               </TabsList>
             </div>
@@ -208,6 +222,10 @@ export default function Dashboard() {
 
             <TabsContent value="settings" className="flex-1 min-h-0">
               <SettingsTab provider={provider} onProviderChange={setProvider} />
+            </TabsContent>
+
+            <TabsContent value="approvals" className="flex-1 min-h-0 overflow-y-auto">
+              <ApprovalQueue />
             </TabsContent>
           </Tabs>
         </aside>

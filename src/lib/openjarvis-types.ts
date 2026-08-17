@@ -246,3 +246,67 @@ export type AgentDisplayState =
   | 'error'
   | 'success'
   | 'paused';
+
+// ─── Approval Workflow (Phase 10) ──────────────────────────
+export type ApprovalStatus = 'pending' | 'approved' | 'rejected' | 'expired' | 'cancelled';
+export type ApprovalAction = 'auto_approve' | 'auto_reject' | 'require_manual';
+
+export interface ApprovalRequest {
+  id: string;
+  missionId: string;
+  toolName: string;
+  capability?: string;
+  riskLevel: RiskLevel;
+  status: ApprovalStatus;
+  reason?: string;
+  toolInput?: Record<string, unknown>;
+  resolvedBy?: string;
+  resolvedAt?: string;
+  response?: string;
+  expiresAt?: string;
+  createdAt: string;
+  updatedAt: string;
+}
+
+export interface ApprovalRequestList {
+  items: ApprovalRequest[];
+  total: number;
+  limit: number;
+  offset: number;
+}
+
+export interface ApprovalStats {
+  total: number;
+  pending: number;
+  approved: number;
+  rejected: number;
+  expired: number;
+  cancelled: number;
+}
+
+export interface ApprovalRule {
+  id: string;
+  name: string;
+  description?: string;
+  enabled: boolean;
+  matchRiskLevels?: string[];
+  matchToolNames?: string[];
+  matchCapabilities?: string[];
+  action: ApprovalAction;
+  priority: number;
+  createdAt: string;
+  updatedAt: string;
+}
+
+export interface WsApprovalEvent {
+  type: 'approval:created' | 'approval:resolved';
+  data: {
+    id: string;
+    missionId: string;
+    toolName: string;
+    riskLevel?: string;
+    status?: string;
+    resolvedBy?: string;
+    timestamp: string;
+  };
+}

@@ -34,3 +34,20 @@ export function emitMissionUpdate(missionId: string, data: Record<string, unknow
   if (!io) return;
   io.emit(`mission:${missionId}:update`, { missionId, ...data });
 }
+
+/** Phase 10: Emit approval events to subscribers */
+export const eventBus = {
+  emit(event: string, data: Record<string, unknown>) {
+    if (!io) return;
+
+    if (event === 'approval:created' || event === 'approval:resolved') {
+      const missionId = data.missionId as string;
+      // Broadcast to global approval subscribers
+      io.to('approvals:all').emit(event, { ...data, timestamp: new Date().toISOString() });
+      // Broadcast to mission-specific approval subscribers
+      if (missionId) {
+        io.to(`approvals:mission:${missionId}`).emit(event, { ...data, timestamp: new Date().toISOString() });
+      }
+    }
+  },
+};

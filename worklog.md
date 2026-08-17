@@ -167,3 +167,34 @@ Stage Summary:
 - MCP tools default to "medium" risk level (external code)
 - Stdio transport ready for npx/node based MCP servers (e.g. @anthropic/mcp-server-*), SSE transport ready for remote MCP servers
 - BUILD_STATE.md updated with Phase 8 completion
+
+---
+Task ID: 10
+Agent: main
+Task: OpenJarvis Phase 10 — Approval Workflow & Human-in-the-Loop
+
+Work Log:
+- Added ApprovalRequest table: missionId, toolName, capability, riskLevel (default medium), status (pending|approved|rejected|expired|cancelled), reason, toolInput (JSON), resolvedBy, resolvedAt, response, expiresAt, with indexes on status/riskLevel/expiresAt/missionId
+- Added ApprovalRule table: name (unique), description, enabled, matchRiskLevels (JSON array), matchToolNames (JSON array with wildcard support), matchCapabilities (JSON array), action (auto_approve|auto_reject|require_manual), priority (higher wins)
+- Ran prisma db push to create new tables
+- Fixed Prisma client resolution: @prisma/client was resolving to root Next.js project's client (User/Post tables). Changed db.ts to import from local `../../node_modules/.prisma/client/index.js`
+- Created approvalService (src/services/approvalService.ts): full CRUD for requests + rules, approve/reject/cancel lifecycle, expiry cleanup, stats, rule-based auto-approval engine with priority, pattern matching (wildcard *), combined conditions
+- Created approvalGate (src/services/approvalGate.ts): checkApprovalGate() called by agent loop before tool execution, determines if tool needs approval based on: (1) auto-approval rules (highest priority first), (2) hard-blocked capabilities (filesystem_delete, shell_execute), (3) risk level (high/critical). Returns {proceed, approvalId, status, reason}. Also includes waitForApprovalDecision() polling function.
+- Modified agent loop (agentLoop.ts): before each tool execution, calls checkApprovalGate(). If waiting_approval, sets mission to waiting_approval status, records risk_check stage, polls for decision. On approved: resumes. On rejected/expired/cancelled: feeds error back to model as tool result so it can adapt.
+- Created approval REST routes (src/routes/approval.ts): 11 endpoints — GET/POST approvals, GET stats, GET pending, POST expire, GET/:id, POST :id/approve, POST :id/reject, POST :id/cancel, GET/PATCH/DELETE rules
+- Wired /approvals routes into index.ts Express app
+- Added WebSocket approval events: subscribe:approvals, subscribe:mission:approvals, unsubscribe variants. eventBus.emit broadcasts approval:created and approval:resolved to global and mission-specific rooms
+- Added frontend types (openjarvis-types.ts): ApprovalRequest, ApprovalRequestList, ApprovalStats, ApprovalRule, WsApprovalEvent
+- Added frontend API client (openjarvis-api.ts): 11 approval functions — getApprovals, getPendingApprovals, getApprovalStats, getApproval, approveRequest, rejectRequest, cancelRequest, expirePendingApprovals, getApprovalRules, createApprovalRule, updateApprovalRule, deleteApprovalRule
+- Created ApprovalQueue component (approval-queue.tsx): pending/history tabs, stats bar (pending/approved/rejected/expired), ApprovalCard with risk badge, expandable tool input, approve/reject/cancel buttons, reject-with-reason input, auto-poll every 5s
+- Integrated ApprovalQueue into dashboard page.tsx as 5th tab (Approvals) with red badge counter
+- 44/44 Phase 10 tests pass, 258/258 total tests pass (Phases 1-10)
+
+Stage Summary:
+- Phase 10 complete with 44/44 tests passing
+- 258 total backend tests pass across 8 test files (previously 214)
+- Key architecture: approval gate pattern in agent loop, rule-based auto-approval engine with priority ordering, DB-backed request lifecycle, WebSocket real-time notifications
+- Mission state machine's `waiting_approval` status now fully functional with real tool-gating logic
+- Rules support: risk level matching, tool name exact/wildcard matching, capability matching, combined conditions, priority ordering, disabled state
+- Approval TTL defaults to 300s (5 min), configurable per request
+- Frontend shows approval queue as a tab with pending count badge

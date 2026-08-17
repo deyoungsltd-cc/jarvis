@@ -116,8 +116,49 @@ model MobileClient {
 }
 
 // ===========================================
-// Phase 8 — MCP / Plugin System
+// Phase 10 — Approval Workflow & Human-in-the-Loop
 // ===========================================
+
+model ApprovalRequest {
+  id          String   @id @default(uuid())
+  missionId   String
+  toolName    String   // tool being requested
+  capability  String?  // capability being checked (for permission-gated tools)
+  riskLevel   String   @default("medium") // low|medium|high|critical
+  status      String   @default("pending") // pending|approved|rejected|expired|cancelled
+  reason      String?  // human-readable reason for the request
+  toolInput   String?  // JSON string — the tool's input arguments
+  resolvedBy  String?  // who approved/rejected (user identifier)
+  resolvedAt  DateTime? // when the decision was made
+  response    String?  // optional response message from the approver
+  expiresAt   DateTime? // auto-expire if not decided within this time
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+
+  @@index([missionId])
+  @@index([status])
+  @@index([riskLevel])
+  @@index([expiresAt])
+  @@map("approval_requests")
+}
+
+model ApprovalRule {
+  id          String   @id @default(uuid())
+  name        String   @unique
+  description String?
+  enabled     Boolean  @default(true)
+  // Rule conditions
+  matchRiskLevels  String?  // JSON array: ["low","medium"] — which risk levels this rule applies to
+  matchToolNames   String?  // JSON array: ["web_search"] — specific tool names (or patterns with *)
+  matchCapabilities String?  // JSON array: ["filesystem_read"] — specific capabilities
+  // Rule action
+  action      String   @default("auto_approve") // auto_approve|auto_reject|require_manual
+  priority    Int      @default(0) // higher priority rules evaluated first
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+
+  @@map("approval_rules")
+}
 
 model McpServer {
   id          String   @id @default(uuid())

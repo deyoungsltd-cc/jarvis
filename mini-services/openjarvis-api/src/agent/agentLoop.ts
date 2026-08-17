@@ -21,6 +21,7 @@ import { missionService } from '../services/missionService.js';
 import { missionEventService } from '../services/missionEventService.js';
 import { memoryService } from '../services/memoryService.js';
 import { buildMemoryContext } from './memory/contextBuilder.js';
+import { checkApprovalGate, waitForApprovalDecision } from '../services/approvalGate.js';
 import { logger } from '../utils/logger.js';
 
 const SYSTEM_PROMPT = `You are an autonomous AI agent. You receive a goal from the user and must accomplish it using the tools available to you.
@@ -144,7 +145,88 @@ export class AgentLoop {
             }
 
             await this.recordStage('tool_select', { toolName: toolCall.name, arguments: toolCall.arguments });
-            await this.recordStage('tool_execute', { toolName: toolCall.name });
+
+            // Phase 10: Approval gate — check if tool needs approval before executing
+            const toolHandler = this.registry.get(toolCall.name);
+            const toolRisk = toolHandler?.riskLevel || 'medium';
+            const toolCapability = this._getCapabilityForTool(toolCall.name);
+
+            const gateResult = await checkApprovalGate({
+              toolName: toolCall.name,
+              riskLevel: toolRisk,
+              capability: toolCapability,
+              toolInput: toolCall.arguments,
+              missionId,
+              requestId,
+            });
+
+            if (!gateResult.proceed && gateResult.status === 'waiting_approval') {
+              // Pause mission, wait for human approval
+              await this.recordStage('risk_check', {
+                toolName: toolCall.name,
+                riskLevel: toolRisk,
+                approvalId: gateResult.approvalId,
+                reason: gateResult.reason,
+              });
+
+              await this.setMissionStatus(missionId, 'waiting_approval', requestId);
+              logger.info(requestId, `Mission ${missionId} waiting for approval of tool '${toolCall.name}'`);
+
+              // Wait for approval decision (polling)
+              const decision = await waitForApprovalDecision(gateResult.approvalId!, requestId);
+
+              if (decision === 'approved') {
+                // Resume mission
+                await this.setMissionStatus(missionId, 'running', requestId);
+                logger.info(requestId, `Mission ${missionId} resumed after approval for tool '${toolCall.name}'`);
+                await this.recordStage('tool_execute', { toolName: toolCall.name, approved: true });
+              } else {
+                // Rejected, expired, or cancelled — record the failure and continue loop
+                const failReason = decision === 'rejected' ? 'Tool call rejected by user'
+                  : decision === 'expired' ? 'Approval request expired'
+                  : 'Approval request cancelled';
+                await this.recordStage('observe', {
+                  toolName: toolCall.name,
+                  success: false,
+                  error: failReason,
+                  approvalDecision: decision,
+                });
+                this.messages.push({
+                  role: 'tool',
+                  toolCallId: toolCall.id,
+                  toolName: toolCall.name,
+                  content: JSON.stringify({ error: failReason, approvalDecision: decision }),
+                });
+                // If mission was set to waiting_approval, set it back to running
+                const currentMission = await missionService.getById(missionId, requestId);
+                if (currentMission.status === 'waiting_approval') {
+                  await this.setMissionStatus(missionId, 'running', requestId);
+                }
+                continue; // Let the model decide what to do next
+              }
+            } else if (!gateResult.proceed && gateResult.status === 'blocked') {
+              // Auto-rejected by rule
+              await this.recordStage('risk_check', {
+                toolName: toolCall.name,
+                riskLevel: toolRisk,
+                blocked: true,
+                reason: gateResult.reason,
+              });
+              await this.recordStage('observe', {
+                toolName: toolCall.name,
+                success: false,
+                error: gateResult.reason,
+              });
+              this.messages.push({
+                role: 'tool',
+                toolCallId: toolCall.id,
+                toolName: toolCall.name,
+                content: JSON.stringify({ error: gateResult.reason }),
+              });
+              continue; // Let the model decide what to do next
+            } else {
+              await this.recordStage('tool_execute', { toolName: toolCall.name });
+            }
 
             // Execute the tool
             const result = await this.registry.executeTool(toolCall.name, toolCall.arguments, {
@@ -259,6 +341,25 @@ export class AgentLoop {
 
   private async getMission(missionId: string, requestId: string) {
     return missionService.getById(missionId, requestId);
+  }
+
+  /** Map tool name to its required capability (for permission-gated tools) */
+  private _getCapabilityForTool(toolName: string): string | undefined {
+    const toolCapabilityMap: Record<string, string> = {
+      filesystem_delete: 'filesystem_delete',
+      shell_execute: 'shell_execute',
+      filesystem_read: 'filesystem_read',
+      filesystem_write: 'filesystem_write',
+      mouse_click: 'mouse_click',
+      key_type: 'key_type',
+      key_press: 'key_press',
+      clipboard_read: 'clipboard_read',
+      clipboard_write: 'clipboard_write',
+      app_launch: 'app_launch',
+      app_close: 'app_close',
+      window_focus: 'window_focus',
+    };
+    return toolCapabilityMap[toolName];
   }
 
   private buildResult(success: boolean, finalStatus: string, finalContent: string | null = null): AgentResult {

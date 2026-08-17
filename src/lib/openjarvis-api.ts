@@ -18,6 +18,10 @@ import type {
   STTResponse,
   TTSResponse,
   VoiceSession,
+  ApprovalRequest,
+  ApprovalRequestList,
+  ApprovalStats,
+  ApprovalRule,
 } from './openjarvis-types';
 
 const PORT = '3001';
@@ -266,4 +270,80 @@ export function setVoiceSessionStatus(sessionId: string, status: string): Promis
     method: 'POST',
     body: JSON.stringify({ status }),
   });
+}
+
+// ─── Approvals (Phase 10) ──────────────────────────────
+export function getApprovals(filters?: { missionId?: string; status?: string; riskLevel?: string; limit?: number; offset?: number }): Promise<ApprovalRequestList> {
+  const params = new URLSearchParams();
+  if (filters?.missionId) params.set('missionId', filters.missionId);
+  if (filters?.status) params.set('status', filters.status);
+  if (filters?.riskLevel) params.set('riskLevel', filters.riskLevel);
+  if (filters?.limit) params.set('limit', String(filters.limit));
+  if (filters?.offset) params.set('offset', String(filters.offset));
+  const qs = params.toString();
+  return request(`/approvals${qs ? `?${qs}` : ''}`);
+}
+
+export function getPendingApprovals(): Promise<ApprovalRequestList> {
+  return request('/approvals/pending');
+}
+
+export function getApprovalStats(): Promise<ApprovalStats> {
+  return request('/approvals/stats');
+}
+
+export function getApproval(id: string): Promise<ApprovalRequest> {
+  return request(`/approvals/${id}`);
+}
+
+export function approveRequest(id: string, response?: string): Promise<ApprovalRequest> {
+  return request(`/approvals/${id}/approve`, {
+    method: 'POST',
+    body: JSON.stringify({ response }),
+  });
+}
+
+export function rejectRequest(id: string, response?: string): Promise<ApprovalRequest> {
+  return request(`/approvals/${id}/reject`, {
+    method: 'POST',
+    body: JSON.stringify({ response }),
+  });
+}
+
+export function cancelRequest(id: string): Promise<ApprovalRequest> {
+  return request(`/approvals/${id}/cancel`, { method: 'POST' });
+}
+
+export function expirePendingApprovals(): Promise<{ expired: number }> {
+  return request('/approvals/expire', { method: 'POST' });
+}
+
+export function getApprovalRules(): Promise<ApprovalRule[]> {
+  return request('/approvals/rules');
+}
+
+export function createApprovalRule(data: {
+  name: string;
+  description?: string;
+  matchRiskLevels?: string[];
+  matchToolNames?: string[];
+  matchCapabilities?: string[];
+  action: 'auto_approve' | 'auto_reject' | 'require_manual';
+  priority?: number;
+}): Promise<ApprovalRule> {
+  return request('/approvals/rules', {
+    method: 'POST',
+    body: JSON.stringify(data),
+  });
+}
+
+export function updateApprovalRule(id: string, data: Partial<Omit<ApprovalRule, 'id' | 'createdAt' | 'updatedAt'>>): Promise<ApprovalRule> {
+  return request(`/approvals/rules/${id}`, {
+    method: 'PATCH',
+    body: JSON.stringify(data),
+  });
+}
+
+export function deleteApprovalRule(id: string): Promise<{ deleted: boolean }> {
+  return request(`/approvals/rules/${id}`, { method: 'DELETE' });
 }

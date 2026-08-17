@@ -1,7 +1,7 @@
 # OpenJarvis Build State
 
 ## Current Phase
-Phase 7 — Mobile (COMPLETED)
+Phase 10 — Approval Workflow & Human-in-the-Loop (COMPLETED)
 
 ## Completed Milestones
 - **Phase 0 — Discovery** (2026-08-17)
@@ -162,6 +162,28 @@ Phase 7 — Mobile (COMPLETED)
 - [x] 22/22 Phase 7 tests pass
 - [ ] **React Native app shell** — DEFERRED: no mobile SDK/toolchain in sandbox
 
+- **Phase 8 — MCP/Plugins** (2026-08-17)
+  - MCP protocol client with JSON-RPC 2.0 over 3 transports (Stdio, SSE, In-Process)
+  - Plugin manager with DB-backed server CRUD, connection lifecycle, tool sync
+  - Tool bridging: MCP tools → namespaced ToolHandlers (mcp__servername__toolname)
+  - 8 REST endpoints at `/mcp/`
+  - **36/36 Phase 8 tests pass**
+  - **250/250 total tests pass** (Phase 1-8)
+
+- **Phase 10 — Approval Workflow & Human-in-the-Loop** (2026-08-18)
+  - `approval_requests` table: missionId, toolName, capability, riskLevel, status (pending|approved|rejected|expired|cancelled), toolInput (JSON), resolvedBy, expiresAt
+  - `approval_rules` table: name, matchRiskLevels (JSON), matchToolNames (JSON with wildcards), matchCapabilities (JSON), action (auto_approve|auto_reject|require_manual), priority
+  - ApprovalService: full CRUD for requests + rules, approve/reject/cancel lifecycle, expiry cleanup, statistics
+  - Auto-approval rules engine: priority-ordered, supports risk level + tool name (exact/wildcard) + capability matching, combined conditions
+  - ApprovalGate: called by agent loop before every tool execution — checks rules, then hard-blocked capabilities, then risk level
+  - Agent loop integration: `waiting_approval` status now fully functional — mission pauses, polls for decision, resumes or adapts on rejection
+  - 11 REST endpoints at `/approvals/` (CRUD + approve/reject/cancel + stats + rules CRUD)
+  - WebSocket real-time approval events: `approval:created`, `approval:resolved` to global and mission-specific rooms
+  - Frontend ApprovalQueue component with pending/history tabs, stats bar, risk badges, approve/reject/cancel buttons
+  - Dashboard now has 5th "Approvals" tab with red pending count badge
+  - **44/44 Phase 10 tests pass**
+  - **258/258 total tests pass** (Phase 1-10)
+
 ## Known Failures / Blockers
 - Supabase specified in master spec but sandbox provides SQLite/Prisma; schema matches spec exactly, swap via `datasource` + `DATABASE_URL`
 - Groq limitation: structured output and function calling cannot be used simultaneously (adapter handles this)
@@ -171,16 +193,16 @@ Phase 7 — Mobile (COMPLETED)
 
 ## Last Verified Working
 - Express API server boots on port 3001, health check returns real DB status
-- **178/178 tests pass** (`bun test tests/` in `mini-services/openjarvis-api/`)
+- **258/258 tests pass** (`bun test tests/` in `mini-services/openjarvis-api/`)
+- Approval system: rule-based auto-approval, DB-backed request lifecycle, WebSocket events, agent loop integration
+- MCP system: JSON-RPC 2.0, 3 transports, plugin manager, tool bridging
 - Mobile API: client registration, API key auth, pagination, SSE streaming, admin management
 - Memory system: search, recall, context building, associations, consolidation, purge, 4 agent tools
-- Memory REST API: search, stats, CRUD, associations, consolidate, purge all functional
-- Dashboard MemoryTab: search bar, scope filter, create form, stats panel, importance stars
 - Voice system: browser provider active, session CRUD, status transitions, transcript management
-- All previous phases verified: missions, events, tools, permissions, computer-control, voice
+- All previous phases verified: missions, events, tools, permissions, computer-control, voice, memory, mobile, MCP
 
 ## Next Action
-Phase 7 complete. Ready for Phase 8 (MCP/Plugins) spec execution when requested.
+Phase 10 complete. Ready for next phase spec execution when requested.
 
 ## Architecture Decisions Log
 - 2026-08-17: Pinned stack per Phase 0-2 spec (TS/Express/Prisma-SQLite-local/Gemini+Groq)
@@ -221,6 +243,14 @@ Phase 7 complete. Ready for Phase 8 (MCP/Plugins) spec execution when requested.
 - 2026-08-17: **Phase 7**: Pagination utility with page/limit clamping and PaginatedResponse envelope
 - 2026-08-17: **Phase 7**: SSE event stream for mobile (polling-based, 5min auto-timeout, no WebSocket dependency)
 - 2026-08-17: **Phase 7**: React Native app shell deferred — no mobile SDK/toolchain in sandbox
+- 2026-08-17: **Phase 8**: MCP protocol (JSON-RPC 2.0, protocol version 2024-11-05), 3 transports, plugin manager, tool bridging
+- 2026-08-17: **Phase 8**: Prisma client resolves from local `node_modules/.prisma/client` (not root `@prisma/client`)
+- 2026-08-18: **Phase 10**: Approval workflow — approval gate in agent loop, rule-based auto-approval with priority, DB-backed request lifecycle
+- 2026-08-18: **Phase 10**: `waiting_approval` mission status fully functional — agent pauses, polls for human decision, resumes or adapts
+- 2026-08-18: **Phase 10**: Approval rules support risk level + tool name (exact/wildcard `*`) + capability matching, combined conditions, priority ordering
+- 2026-08-18: **Phase 10**: Approval TTL defaults to 300s (5 min), configurable via `APPROVAL_TTL_SECONDS` env var
+- 2026-08-18: **Phase 10**: WebSocket approval events (`approval:created`, `approval:resolved`) with global and mission-specific rooms
+- 2026-08-18: **Phase 10**: Frontend ApprovalQueue as 5th dashboard tab with pending count badge
 
 ## File Structure
 ```

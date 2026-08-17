@@ -13,6 +13,7 @@ import voiceRoutes from './src/routes/voice.js';
 import mobileRoutes from './src/routes/mobile.js';
 import mobileAdminRoutes from './src/routes/mobileAdmin.js';
 import mcpRoutes from './src/routes/mcp.js';
+import approvalRoutes from './src/routes/approval.js';
 import { logger } from './src/utils/logger.js';
 import { setSocketIO } from './src/utils/eventBus.js';
 
@@ -35,6 +36,7 @@ app.use('/voice', voiceRoutes);
 app.use('/mobile/v1', mobileRoutes);
 app.use('/mobile/admin', mobileAdminRoutes);
 app.use('/mcp', mcpRoutes);
+app.use('/approvals', approvalRoutes);
 
 app.use((_req, res) => {
   const requestId = (_req as Record<string, unknown>).requestId as string || '-';
@@ -110,6 +112,25 @@ io.on('connection', (socket) => {
       status,
       timestamp: new Date().toISOString(),
     });
+  });
+
+  // Phase 10: Approval request subscriptions
+  socket.on('subscribe:approvals', () => {
+    socket.join('approvals:all');
+    logger.info('-', `Socket ${socket.id} subscribed to approval events`);
+  });
+
+  socket.on('unsubscribe:approvals', () => {
+    socket.leave('approvals:all');
+  });
+
+  socket.on('subscribe:mission:approvals', (missionId: string) => {
+    socket.join(`approvals:mission:${missionId}`);
+    logger.info('-', `Socket ${socket.id} subscribed to approvals for mission ${missionId}`);
+  });
+
+  socket.on('unsubscribe:mission:approvals', (missionId: string) => {
+    socket.leave(`approvals:mission:${missionId}`);
   });
 
   socket.on('disconnect', () => {
