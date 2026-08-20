@@ -1,0 +1,104 @@
+# ============================================================
+# Phase 16 — Caddy Reverse Proxy
+# Tailscale-only binding: all services reachable only via
+# the Tailscale mesh network, never from the public internet.
+# ============================================================
+
+# Bind to Tailscale interface only (100.x.x.x)
+# This is the single biggest security measure:
+# Vaultwarden, Nextcloud, Home Assistant, and all other
+# admin panels are NEVER exposed to the raw internet.
+{
+	# If Tailscale IP is known, bind to it specifically.
+	# Otherwise, use 0.0.0.0 and rely on Tailscale ACLs + firewall.
+	# Production: replace with your actual Tailscale IP.
+	# admin off
+}
+
+# ===== Group A — Apps Big Tech Sells You =====
+
+pdf.internal {
+	reverse_proxy stirling-pdf:8080
+}
+
+photos.internal {
+	reverse_proxy immich-server:2283
+}
+
+upscayl.internal {
+	reverse_proxy upscayl:8080
+}
+
+whisper.internal {
+	reverse_proxy whisper:9000
+}
+
+localsend.internal {
+	reverse_proxy localsend:5333
+}
+
+# ===== Group B — AI Busywork Tools =====
+
+audiblez.internal {
+	reverse_proxy audiblez:8000
+}
+
+rembg.internal {
+	reverse_proxy rembg:5000
+}
+
+spleeter.internal {
+	reverse_proxy spleeter:8082
+}
+
+videotrans.internal {
+	reverse_proxy pyvideotrans:19090
+}
+
+ocr.internal {
+	reverse_proxy ocrmypdf:5000
+}
+
+# ===== Group C — Data Sovereignty =====
+
+vault.internal {
+	reverse_proxy vaultwarden:80
+}
+
+cloud.internal {
+	reverse_proxy nextcloud:80
+}
+
+pihole.internal {
+	reverse_proxy pihole:80
+}
+
+home.internal {
+	reverse_proxy homeassistant:8123
+}
+
+search.internal {
+	reverse_proxy searxng:8080
+}
+
+# ===== Group D — Subscription Replacements =====
+
+appflowy.internal {
+	reverse_proxy appflowy:8000
+}
+
+calendar.internal {
+	reverse_proxy calcom:3000
+}
+
+db.internal {
+	reverse_proxy nocodb:8080
+}
+
+mail.internal {
+	reverse_proxy listmonk:9000
+}
+
+forms.internal {
+	reverse_proxy formbricks:3000
+}

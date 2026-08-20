@@ -49,5 +49,10 @@ export const eventBus = {
         io.to(`approvals:mission:${missionId}`).emit(event, { ...data, timestamp: new Date().toISOString() });
       }
     }
+
+    // Phase 16: Service lifecycle events
+    if (event.startsWith('service:')) {
+      io.to('services:all').emit(event, { ...data, timestamp: new Date().toISOString() });
+    }
   },
 };

@@ -228,3 +228,66 @@ model McpTool {
   @@index([name])
   @@map("mcp_tools")
 }
+
+// ===========================================
+// Phase 16 — Sovereign Stack: Service Instance Registry
+// Tracks all deployed Docker services, their lifecycle
+// state, and audit trail.
+// ===========================================
+
+model ServiceInstance {
+  id          String   @id @default(uuid())
+  name        String   @unique  // e.g. "immich", "vaultwarden", "searxng"
+  displayName String              // e.g. "Immich (Google Photos)"
+  group       String              // "A" | "B" | "C" | "D" — deployment group
+  repoUrl     String?             // e.g. "immich-app/immich"
+  replaces    String?             // e.g. "Google Photos"
+  hostname    String?             // e.g. "photos.internal" — Caddy internal hostname
+  composePath String              // path to the group's docker-compose.yml
+  serviceName String              // the docker-compose service name
+  imageTag    String              // e.g. "ghcr.io/immich-app/immich-server:v1.100.0"
+  status      String   @default("not_deployed") // not_deployed|deploying|running|stopped|updating|error|rollback
+  healthStatus String @default("unknown") // unknown|healthy|unhealthy|degraded
+  healthUrl   String?             // e.g. "http://immich-server:2283/api/status"
+  resourceWeight String @default("lightweight") // lightweight|moderate|heavy
+  lastHealthCheck DateTime?
+  lastDeployedAt DateTime?
+  lastUpdatedAt  DateTime?
+  deployedImageTag String?        // the actually-running image tag (for rollback)
+  rollbackImageTag String?        // the previous known-good image tag
+  error       String?             // last error message
+  mobileApp   String?             // e.g. "Immich" — name of the official mobile app
+  mobileAppNote String?           // pairing instructions
+  port        Int?                // internal container port
+  enabled     Boolean  @default(true)
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+
+  backups ServiceBackup[]
+
+  @@index([group])
+  @@index([status])
+  @@index([healthStatus])
+  @@map("service_instances")
+}
+
+model ServiceBackup {
+  id            String   @id @default(uuid())
+  serviceInstanceId String
+  filename      String              // backup file name
+  filePath      String              // absolute path to backup file
+  sizeBytes     Int      @default(0)
+  scheduleType  String   @default("manual") // manual|daily|weekly
+  storageLocation String @default("local") // local|external|nextcloud
+  storageTarget String?             // e.g. "/mnt/backup" or "nextcloud:/Backups/vaultwarden"
+  verified      Boolean  @default(false) // has this backup been restore-tested?
+  restoredFrom  Boolean  @default(false) // was this backup used for a successful restore?
+  serviceStatusAtBackup String?    // status of service when backup was taken
+  createdAt     DateTime @default(now())
+
+  service ServiceInstance @relation(fields: [serviceInstanceId], references: [id], onDelete: Cascade)
+
+  @@index([serviceInstanceId])
+  @@index([scheduleType])
+  @@map("service_backups")
+}

@@ -1,0 +1,91 @@
+# ============================================================
+# Phase 16 — Group B: AI Busywork Tools
+# Audiblez, Rembg, Spleeter, pyVideoTrans, OCRmyPDF
+# ============================================================
+
+services:
+  # 06 — Audiblez (Audible) — on-demand
+  audiblez:
+    image: santinic/audiblez:latest
+    container_name: audiblez
+    restart: "no"
+    ports:
+      - "8001:8000"
+    volumes:
+      - audiblez_output:/output
+    profiles:
+      - on-demand
+    deploy:
+      resources:
+        limits:
+          memory: 2048M
+          cpus: "2.0"
+
+  # 07 — Rembg (remove.bg) — on-demand
+  rembg:
+    image: danielgatis/rembg:latest
+    container_name: rembg
+    restart: "no"
+    ports:
+      - "5001:5000"
+    profiles:
+      - on-demand
+    deploy:
+      resources:
+        limits:
+          memory: 2048M
+          cpus: "2.0"
+
+  # 08 — Spleeter (Moises) — on-demand
+  spleeter:
+    image: ghcr.io/spleeter-web/spleeter-api:latest
+    container_name: spleeter
+    restart: "no"
+    ports:
+      - "8083:8082"
+    volumes:
+      - spleeter_output:/output
+    profiles:
+      - on-demand
+    deploy:
+      resources:
+        limits:
+          memory: 2048M
+          cpus: "2.0"
+
+  # 09 — pyVideoTrans (HeyGen Dubbing) — on-demand
+  pyvideotrans:
+    image: jianchang512/pyvideotrans:latest
+    container_name: pyvideotrans
+    restart: "no"
+    ports:
+      - "19090:19090"
+    volumes:
+      - pyvideotrans_data:/app/data
+    profiles:
+      - on-demand
+    deploy:
+      resources:
+        limits:
+          memory: 4096M
+          cpus: "4.0"
+
+  # 10 — OCRmyPDF (Adobe Scan) — on-demand
+  ocrmypdf:
+    image: ocrmypdf/ocrmypdf-webservice:latest
+    container_name: ocrmypdf
+    restart: "no"
+    ports:
+      - "5002:5000"
+    profiles:
+      - on-demand
+    deploy:
+      resources:
+        limits:
+          memory: 1024M
+          cpus: "1.0"
+
+volumes:
+  audiblez_output:
+  spleeter_output:
+  pyvideotrans_data:

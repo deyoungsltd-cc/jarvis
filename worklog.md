@@ -227,3 +227,45 @@ Stage Summary:
 - Revocation takes immediate effect including for in-progress missions
 - Scoped grants support (permanent, mission, session) with scope context (pathPrefix, domain)
 - All 289 tests pass
+
+---
+Task ID: 16
+Agent: main
+Task: OpenJarvis Phase 16 — The Sovereign Stack: Self-Hosted Tool Suite
+
+Work Log:
+- Added `service_instances` and `service_backups` tables to Prisma schema (migration: phase16_service_instances)
+- Created `serviceCatalog.ts`: 20 services with full metadata (name, displayName, group, repoUrl, replaces, hostname, imageTag, resource weight, RAM/CPU/disk estimates, port, mobile app info, backup priority, backup volumes, special notes)
+- Created `serviceManager.ts`: core service lifecycle service with deploy, staged update (pull → health-check → apply → re-verify → auto-rollback), restart, stop, health check (docker inspect + HTTP), backup (docker volume archiving), restore, rollback
+- Created 4 Docker Compose files:
+  - `compose/group-a.yml`: Stirling-PDF, Immich (+Postgres+Redis), Upscayl, Whisper, LocalSend, Caddy
+  - `compose/group-b.yml`: Audiblez, Rembg, Spleeter, pyVideoTrans, OCRmyPDF (all on-demand with profiles)
+  - `compose/group-c.yml`: Vaultwarden, Nextcloud (+MariaDB), Pi-hole, Home Assistant, SearXNG
+  - `compose/group-d.yml`: AppFlowy, Cal.com (+Postgres+Redis), NocoDB, Listmonk (+Postgres), Formbricks (+Postgres)
+- Created `compose/caddy/Caddyfile`: 20 internal hostnames (*.internal), Tailscale-only binding documentation
+- Created 6 service lifecycle tools (`src/agent/tools/service-lifecycle/index.ts`): deploy_service (medium), update_service (medium), restart_service (low), backup_service (low), check_service_health (low), rollback_service (high)
+- Added 6 service lifecycle capabilities to `permissions/types.ts`: service_deploy, service_update, service_restart, service_backup, service_health_check, service_rollback
+- Destructive actions (volume deletion, force-recreate) are NOT exposed as tools — only admin can do them
+- Created `/services` REST routes (13 endpoints): list, resources, get, deploy, update, restart, stop, rollback, health (single + all), backup (create + list), restore
+- Wired service routes into `index.ts` Express app
+- Added WebSocket service subscriptions: `subscribe:services`, `service:status_changed`, `service:health_alert` events
+- Updated eventBus to broadcast service:* events
+- Added `capability` field to `ToolHandler` interface in `types.ts`
+- Changed `CAPABILITY_RISK` type from `Record<Capability, ...>` to `Record<string, ...>` to accommodate new capabilities
+- Created `BUILD_STATE.md` with: architecture decisions, resource estimates, go/no-go assessment, open risks, implementation status
+- Created 28 Phase 16 tests: service catalog (7), resource estimation (3), service manager seed (5), lifecycle tools (5), permission tiering (4), resource report (2), backup listing (2)
+- All 28 tests pass
+
+Stage Summary:
+- Phase 16 code-complete (infrastructure layer)
+- 20 services defined across 4 deployment groups with resource profiles
+- 6 new tools registered for agent use, gated by the existing authorization model
+- Staged update flow with automatic rollback on health check failure
+- Destructive actions are architecturally impossible via tools (no `service_delete_volume` capability)
+- Backup system with restore-tested flag and second-location storage target field
+- Single-disk backup risk explicitly flagged in BUILD_STATE.md
+- Mobile apps documented: Immich, Bitwarden, Nextcloud, Home Assistant (all with pairing instructions)
+- SearXNG confirmed as single instance (Phase 14 reuse)
+- Home Assistant explicitly noted as empty shell
+- Real deployment requires: Docker on PC, Tailscale on PC+phone, second storage for real backups
+

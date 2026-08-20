@@ -84,6 +84,7 @@ export interface ToolHandler {
   inputSchema: Record<string, unknown>;
   outputSchema: Record<string, unknown>;
   riskLevel: 'low' | 'medium' | 'high' | 'critical';
+  capability?: string; // capability_id for permission gating (e.g. 'filesystem_read')
   execute: (input: Record<string, unknown>) => Promise<ToolExecutionResult>;
 }
 

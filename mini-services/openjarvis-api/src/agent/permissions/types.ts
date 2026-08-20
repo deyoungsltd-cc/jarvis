@@ -21,7 +21,14 @@ export type Capability =
   | 'app_close'
   | 'window_list'
   | 'window_focus'
-  | 'window_info';
+  | 'window_info'
+  // Phase 16 — Service Lifecycle
+  | 'service_deploy'
+  | 'service_update'
+  | 'service_restart'
+  | 'service_backup'
+  | 'service_health_check'
+  | 'service_rollback';
 
 /**
  * Capabilities that require approval before execution.
@@ -51,7 +58,7 @@ export function getHardBlockedCapabilities(): Set<string> {
 /**
  * Risk levels for capabilities.
  */
-export const CAPABILITY_RISK: Record<Capability, 'low' | 'medium' | 'high' | 'critical'> = {
+export const CAPABILITY_RISK: Record<string, 'low' | 'medium' | 'high' | 'critical'> = {
   screenshot: 'low',
   mouse_move: 'medium',
   mouse_click: 'high',
@@ -69,6 +76,16 @@ export const CAPABILITY_RISK: Record<Capability, 'low' | 'medium' | 'high' | 'cr
   window_list: 'low',
   window_focus: 'medium',
   window_info: 'low',
+  // Phase 16 — Service Lifecycle
+  // NOTE: service_deploy and service_update are medium, not high,
+  // because they use staged updates with auto-rollback.
+  // Destructive actions (volume deletion) are NOT exposed as capabilities.
+  service_deploy: 'medium',
+  service_update: 'medium',
+  service_restart: 'low',
+  service_backup: 'low',
+  service_health_check: 'low',
+  service_rollback: 'high',
 };
 
 export interface PermissionGrant {

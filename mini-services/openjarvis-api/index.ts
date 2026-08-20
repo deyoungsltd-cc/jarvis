@@ -15,6 +15,7 @@ import mobileAdminRoutes from './src/routes/mobileAdmin.js';
 import mcpRoutes from './src/routes/mcp.js';
 import approvalRoutes from './src/routes/approval.js';
 import capabilityRoutes from './src/routes/capabilities.js';
+import serviceRoutes from './src/routes/services.js';
 import { logger } from './src/utils/logger.js';
 import { setSocketIO } from './src/utils/eventBus.js';
 
@@ -39,6 +40,7 @@ app.use('/mobile/admin', mobileAdminRoutes);
 app.use('/mcp', mcpRoutes);
 app.use('/approvals', approvalRoutes);
 app.use('/capabilities', capabilityRoutes);
+app.use('/services', serviceRoutes);
 
 app.use((_req, res) => {
   const requestId = (_req as Record<string, unknown>).requestId as string || '-';
@@ -129,6 +131,16 @@ io.on('connection', (socket) => {
   socket.on('subscribe:mission:approvals', (missionId: string) => {
     socket.join(`approvals:mission:${missionId}`);
     logger.info('-', `Socket ${socket.id} subscribed to approvals for mission ${missionId}`);
+  });
+
+  // Phase 16: Service lifecycle subscriptions
+  socket.on('subscribe:services', () => {
+    socket.join('services:all');
+    logger.info('-', `Socket ${socket.id} subscribed to service events`);
+  });
+
+  socket.on('unsubscribe:services', () => {
+    socket.leave('services:all');
   });
 
   socket.on('unsubscribe:mission:approvals', (missionId: string) => {

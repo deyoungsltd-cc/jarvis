@@ -1,0 +1,248 @@
+# ============================================================
+# Phase 16 — Group D: Subscription Replacements
+# AppFlowy, Cal.com, NocoDB, Listmonk, Formbricks
+# ============================================================
+
+services:
+  # 16 — AppFlowy (Notion)
+  appflowy-db:
+    image: postgres:16-alpine
+    container_name: appflowy-db
+    restart: unless-stopped
+    volumes:
+      - appflowy_postgres:/var/lib/postgresql/data
+    environment:
+      - POSTGRES_USER=appflowy
+      - POSTGRES_PASSWORD=${APPFLOWY_DB_PASSWORD:-af_db_pass}
+      - POSTGRES_DB=appflowy
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U appflowy"]
+      interval: 10s
+      timeout: 5s
+      retries: 3
+    profiles:
+      - always-on
+
+  appflowy:
+    image: appflowyio/appflowy_cloud:latest
+    container_name: appflowy
+    restart: unless-stopped
+    ports:
+      - "8002:8000"
+    volumes:
+      - appflowy_data:/app/data
+    environment:
+      - DATABASE_URL=postgres://appflowy:${APPFLOWY_DB_PASSWORD:-af_db_pass}@appflowy-db:5432/appflowy
+      - RUST_LOG=info
+    depends_on:
+      appflowy-db:
+        condition: service_healthy
+    profiles:
+      - always-on
+    deploy:
+      resources:
+        limits:
+          memory: 768M
+          cpus: "1.0"
+
+  # 17 — Cal.com (Calendly)
+  calcom-db:
+    image: postgres:16-alpine
+    container_name: calcom-db
+    restart: unless-stopped
+    volumes:
+      - calcom_postgres:/var/lib/postgresql/data
+    environment:
+      - POSTGRES_USER=calcom
+      - POSTGRES_PASSWORD=${CALCOM_DB_PASSWORD:-cal_db_pass}
+      - POSTGRES_DB=calcom
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U calcom"]
+      interval: 10s
+      timeout: 5s
+      retries: 3
+    profiles:
+      - always-on
+
+  calcom-redis:
+    image: redis:7-alpine
+    container_name: calcom-redis
+    restart: unless-stopped
+    volumes:
+      - calcom_redis:/data
+    healthcheck:
+      test: ["CMD", "redis-cli", "ping"]
+      interval: 10s
+      timeout: 5s
+      retries: 3
+    profiles:
+      - always-on
+
+  calcom:
+    image: calcom/cal.com:latest
+    container_name: calcom
+    restart: unless-stopped
+    ports:
+      - "3001:3000"
+    volumes:
+      - calcom_data:/calcom/data
+      - calcom_public:/calcom/public
+    environment:
+      - DATABASE_URL=postgres://calcom:${CALCOM_DB_PASSWORD:-cal_db_pass}@calcom-db:5432/calcom
+      - REDIS_URL=redis://calcom-redis:6379
+      - NEXTAUTH_SECRET=${CALCOM_NEXTAUTH_SECRET:-change_me_random}
+      - CALCOM_SECRET=${CALCOM_SECRET:-change_me_random}
+      - NEXT_PUBLIC_WEBAPP_URL=https://calendar.internal
+      - NEXT_PUBLIC_API_V2_URL=https://calendar.internal/api/v2
+      - EMAIL_FROM=noreply@calendar.internal
+      - NEXTAUTH_URL=https://calendar.internal
+    depends_on:
+      calcom-db:
+        condition: service_healthy
+      calcom-redis:
+        condition: service_healthy
+    profiles:
+      - always-on
+    deploy:
+      resources:
+        limits:
+          memory: 768M
+          cpus: "1.0"
+
+  # 18 — NocoDB (Airtable)
+  nocodb:
+    image: nocodb/nocodb:latest
+    container_name: nocodb
+    restart: unless-stopped
+    ports:
+      - "8088:8080"
+    volumes:
+      - nocodb_data:/usr/app/data
+    environment:
+      - NC_DB="sqlite:///usr/app/data/nocodb.db"
+      - NC_PUBLIC_URL=https://db.internal
+    healthcheck:
+      test: ["CMD", "curl", "f", "http://localhost:8080/api/v1/health"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+      start_period: 30s
+    profiles:
+      - always-on
+    deploy:
+      resources:
+        limits:
+          memory: 768M
+          cpus: "1.0"
+
+  # 19 — Listmonk (Mailchimp)
+  listmonk-db:
+    image: postgres:16-alpine
+    container_name: listmonk-db
+    restart: unless-stopped
+    volumes:
+      - listmonk_postgres:/var/lib/postgresql/data
+    environment:
+      - POSTGRES_USER=listmonk
+      - POSTGRES_PASSWORD=${LISTMONK_DB_PASSWORD:-lm_db_pass}
+      - POSTGRES_DB=listmonk
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U listmonk"]
+      interval: 10s
+      timeout: 5s
+      retries: 3
+    profiles:
+      - always-on
+
+  listmonk:
+    image: listmonk/listmonk:latest
+    container_name: listmonk
+    restart: unless-stopped
+    ports:
+      - "9001:9000"
+    volumes:
+      - listmonk_data:/listmonk/data
+    environment:
+      - DB_HOST=listmonk-db
+      - DB_PORT=5432
+      - DB_USER=listmonk
+      - DB_PASSWORD=${LISTMONK_DB_PASSWORD:-lm_db_pass}
+      - DB_NAME=listmonk
+      - LISTMONK_APP_URL=https://mail.internal
+    depends_on:
+      listmonk-db:
+        condition: service_healthy
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:9000/api/health"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+    profiles:
+      - always-on
+    deploy:
+      resources:
+        limits:
+          memory: 256M
+          cpus: "0.5"
+
+  # 20 — Formbricks (Typeform)
+  formbricks-db:
+    image: postgres:16-alpine
+    container_name: formbricks-db
+    restart: unless-stopped
+    volumes:
+      - formbricks_postgres:/var/lib/postgresql/data
+    environment:
+      - POSTGRES_USER=formbricks
+      - POSTGRES_PASSWORD=${FORMBRICKS_DB_PASSWORD:-fb_db_pass}
+      - POSTGRES_DB=formbricks
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U formbricks"]
+      interval: 10s
+      timeout: 5s
+      retries: 3
+    profiles:
+      - always-on
+
+  formbricks:
+    image: ghcr.io/formbricks/formbricks:latest
+    container_name: formbricks
+    restart: unless-stopped
+    ports:
+      - "3002:3000"
+    volumes:
+      - formbricks_data:/formbricks/data
+    environment:
+      - DATABASE_URL=postgres://formbricks:${FORMBRICKS_DB_PASSWORD:-fb_db_pass}@formbricks-db:5432/formbricks
+      - NEXTAUTH_SECRET=${FORMBRICKS_NEXTAUTH_SECRET:-change_me_random}
+      - NEXTAUTH_URL=https://forms.internal
+      - WEBAPP_URL=https://forms.internal
+      - EMAIL_FROM=noreply@forms.internal
+    depends_on:
+      formbricks-db:
+        condition: service_healthy
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:3000/api/v1/health"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+    profiles:
+      - always-on
+    deploy:
+      resources:
+        limits:
+          memory: 768M
+          cpus: "1.0"
+
+volumes:
+  appflowy_postgres:
+  appflowy_data:
+  calcom_postgres:
+  calcom_redis:
+  calcom_data:
+  calcom_public:
+  nocodb_data:
+  listmonk_postgres:
+  listmonk_data:
+  formbricks_postgres:
+  formbricks_data:

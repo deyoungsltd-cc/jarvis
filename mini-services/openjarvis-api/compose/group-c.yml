@@ -1,0 +1,173 @@
+# ============================================================
+# Phase 16 — Group C: Data Sovereignty
+# Vaultwarden, Nextcloud, Pi-hole, Home Assistant, SearXNG
+# ============================================================
+
+services:
+  # 11 — Vaultwarden (1Password)
+  vaultwarden:
+    image: vaultwarden/server:latest
+    container_name: vaultwarden
+    restart: unless-stopped
+    ports:
+      - "8084:80"
+    volumes:
+      - vaultwarden_data:/data
+    environment:
+      - WEBSOCKET_ENABLED=true
+      - SIGNUPS_ALLOWED=false
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:80/alive"]
+      interval: 30s
+      timeout: 5s
+      retries: 3
+    profiles:
+      - always-on
+    deploy:
+      resources:
+        limits:
+          memory: 128M
+          cpus: "0.5"
+
+  # 12 — Nextcloud (Google Drive)
+  nextcloud-db:
+    image: mariadb:11
+    container_name: nextcloud-db
+    restart: unless-stopped
+    volumes:
+      - nextcloud_db:/var/lib/mysql
+    environment:
+      - MYSQL_ROOT_PASSWORD=${NEXTCLOUD_DB_ROOT_PASSWORD:-nc_root_pass}
+      - MYSQL_DATABASE=nextcloud
+      - MYSQL_USER=nextcloud
+      - MYSQL_PASSWORD=${NEXTCLOUD_DB_PASSWORD:-nc_user_pass}
+    healthcheck:
+      test: ["CMD", "healthcheck.sh", "--connect", "--innodb_initialized"]
+      interval: 10s
+      timeout: 5s
+      retries: 3
+    profiles:
+      - always-on
+
+  nextcloud:
+    image: nextcloud:30-apache
+    container_name: nextcloud
+    restart: unless-stopped
+    ports:
+      - "8085:80"
+    volumes:
+      - nextcloud_data:/var/www/html
+      - nextcloud_apps:/var/www/html/custom_apps
+    environment:
+      - MYSQL_HOST=nextcloud-db
+      - MYSQL_DATABASE=nextcloud
+      - MYSQL_USER=nextcloud
+      - MYSQL_PASSWORD=${NEXTCLOUD_DB_PASSWORD:-nc_user_pass}
+      - NEXTCLOUD_TRUSTED_DOMAINS=cloud.internal localhost
+      - OVERWRITEPROTOCOL=https
+    depends_on:
+      nextcloud-db:
+        condition: service_healthy
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost/status.php"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+      start_period: 60s
+    profiles:
+      - always-on
+    deploy:
+      resources:
+        limits:
+          memory: 768M
+          cpus: "1.5"
+
+  # 13 — Pi-hole (Network Ad Block)
+  pihole:
+    image: pihole/pihole:latest
+    container_name: pihole
+    restart: unless-stopped
+    ports:
+      - "8086:80"
+      - "53:53/udp"
+      - "53:53/tcp"
+    volumes:
+      - pihole_etc:/etc/pihole
+    environment:
+      - TZ=America/Los_Angeles
+      - WEBPASSWORD=${PIHOLE_PASSWORD:-admin}
+    # NOTE: Pi-hole requires DNS configuration. Set as DNS server for
+    # your network or individual devices to activate ad blocking.
+    # cap_add:
+    #   - NET_ADMIN
+    profiles:
+      - always-on
+    deploy:
+      resources:
+        limits:
+          memory: 256M
+          cpus: "0.5"
+
+  # 14 — Home Assistant (Google Home)
+  # EMPTY SHELL — deploys cleanly but controls nothing until
+  # real smart-home devices are added.
+  homeassistant:
+    image: homeassistant/home-assistant:stable
+    container_name: homeassistant
+    restart: unless-stopped
+    ports:
+      - "8123:8123"
+    volumes:
+      - homeassistant_config:/config
+    environment:
+      - TZ=America/Los_Angeles
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:8123/api/"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+      start_period: 120s
+    profiles:
+      - always-on
+    deploy:
+      resources:
+        limits:
+          memory: 768M
+          cpus: "1.5"
+
+  # 15 — SearXNG (Google Search)
+  # SAME INSTANCE as Phase 14 research fallback.
+  # Deploy once here, reuse for web_search tool.
+  searxng:
+    image: searxng/searxng:latest
+    container_name: searxng
+    restart: unless-stopped
+    ports:
+      - "8087:8080"
+    volumes:
+      - searxng_data:/etc/searxng
+    environment:
+      - SEARXNG_SECRET=${SEARXNG_SECRET:-change_me_random_string}
+      - BASE_URL=https://search.internal
+      - INSTANCE_NAME=OpenJarvis Search
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:8080/search?q=test&format=json"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+    profiles:
+      - always-on
+    deploy:
+      resources:
+        limits:
+          memory: 256M
+          cpus: "0.5"
+
+volumes:
+  vaultwarden_data:
+  nextcloud_db:
+  nextcloud_data:
+  nextcloud_apps:
+  pihole_etc:
+  homeassistant_config:
+  searxng_data:

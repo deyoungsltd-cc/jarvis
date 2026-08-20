@@ -1,0 +1,186 @@
+# ============================================================
+# Phase 16 — Group A: Apps Big Tech Sells You
+# Stirling-PDF, Immich, Upscayl, Whisper, LocalSend
+# ============================================================
+
+services:
+  # 01 — Stirling-PDF (Adobe Acrobat)
+  stirling-pdf:
+    image: frooodle/s-pdf:latest
+    container_name: stirling-pdf
+    restart: unless-stopped
+    ports:
+      - "8081:8080"
+    volumes:
+      - stirling-pdf_config:/configs
+      - stirling-pdf_customFiles:/customFiles
+      - stirling-pdf_logs:/logs
+    environment:
+      - DOCKER_ENABLE_SECURITY=false
+      - SECURITY_ENABLE_LOGIN=false
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:8080/api/v1/info"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+      start_period: 30s
+    profiles:
+      - always-on
+    deploy:
+      resources:
+        limits:
+          memory: 1536M
+          cpus: "1.5"
+
+  # 02 — Immich (Google Photos)
+  immich-server:
+    image: ghcr.io/immich-app/immich-server:v1.106.3
+    container_name: immich-server
+    restart: unless-stopped
+    ports:
+      - "2283:2283"
+    volumes:
+      - immich_upload:/usr/src/app/upload
+      - /etc/localtime:/etc/localtime:ro
+    environment:
+      - DB_HOST=immich-postgres
+      - DB_USERNAME=immich
+      - DB_PASSWORD=${IMMICH_DB_PASSWORD:-immich_dev_pass}
+      - DB_DATABASE_NAME=immich
+      - REDIS_HOST=immich-redis
+    depends_on:
+      immich-redis:
+        condition: service_healthy
+      immich-postgres:
+        condition: service_healthy
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:2283/api/server-info"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+      start_period: 60s
+    profiles:
+      - always-on
+    deploy:
+      resources:
+        limits:
+          memory: 1536M
+          cpus: "2.0"
+
+  immich-redis:
+    image: redis:7-alpine
+    container_name: immich-redis
+    restart: unless-stopped
+    volumes:
+      - immich_redis_data:/data
+    healthcheck:
+      test: ["CMD", "redis-cli", "ping"]
+      interval: 10s
+      timeout: 5s
+      retries: 3
+    profiles:
+      - always-on
+
+  immich-postgres:
+    image: tensorchord/pgvecto-rs:pg14-v0.2.0
+    container_name: immich-postgres
+    restart: unless-stopped
+    volumes:
+      - immich_postgres_data:/var/lib/postgresql/data
+    environment:
+      - POSTGRES_USER=immich
+      - POSTGRES_PASSWORD=${IMMICH_DB_PASSWORD:-immich_dev_pass}
+      - POSTGRES_DB=immich
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U immich"]
+      interval: 10s
+      timeout: 5s
+      retries: 3
+    profiles:
+      - always-on
+
+  # 03 — Upscayl (Topaz) — on-demand
+  upscayl:
+    image: jlongstreth/upscayl-docker:latest
+    container_name: upscayl
+    restart: "no"
+    ports:
+      - "8082:8080"
+    volumes:
+      - ./upscayl-input:/input
+      - ./upscayl-output:/output
+    profiles:
+      - on-demand
+    deploy:
+      resources:
+        limits:
+          memory: 4096M
+          cpus: "4.0"
+
+  # 04 — Whisper (Otter.ai) — on-demand
+  whisper:
+    image: ahmetoner/whisper-asr-webservice:latest
+    container_name: whisper
+    restart: "no"
+    ports:
+      - "9000:9000"
+    environment:
+      - ASR_MODEL=base
+      - ASR_ENGINE=faster_whisper
+    volumes:
+      - ./whisper-models:/root/.cache/huggingface
+    profiles:
+      - on-demand
+    deploy:
+      resources:
+        limits:
+          memory: 4096M
+          cpus: "4.0"
+
+  # 05 — LocalSend (AirDrop)
+  localsend:
+    image: localsend/localsend:latest
+    container_name: localsend
+    restart: unless-stopped
+    ports:
+      - "5333:5333"
+    volumes:
+      - localsend_data:/data
+    profiles:
+      - always-on
+    deploy:
+      resources:
+        limits:
+          memory: 128M
+          cpus: "0.5"
+
+  # 06 — Caddy reverse proxy (Group A)
+  caddy:
+    image: caddy:2-alpine
+    container_name: caddy-a
+    restart: unless-stopped
+    ports:
+      - "80:80"
+      - "443:443"
+    volumes:
+      - ./caddy/Caddyfile:/etc/caddy/Caddyfile:ro
+      - caddy_data:/data
+      - caddy_config:/config
+    profiles:
+      - always-on
+    deploy:
+      resources:
+        limits:
+          memory: 128M
+          cpus: "0.5"
+
+volumes:
+  stirling-pdf_config:
+  stirling-pdf_customFiles:
+  stirling-pdf_logs:
+  immich_upload:
+  immich_postgres_data:
+  immich_redis_data:
+  localsend_data:
+  caddy_data:
+  caddy_config:
