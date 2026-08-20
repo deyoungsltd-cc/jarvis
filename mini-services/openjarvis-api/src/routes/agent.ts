@@ -18,6 +18,11 @@ router.post('/run', async (req: Request, res: Response, next: NextFunction) => {
       throw badRequest('VALIDATION_ERROR', 'missionId is required', requestId);
     }
 
+    const validProviders = ['gemini', 'groq', 'local'] as const;
+    if (!(validProviders as readonly string[]).includes(provider)) {
+      throw badRequest('VALIDATION_ERROR', `Invalid provider '${provider}'. Must be: ${validProviders.join(', ')}`, requestId);
+    }
+
     // Load the mission
     const mission = await missionService.getById(missionId, requestId);
     if (mission.status !== 'draft' && mission.status !== 'queued') {

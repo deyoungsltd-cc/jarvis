@@ -1,9 +1,16 @@
 /**
  * Model provider abstraction.
- * Both Gemini and Groq implement the same `ModelProvider` interface.
+ * Gemini, Groq, and Local LLM implement the same `ModelProvider` interface.
  * Swapping requires zero changes outside the adapter.
+ *
+ * Supported providers:
+ *   'gemini' — Google Gemini (cloud, API key required)
+ *   'groq'   — Groq (cloud, API key required)
+ *   'local'  — Any OpenAI-compatible local server (Ollama / LM Studio / mlx-vlm / vLLM / llama-server)
+ *             Auto-detects running server if LOCAL_LLM_BASE_URL not set.
  */
 import { ModelProvider, ChatMessage, ToolDefinition, ToolCall, ModelResponse } from './types.js';
+import { LocalLLMProvider } from './localLLMProvider.js';
 
 // ---- Gemini Adapter ----
 
@@ -187,7 +194,7 @@ export class GroqProvider implements ModelProvider {
 // ---- Factory ----
 
 export function createModelProvider(
-  provider: 'gemini' | 'groq',
+  provider: 'gemini' | 'groq' | 'local',
 ): ModelProvider {
   switch (provider) {
     case 'gemini': {
@@ -199,6 +206,9 @@ export function createModelProvider(
       const key = process.env.GROQ_API_KEY;
       if (!key) throw new Error('GROQ_API_KEY is not set');
       return new GroqProvider(key);
+    }
+    case 'local': {
+      return new LocalLLMProvider();
     }
     default:
       throw new Error(`Unknown provider: ${provider}`);

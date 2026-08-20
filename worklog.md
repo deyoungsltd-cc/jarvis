@@ -1,4 +1,33 @@
 ---
+Task ID: local-llm-crossplatform
+Agent: main
+Task: Cross-platform local LLM integration (Windows / Linux / macOS)
+
+Work Log:
+- Created LocalLLMProvider with auto-detection: probes Ollama (11434), LM Studio (1234), mlx-vlm (8080) in order, connects to first live server
+- Updated modelProvider factory: 'local' provider joins 'gemini' and 'groq'
+- Created /agent/local-llm/health (probes all backends) and /agent/local-llm/status (config + install docs) routes
+- Updated agent route with provider validation: ['gemini', 'groq', 'local']
+- Created mini-services/local-llm/ with cross-platform scripts:
+  - start-server.sh (Linux/macOS): auto-detects OS, picks Ollama or MLX, pulls models, waits for ready
+  - stop-server.sh: graceful then force kill, also tries process-name fallback
+  - health-server.sh: curl-based health check with model listing
+  - start-server.ps1 (Windows PowerShell): Ollama + LM Studio support, model pulling, process management
+  - stop-server.ps1: Windows process kill with fallback
+  - health-server.ps1: PowerShell health check
+  - README.md: Quick start for all 3 OSes, backend comparison table, model recommendations by RAM
+- Added 'local-llm' as service #21 in serviceCatalog (cross-platform entry, port 11434 default)
+- Created .env.example with LOCAL_LLM_* vars (all blank for auto-detect)
+- Updated .gitignore for local-llm runtime files and model weights
+- TypeScript verified: zero new errors
+
+Stage Summary:
+- Local LLM is now cross-platform: Windows (Ollama/LM Studio), Linux (Ollama), macOS (Ollama/mlx-vlm)
+- Zero config needed: auto-detects running server, auto-selects model name
+- JARVIS phone clients (iOS/Android) connect to the PC server via Tailscale — phone doesn't run the model
+- Usage: POST /agent/run { missionId, provider: 'local' } — that's it
+
+---
 Task ID: 5
 Agent: main
 Task: OpenJarvis Phase 5 — Voice System

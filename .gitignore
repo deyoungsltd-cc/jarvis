@@ -32,6 +32,17 @@ yarn-error.log*
 
 # env files (can opt-in for committing if needed)
 .env*
+!.env.example
+
+# Local LLM runtime files (never commit these)
+mini-services/local-llm/server.log
+mini-services/local-llm/server-error.log
+mini-services/local-llm/.server.pid
+mini-services/local-llm/models/
+# Old MLX-only directory (if still present)
+mini-services/qwen-local-llm/*/model-*.safetensors
+mini-services/qwen-local-llm/server.log
+mini-services/qwen-local-llm/.server.pid
 
 # vercel
 .vercel

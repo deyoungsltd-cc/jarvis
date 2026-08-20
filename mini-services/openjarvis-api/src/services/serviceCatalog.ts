@@ -328,6 +328,27 @@ export const SERVICE_CATALOG: ServiceDefinition[] = [
     notes: 'SAME INSTANCE as Phase 14 research fallback. Deploy once here, reuse for web_search tool.',
   },
 
+  // ===== Core AI — JARVIS Brain (Local Inference) =====
+  {
+    name: 'local-llm',
+    displayName: 'Local LLM Brain (Ollama / LM Studio / MLX)',
+    group: 'B',
+    repoUrl: 'https://github.com/ollama/ollama',
+    replaces: 'OpenAI / Claude / Gemini API (local, private, zero-cost)',
+    hostname: 'llm.internal',
+    serviceName: 'local-llm',
+    imageTag: 'n/a (native process — not containerized)',
+    healthUrl: 'http://localhost:11434/v1/models',
+    resourceWeight: 'on-demand',
+    ramEstimateMB: 16384,
+    cpuCores: 8,
+    diskEstimateGB: 20,
+    port: 11434,
+    backupPriority: 'manual',
+    backupVolumes: [],
+    notes: 'Cross-platform local inference. Windows/Linux/macOS via Ollama (port 11434), macOS Apple Silicon via mlx-vlm (port 8080), or LM Studio (port 1234). Auto-detects running server. Start: cd mini-services/local-llm && ./start-server.sh (or start-server.ps1 on Windows). Use provider="local" in POST /agent/run.',
+  },
+
   // ===== Group D — Subscription Replacements =====
   {
     name: 'appflowy',
