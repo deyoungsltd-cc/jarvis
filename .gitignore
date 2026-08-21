@@ -51,7 +51,7 @@ mini-services/qwen-local-llm/.server.pid
 # typescript
 *.tsbuildinfo
 next-env.d.ts
-local-*
+local-*.env
 .claude
 .z-ai-config
 *.log
