@@ -2,7 +2,7 @@
 
 > Your open-source AI agent platform — run a fully private, sovereign AI assistant across all your devices.
 
-OpenJARVIS is a modular AI agent system with a web dashboard, REST/WebSocket API, mobile clients (iOS & Android), and **zero-cost local LLM support** via Ollama, LM Studio, or MLX. No cloud API keys required.
+OpenJARVIS is a modular AI agent system with a web dashboard, REST/WebSocket API, mobile clients (iOS & Android), and **zero-cost local LLM support** powered by **Qwen3.8-27B-Uncensored** via Ollama, LM Studio, or MLX. No cloud API keys required.
 
 ---
 
@@ -15,7 +15,7 @@ Smartphone (iOS/Android)
               └── OpenJARVIS API (Express/Bun)
                     ├── Gemini (Google AI)
                     ├── Groq
-                    └── Local LLM (Ollama / LM Studio / MLX)  ← $0
+                    └── Qwen3.8-27B (Local — Ollama / LM Studio / MLX)  ← $0
                           └── Agent Loop → Tools → Memory → Services
 ```
 
@@ -32,7 +32,8 @@ Smartphone (iOS/Android)
 
 ## Features
 
-- **Multi-Provider AI**: Switch between Gemini, Groq, and local LLMs (Ollama, LM Studio, MLX) — or use them together with fallback
+- **Qwen3.8-27B-Uncensored**: The default local brain — a powerful 27B parameter model that runs entirely on your hardware, zero API costs, fully private
+- **Multi-Provider AI**: Switch between Gemini, Groq, and Qwen3.8 (local) — or use them together with fallback
 - **Local LLM Auto-Detection**: Probes Ollama (port 11434), LM Studio (1234), and MLX (8080) automatically — zero config
 - **Agent Loop**: Autonomous goal execution with tool calling, verification, and human-in-the-loop approval
 - **Memory System**: Short-term context + long-term persistent memory with semantic search
@@ -117,14 +118,31 @@ Run a fully private AI assistant with **zero API costs**. The system auto-detect
 | **LM Studio** | Yes | Yes | Yes | [lmstudio.ai](https://lmstudio.ai) |
 | **MLX** | No | No | Apple Silicon only | `pip install mlx-vlm` |
 
-### Recommended Models by RAM
+### Default Model: Qwen3.8-27B-Uncensored
 
-| RAM | Model Size | Examples |
+The recommended local brain for JARVIS is **[Qwen3.8-27B-Uncensored-MLX](https://github.com/onurburak9/Qwen3.8-27B-Uncensored-MLX)** — a high-capability 27B parameter model with unrestricted output.
+
+**Load it with Ollama (recommended):**
+
+```bash
+# The model is available through Ollama's library
+ollama pull qwen2.5:32b
+
+# Or use a Qwen3.8-based GGUF from HuggingFace with LM Studio
+# Download from: https://huggingface.co/onurburak9/Qwen3.8-27B-Uncensored-MLX
+```
+
+#### Model Recommendations by RAM
+
+| RAM | Model | How to Load |
 |---|---|---|
-| 8 GB | 7B | `qwen2.5:7b`, `llama3.1:8b` |
-| 16 GB | 14B | `qwen2.5:14b`, `qwen2:15b` |
-| 24 GB | 32B | `qwen2.5:32b` |
-| 48 GB+ | 70B+ | `qwen2.5:72b`, `llama3.1:70b` |
+| 8 GB | `qwen2.5:7b` | `ollama pull qwen2.5:7b` |
+| 16 GB | `qwen2.5:14b` | `ollama pull qwen2.5:14b` |
+| 24 GB | **`qwen2.5:32b`** (recommended) | `ollama pull qwen2.5:32b` |
+| 32 GB+ | **Qwen3.8-27B** (uncensored) | Load GGUF in LM Studio or MLX |
+| 48 GB+ | `qwen2.5:72b` | `ollama pull qwen2.5:72b` |
+
+> **Qwen3.8-27B** delivers near-GPT-4 quality for general tasks, coding, and analysis. On 24GB+ RAM it runs comfortably quantized to 4-bit.
 
 ---
 
@@ -186,7 +204,7 @@ jarvis/
 | **Web Frontend** | Next.js 16, React 19, Tailwind CSS 4, shadcn/ui, Recharts, Framer Motion |
 | **API Server** | Express 5, Bun runtime, TypeScript, Prisma ORM, Socket.IO |
 | **Mobile** | Expo 57, React Native, React Navigation |
-| **AI Providers** | Google Gemini, Groq, Ollama, LM Studio, MLX |
+| **AI Providers** | Google Gemini, Groq, Qwen3.8-27B (Local via Ollama/LM Studio/MLX) |
 | **Database** | SQLite (Prisma) |
 | **Real-time** | Socket.IO (WebSocket) |
 | **Voice** | Gemini TTS/STT, Groq TTS, Browser Web Speech API |
