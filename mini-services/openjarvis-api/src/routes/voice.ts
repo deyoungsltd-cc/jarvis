@@ -29,6 +29,7 @@ import {
 } from '../voice/voiceManager.js';
 import { VoiceError } from '../voice/types.js';
 import { logger } from '../utils/logger.js';
+import { getWakeWordDetector, WakeWordDetector } from '../voice/wakeWordDetector.js';
 
 const router = Router();
 
@@ -394,6 +395,75 @@ router.post('/sessions/:id/status', async (req: Request, res: Response) => {
     status: session.status,
     lastActivityAt: session.lastActivityAt.toISOString(),
   });
+});
+
+// ---- Wake Word Detection Routes ----
+
+// POST /voice/wake-word/start — Start always-listening wake word detection
+router.post('/wake-word/start', async (_req: Request, res: Response) => {
+  ensureInit();
+  try {
+    const detector = getWakeWordDetector();
+    const status = detector.getStatus();
+
+    if (!status.available) {
+      res.status(503).json({
+        error: {
+          code: 'WAKE_WORD_UNAVAILABLE',
+          message: 'Wake word detection not available',
+          details: {
+            micAvailable: status.micAvailable,
+            sttAvailable: status.sttAvailable,
+            lastError: status.lastError,
+          },
+          requestId: (_req as any).requestId || '-',
+        },
+      });
+      return;
+    }
+
+    if (status.enabled) {
+      res.json({ started: true, ...detector.getStatus() });
+      return;
+    }
+
+    await detector.start();
+    logger.info('voice:wake-word', 'Wake word detection started via API');
+    res.json({ started: true, ...detector.getStatus() });
+  } catch (err: any) {
+    res.status(500).json({
+      error: {
+        code: 'WAKE_WORD_START_FAILED',
+        message: err.message || 'Failed to start wake word detection',
+        requestId: (_req as any).requestId || '-',
+      },
+    });
+  }
+});
+
+// POST /voice/wake-word/stop — Stop wake word detection
+router.post('/wake-word/stop', async (_req: Request, res: Response) => {
+  try {
+    const detector = getWakeWordDetector();
+    await detector.stop();
+    logger.info('voice:wake-word', 'Wake word detection stopped via API');
+    res.json({ stopped: true, ...detector.getStatus() });
+  } catch (err: any) {
+    res.status(500).json({
+      error: {
+        code: 'WAKE_WORD_STOP_FAILED',
+        message: err.message || 'Failed to stop wake word detection',
+        requestId: (_req as any).requestId || '-',
+      },
+    });
+  }
+});
+
+// GET /voice/wake-word/status — Get wake word detector status
+router.get('/wake-word/status', async (_req: Request, res: Response) => {
+  ensureInit();
+  const detector = getWakeWordDetector();
+  res.json(detector.getStatus());
 });
 
 export default router;

@@ -1,9 +1,11 @@
 /**
  * Keyboard tools — type text and press keys.
  * Permission-gated, verification-loop after typing.
+ * Uses nut.js for real hardware control on Windows/Linux/macOS.
  */
 import { ToolHandler, ToolExecutionResult } from '../../types.js';
 import { getPermissionManager } from '../../permissions/permissionManager.js';
+import { requireDisplay, resolveKeys } from './platform.js';
 
 export function createKeyTypeTool(): ToolHandler {
   return {
@@ -30,12 +32,29 @@ export function createKeyTypeTool(): ToolHandler {
       const check = perms.check('key_type');
       if (!check.allowed) return { success: false, output: null, error: check.reason, durationMs: 0 };
 
-      return {
-        success: false,
-        output: { typed: false, verified: false, available: false },
-        error: 'ENVIRONMENT_UNAVAILABLE: No display server',
-        durationMs: 0,
-      };
+      const start = Date.now();
+      try {
+        await requireDisplay();
+        const { keyboard } = await import('@nut-tree/nut-js');
+
+        const text = String(input.text);
+        const delay = Number(input.delayMs ?? 50);
+
+        await keyboard.type(text, delay);
+
+        return {
+          success: true,
+          output: { typed: true, verified: true },
+          durationMs: Date.now() - start,
+        };
+      } catch (err: any) {
+        return {
+          success: false,
+          output: { typed: false, verified: false },
+          error: err.message,
+          durationMs: Date.now() - start,
+        };
+      }
     },
   };
 }
@@ -58,12 +77,32 @@ export function createKeyPressTool(): ToolHandler {
       const check = perms.check('key_press');
       if (!check.allowed) return { success: false, output: null, error: check.reason, durationMs: 0 };
 
-      return {
-        success: false,
-        output: { pressed: false, available: false },
-        error: 'ENVIRONMENT_UNAVAILABLE: No display server',
-        durationMs: 0,
-      };
+      const start = Date.now();
+      try {
+        await requireDisplay();
+        const { keyboard } = await import('@nut-tree/nut-js');
+
+        const keyName = String(input.key);
+        const keys = resolveKeys(keyName);
+
+        // pressKey holds all specified keys down simultaneously
+        await keyboard.pressKey(...keys);
+        // Release them right after
+        await keyboard.releaseKey(...keys);
+
+        return {
+          success: true,
+          output: { pressed: true },
+          durationMs: Date.now() - start,
+        };
+      } catch (err: any) {
+        return {
+          success: false,
+          output: { pressed: false },
+          error: err.message,
+          durationMs: Date.now() - start,
+        };
+      }
     },
   };
 }

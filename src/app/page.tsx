@@ -15,6 +15,8 @@ import { SettingsTab } from '@/components/openjarvis/settings-tab';
 import { VoiceControl } from '@/components/openjarvis/voice-control';
 import { ConnectionBanner } from '@/components/openjarvis/Connection-banner';
 import { ApprovalQueue, ApprovalBadge } from '@/components/openjarvis/approval-queue';
+import { OnboardingWizard, useOnboarding } from '@/components/openjarvis/onboarding-wizard';
+import { ThemeToggle } from '@/components/openjarvis/theme-toggle';
 
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
@@ -23,6 +25,9 @@ import { ScrollArea } from '@/components/ui/scroll-area';
 import { Bot, ListTodo, Wrench, Brain, Settings, Shield } from 'lucide-react';
 
 export default function Dashboard() {
+  // ─── Onboarding ────────────────────────────────────────────
+  const { shouldShow: showOnboarding } = useOnboarding();
+
   // ─── Backend connectivity ──────────────────────────────────
   const [backendError, setBackendError] = useState<string | null>(null);
   const [backendOk, setBackendOk] = useState(false);
@@ -85,6 +90,8 @@ export default function Dashboard() {
 
   return (
     <div className="min-h-screen flex flex-col bg-background text-foreground">
+      {/* Onboarding Wizard Overlay */}
+      {showOnboarding && <OnboardingWizard />}
       {/* Connection Banner */}
       <ConnectionBanner backendError={backendError} wsConnected={wsConnected} />
 
@@ -92,12 +99,14 @@ export default function Dashboard() {
       <header className="border-b border-border px-4 py-3 flex items-center gap-3">
         <Bot className="h-6 w-6 text-emerald-500" aria-hidden="true" />
         <h1 className="text-lg font-semibold tracking-tight">OpenJarvis</h1>
+        <span className="flex-1" />
         {wsConnected && backendOk && (
-          <span className="ml-auto flex items-center gap-1.5 text-xs text-emerald-600 dark:text-emerald-400">
+          <span className="flex items-center gap-1.5 text-xs text-emerald-600 dark:text-emerald-400">
             <span className="h-2 w-2 rounded-full bg-emerald-500" aria-hidden="true" />
             Connected
           </span>
         )}
+        <ThemeToggle />
       </header>
 
       {/* Main Content */}

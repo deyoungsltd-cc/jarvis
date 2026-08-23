@@ -3,6 +3,8 @@ import express from 'express';
 import { Server } from 'socket.io';
 import { requestLogger } from './src/middleware/requestLogger.js';
 import { errorHandler } from './src/middleware/errorHandler.js';
+import { rateLimit } from './src/middleware/rateLimiter.js';
+import { validateConfig } from './src/utils/configValidator.js';
 import healthRoutes from './src/routes/health.js';
 import missionRoutes from './src/routes/missions.js';
 import toolRoutes from './src/routes/tools.js';
@@ -17,8 +19,15 @@ import approvalRoutes from './src/routes/approval.js';
 import capabilityRoutes from './src/routes/capabilities.js';
 import serviceRoutes from './src/routes/services.js';
 import localLlmRoutes from './src/routes/localLlm.js';
+import documentRoutes from './src/routes/documents.js';
+import schedulerRoutes from './src/routes/scheduler.js';
+import webhookRoutes from './src/routes/webhooks.js';
+import pluginRoutes from './src/routes/plugins.js';
+import vaultRoutes from './src/routes/vault.js';
+import authRoutes from './src/routes/auth.js';
 import { logger } from './src/utils/logger.js';
 import { setSocketIO } from './src/utils/eventBus.js';
+import { pluginService, getPluginRegistry } from './src/services/pluginService.js';
 
 const PORT = parseInt(process.env.PORT || '3001', 10);
 const WS_PORT = parseInt(process.env.WS_PORT || '3002', 10);
@@ -28,6 +37,9 @@ const app = express();
 app.use(express.json({ limit: '10mb' }));
 
 app.use(requestLogger);
+
+// Global rate limiter (100 req/min per IP)
+app.use(rateLimit());
 
 app.use('/health', healthRoutes);
 app.use('/missions', missionRoutes);
@@ -43,6 +55,12 @@ app.use('/approvals', approvalRoutes);
 app.use('/capabilities', capabilityRoutes);
 app.use('/services', serviceRoutes);
 app.use('/agent/local-llm', localLlmRoutes);
+app.use('/documents', documentRoutes);
+app.use('/scheduler', schedulerRoutes);
+app.use('/webhooks', webhookRoutes);
+app.use('/plugins', pluginRoutes);
+app.use('/vault', vaultRoutes);
+app.use('/auth', authRoutes);
 
 app.use((_req, res) => {
   const requestId = (_req as Record<string, unknown>).requestId as string || '-';
@@ -145,6 +163,16 @@ io.on('connection', (socket) => {
     socket.leave('services:all');
   });
 
+  // Wake word event subscriptions
+  socket.on('subscribe:wake-word', () => {
+    socket.join('wake-word:all');
+    logger.info('-', `Socket ${socket.id} subscribed to wake word events`);
+  });
+
+  socket.on('unsubscribe:wake-word', () => {
+    socket.leave('wake-word:all');
+  });
+
   socket.on('unsubscribe:mission:approvals', (missionId: string) => {
     socket.leave(`approvals:mission:${missionId}`);
   });
@@ -159,9 +187,34 @@ io.on('connection', (socket) => {
 });
 
 // Start both servers
-app.listen(PORT, '0.0.0.0', () => {
+app.listen(PORT, '0.0.0.0', async () => {
   logger.info('-', `OpenJarvis API listening on port ${PORT}`);
   logger.info('-', `Health check: http://localhost:${PORT}/health`);
+
+  // Validate configuration on startup
+  const configResult = validateConfig();
+  if (configResult.errors.length > 0) {
+    logger.error('-', `Config validation errors (${configResult.errors.length}):`);
+    for (const e of configResult.errors) logger.error('-', `  - ${e}`);
+  }
+  if (configResult.warnings.length > 0) {
+    logger.warn('-', `Config warnings (${configResult.warnings.length}):`);
+    for (const w of configResult.warnings) logger.warn('-', `  - ${w}`);
+  }
+  if (configResult.valid) {
+    logger.info('-', 'Config validation passed');
+  }
+
+  // Auto-load plugins on startup
+  try {
+    const registry = getPluginRegistry();
+    const results = await pluginService.loadPlugins(registry);
+    const loaded = results.filter(r => r.status === 'loaded').length;
+    const errors = results.filter(r => r.status === 'error').length;
+    logger.info('-', `Plugins initialised: ${loaded} loaded, ${errors} errors`);
+  } catch (err: any) {
+    logger.error('-', `Plugin auto-load failed: ${err.message}`);
+  }
 });
 
 httpServer.listen(WS_PORT, '0.0.0.0', () => {

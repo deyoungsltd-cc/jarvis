@@ -1,3 +1,37 @@
+// ===========================================
+// DATABASE PROVIDER CONFIGURATION
+// ===========================================
+//
+// Prisma's `provider` field is a BUILD-TIME setting — it cannot be
+// changed dynamically at runtime. To switch database backends:
+//
+//   1. Set DATABASE_PROVIDER in your .env (sqlite | postgresql | mysql)
+//   2. Set DATABASE_URL to your connection string
+//   3. Change the `provider` value below to match your choice:
+//        - "sqlite"    → for SQLite (file:./prisma/dev.db)
+//        - "postgresql" → for PostgreSQL (postgresql://user:pass@host:port/db)
+//        - "mysql"      → for MySQL (mysql://user:pass@host:port/db)
+//   4. Run: npx prisma generate
+//   5. Run: npx prisma db push
+//
+// The application validates DATABASE_PROVIDER and DATABASE_URL at
+// startup via src/utils/database.ts and logs the active provider.
+//
+// SQLite-specific notes:
+//   - No extra setup required; the database file is created automatically.
+//   - Good for development and single-instance deployments.
+//
+// PostgreSQL-specific notes:
+//   - Requires a running PostgreSQL server.
+//   - Recommended for production multi-instance deployments.
+//   - Supports concurrent writes without locking issues.
+//
+// MySQL-specific notes:
+//   - Requires a running MySQL server.
+//   - Use mysql:// protocol in DATABASE_URL.
+//   - Ensure the database charset is utf8mb4 for full Unicode support.
+// ===========================================
+
 generator client {
   provider = "prisma-client-js"
   output   = "../node_modules/.prisma/client"
@@ -290,4 +324,57 @@ model ServiceBackup {
   @@index([serviceInstanceId])
   @@index([scheduleType])
   @@map("service_backups")
+}
+
+// ===========================================
+// Round 2 — Document/RAG Pipeline
+// ===========================================
+
+model Document {
+  id          String   @id @default(uuid())
+  filename    String
+  mimeType    String
+  sizeBytes   Int      @default(0)
+  chunkCount  Int      @default(0)
+  textHash    String?
+  uploadedBy  String   @default("default")
+  missionId   String?
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+  chunks      DocumentChunk[]
+
+  @@map("documents")
+}
+
+model DocumentChunk {
+  id          String   @id @default(uuid())
+  documentId  String
+  chunkIndex  Int
+  content     String
+  tokenCount  Int      @default(0)
+  createdAt   DateTime @default(now())
+
+  document    Document @relation(fields: [documentId], references: [id], onDelete: Cascade)
+
+  @@index([documentId])
+  @@map("document_chunks")
+}
+
+// ===========================================
+// Round 3 — Mobile Push Notifications
+// ===========================================
+
+model Notification {
+  id          String   @id @default(uuid())
+  clientId    String?
+  title       String
+  body        String
+  type        String   @default("info")
+  data        String?
+  read        Boolean  @default(false)
+  createdAt   DateTime @default(now())
+
+  @@index([clientId])
+  @@index([read])
+  @@map("notifications")
 }

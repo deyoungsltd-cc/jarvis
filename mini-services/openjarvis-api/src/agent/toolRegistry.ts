@@ -24,6 +24,11 @@ export class ToolRegistry {
     this.tools.set(handler.name, handler);
   }
 
+  /** Unregister a tool handler by name */
+  unregister(name: string): void {
+    this.tools.delete(name);
+  }
+
   /** Get a tool handler by name */
   get(name: string): ToolHandler | undefined {
     return this.tools.get(name);

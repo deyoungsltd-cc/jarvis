@@ -11,6 +11,7 @@ import { missionService } from '../services/missionService.js';
 import { missionEventService } from '../services/missionEventService.js';
 import { memoryService } from '../services/memoryService.js';
 import { mobileClientService } from '../services/mobileClientService.js';
+import { notificationService } from '../services/notificationService.js';
 import { requireMobileAuth, type MobileAuthRequest } from '../middleware/mobileAuth.js';
 import { parsePagination, buildPaginatedResponse } from '../mobile/pagination.js';
 import { badRequest } from '../utils/errors.js';
@@ -317,6 +318,50 @@ router.post('/agent/run', async (req: MobileAuthRequest, res: Response, next: Ne
       status: mission.status,
       streamUrl: `/mobile/v1/missions/${mission.id}/events/stream`,
     });
+  } catch (err) { next(err); }
+});
+
+/** GET /mobile/v1/notifications — get notifications for the authenticated client */
+router.get('/notifications', async (req: MobileAuthRequest, res: Response, next: NextFunction) => {
+  try {
+    const clientId = req.mobileClient?.id;
+    if (!clientId) {
+      res.json({ notifications: [] });
+      return;
+    }
+    const notifications = await notificationService.getForClient(clientId);
+    const parsed = notifications.map(n => ({
+      id: n.id,
+      clientId: n.clientId,
+      title: n.title,
+      body: n.body,
+      type: n.type,
+      data: n.data ? (() => { try { return JSON.parse(n.data); } catch { return null; } })() : null,
+      read: n.read,
+      createdAt: n.createdAt,
+    }));
+    res.json({ notifications: parsed, count: parsed.length });
+  } catch (err) { next(err); }
+});
+
+/** POST /mobile/v1/notifications/:id/read — mark as read */
+router.post('/notifications/:id/read', async (req: MobileAuthRequest, res: Response, next: NextFunction) => {
+  try {
+    const marked = await notificationService.markRead(req.params.id);
+    res.json({ marked });
+  } catch (err) { next(err); }
+});
+
+/** POST /mobile/v1/notifications/read-all — mark all as read */
+router.post('/notifications/read-all', async (req: MobileAuthRequest, res: Response, next: NextFunction) => {
+  try {
+    const clientId = req.mobileClient?.id;
+    if (!clientId) {
+      res.json({ marked: 0 });
+      return;
+    }
+    const count = await notificationService.markAllRead(clientId);
+    res.json({ marked: count });
   } catch (err) { next(err); }
 });
 

@@ -1,0 +1,29 @@
+{
+  "name": "openjarvis-tray",
+  "version": "1.0.0",
+  "description": "OpenJARVIS system tray application for Windows",
+  "type": "module",
+  "main": "index.js",
+  "scripts": {
+    "start": "electron .",
+    "build": "electron-builder --win",
+    "install:autostart": "node install-autostart.js",
+    "uninstall:autostart": "node install-autostart.js --remove"
+  },
+  "dependencies": {
+    "electron": "^33.0.0"
+  },
+  "build": {
+    "appId": "com.openjarvis.tray",
+    "productName": "OpenJARVIS",
+    "win": {
+      "target": "nsis",
+      "icon": "icon.ico"
+    },
+    "nsis": {
+      "oneClick": false,
+      "allowToChangeInstallationDirectory": true,
+      "createDesktopShortcut": true
+    }
+  }
+}

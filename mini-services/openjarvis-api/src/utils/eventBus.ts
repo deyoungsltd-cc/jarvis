@@ -54,5 +54,10 @@ export const eventBus = {
     if (event.startsWith('service:')) {
       io.to('services:all').emit(event, { ...data, timestamp: new Date().toISOString() });
     }
+
+    // Wake word events: broadcast to all wake-word subscribers
+    if (event.startsWith('wake-word:')) {
+      io.to('wake-word:all').emit(event, { ...data, timestamp: new Date().toISOString() });
+    }
   },
 };

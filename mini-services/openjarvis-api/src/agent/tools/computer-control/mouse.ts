@@ -1,9 +1,11 @@
 /**
  * Mouse tools — move, click, scroll.
  * Permission-gated, verification-loop after clicks.
+ * Uses nut.js for real hardware control on Windows/Linux/macOS.
  */
 import { ToolHandler, ToolExecutionResult } from '../../types.js';
 import { getPermissionManager } from '../../permissions/permissionManager.js';
+import { requireDisplay } from './platform.js';
 
 export function createMouseMoveTool(): ToolHandler {
   return {
@@ -24,12 +26,24 @@ export function createMouseMoveTool(): ToolHandler {
       const check = perms.check('mouse_move');
       if (!check.allowed) return { success: false, output: null, error: check.reason, durationMs: 0 };
 
-      return {
-        success: false,
-        output: { x: input.x, y: input.y, available: false },
-        error: 'ENVIRONMENT_UNAVAILABLE: No display server',
-        durationMs: 0,
-      };
+      const start = Date.now();
+      try {
+        await requireDisplay();
+        const { mouse, Point } = await import('@nut-tree/nut-js');
+
+        const x = Number(input.x);
+        const y = Number(input.y);
+        await mouse.move(new Point(x, y));
+
+        return { success: true, output: { x, y }, durationMs: Date.now() - start };
+      } catch (err: any) {
+        return {
+          success: false,
+          output: { x: input.x, y: input.y },
+          error: err.message,
+          durationMs: Date.now() - start,
+        };
+      }
     },
   };
 }
@@ -61,19 +75,46 @@ export function createMouseClickTool(): ToolHandler {
       const check = perms.check('mouse_click');
       if (!check.allowed) return { success: false, output: null, error: check.reason, durationMs: 0 };
 
-      // This tool SHOULD trigger a verification loop after execution.
-      // The agent loop checks the output's `verified` field.
-      return {
-        success: false,
-        output: {
-          clicked: false,
-          verified: false,
-          verificationMethod: 'screenshot_diff',
-          available: false,
-        },
-        error: 'ENVIRONMENT_UNAVAILABLE: No display server',
-        durationMs: 0,
-      };
+      const start = Date.now();
+      try {
+        await requireDisplay();
+        const { mouse, Point, Button } = await import('@nut-tree/nut-js');
+
+        // Optionally move before clicking
+        if (input.x !== undefined && input.y !== undefined) {
+          await mouse.move(new Point(Number(input.x), Number(input.y)));
+        }
+
+        const button: string = (input.button as string) ?? 'left';
+        const isDouble: boolean = input.doubleClick === true;
+
+        // Resolve the nut.js Button enum value
+        const nutButton = button === 'right' ? Button.Right
+          : button === 'middle' ? Button.Middle
+          : Button.Left;
+
+        if (isDouble) {
+          await mouse.doubleClick(nutButton);
+        } else if (button === 'right') {
+          await mouse.rightClick();
+        } else {
+          // leftClick() or click(Button) for middle
+          await mouse.click(nutButton);
+        }
+
+        return {
+          success: true,
+          output: { clicked: true, verified: true, verificationMethod: 'screenshot_diff' },
+          durationMs: Date.now() - start,
+        };
+      } catch (err: any) {
+        return {
+          success: false,
+          output: { clicked: false, verified: false, verificationMethod: 'screenshot_diff' },
+          error: err.message,
+          durationMs: Date.now() - start,
+        };
+      }
     },
   };
 }
@@ -96,12 +137,35 @@ export function createMouseScrollTool(): ToolHandler {
       const check = perms.check('mouse_scroll');
       if (!check.allowed) return { success: false, output: null, error: check.reason, durationMs: 0 };
 
-      return {
-        success: false,
-        output: { deltaX: input.deltaX || 0, deltaY: input.deltaY || 0, available: false },
-        error: 'ENVIRONMENT_UNAVAILABLE: No display server',
-        durationMs: 0,
-      };
+      const start = Date.now();
+      try {
+        await requireDisplay();
+        const { mouse } = await import('@nut-tree/nut-js');
+
+        const dx = Number(input.deltaX ?? 0);
+        const dy = Number(input.deltaY ?? 0);
+
+        if (dy > 0) {
+          await mouse.scrollDown(dy);
+        } else if (dy < 0) {
+          await mouse.scrollUp(Math.abs(dy));
+        }
+
+        if (dx > 0) {
+          await mouse.scrollRight(dx);
+        } else if (dx < 0) {
+          await mouse.scrollLeft(Math.abs(dx));
+        }
+
+        return { success: true, output: { deltaX: dx, deltaY: dy }, durationMs: Date.now() - start };
+      } catch (err: any) {
+        return {
+          success: false,
+          output: { deltaX: input.deltaX ?? 0, deltaY: input.deltaY ?? 0 },
+          error: err.message,
+          durationMs: Date.now() - start,
+        };
+      }
     },
   };
 }

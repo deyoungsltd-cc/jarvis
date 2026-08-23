@@ -119,4 +119,33 @@
   body {
     @apply bg-background text-foreground;
   }
+
+  /* Dark mode scrollbar styling */
+  .dark ::-webkit-scrollbar {
+    width: 8px;
+    height: 8px;
+  }
+  .dark ::-webkit-scrollbar-track {
+    background: oklch(0.205 0 0);
+  }
+  .dark ::-webkit-scrollbar-thumb {
+    background: oklch(0.4 0 0);
+    border-radius: 4px;
+  }
+  .dark ::-webkit-scrollbar-thumb:hover {
+    background: oklch(0.5 0 0);
+  }
+
+  /* Ensure selection colors work in both themes */
+  ::selection {
+    background: oklch(0.646 0.222 41.116 / 30%);
+  }
+  .dark ::selection {
+    background: oklch(0.488 0.243 264.376 / 40%);
+  }
+
+  /* Smooth focus rings */
+  :focus-visible {
+    @apply outline-2 outline-offset-2 outline-ring;
+  }
 }

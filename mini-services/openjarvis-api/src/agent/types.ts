@@ -38,9 +38,15 @@ export interface ModelResponse {
  * The interface every model provider must implement.
  * Swapping Gemini <-> Groq requires no changes outside the adapter.
  */
+export interface StreamChunk {
+  type: 'chunk' | 'tool_call' | 'done' | 'error';
+  data: any;
+}
+
 export interface ModelProvider {
   readonly name: string;
   chat(messages: ChatMessage[], tools?: ToolDefinition[]): Promise<ModelResponse>;
+  chatStream?(messages: ChatMessage[], tools?: ToolDefinition[]): AsyncGenerator<StreamChunk>;
 }
 
 // ---- Mission State Machine Types ----
@@ -120,4 +126,5 @@ export interface AgentLoopOptions {
   maxIterations: number;
   maxTokenBudget: number;
   requestId: string;
+  maxRetries?: number; // default 3 — for transient error recovery
 }

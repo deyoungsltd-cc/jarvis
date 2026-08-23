@@ -1,8 +1,10 @@
 /**
  * Window tools — list, focus, get info about windows.
+ * Uses nut.js window module for real hardware control.
  */
 import { ToolHandler, ToolExecutionResult } from '../../types.js';
 import { getPermissionManager } from '../../permissions/permissionManager.js';
+import { requireDisplay } from './platform.js';
 
 export function createWindowListTool(): ToolHandler {
   return {
@@ -31,28 +33,45 @@ export function createWindowListTool(): ToolHandler {
       const check = perms.check('window_list');
       if (!check.allowed) return { success: false, output: null, error: check.reason, durationMs: 0 };
 
+      const start = Date.now();
       try {
-        // In desktop: use xdotool, wmctrl, or native APIs
-        // In sandbox: try to detect what's available
-        const { execSync } = require('child_process');
-        let result: string;
+        await requireDisplay();
+        const { window } = await import('@nut-tree/nut-js');
+
+        // Fetch the currently focused window first so we can mark it
+        let activeTitle: string | undefined;
         try {
-          result = execSync('wmctrl -l', { encoding: 'utf-8', timeout: 5000 });
-          const windows = result.trim().split('\n').map(line => {
-            const parts = line.split(/\s{2,}/);
-            return { id: parts[0], title: parts.slice(1).join(' ').trim() };
-          });
-          return { success: true, output: { windows }, durationMs: 0 };
+          const active = await window.getActiveWindow();
+          activeTitle = active?.title;
         } catch {
-          // No wmctrl — return empty
-          return {
-            success: true,
-            output: { windows: [], note: 'No window manager tools available in this environment' },
-            durationMs: 0,
-          };
+          // Not all platforms support getActiveWindow
         }
+
+        // List all windows — nut.js filterWindows returns WindowHandle[]
+        // which exposes title, processId, bounds, etc.
+        const windows = await window.filterWindows(() => true);
+
+        const result = windows.map((w: any, idx: number) => {
+          const bounds = w.bounds ?? w.region;
+          return {
+            id: w.processId ?? idx,
+            title: w.title ?? '',
+            focused: activeTitle ? w.title === activeTitle : false,
+            x: bounds?.x ?? 0,
+            y: bounds?.y ?? 0,
+            width: bounds?.width ?? 0,
+            height: bounds?.height ?? 0,
+          };
+        });
+
+        return { success: true, output: { windows: result }, durationMs: Date.now() - start };
       } catch (err: any) {
-        return { success: false, output: null, error: String(err.message), durationMs: 0 };
+        return {
+          success: false,
+          output: null,
+          error: err.message,
+          durationMs: Date.now() - start,
+        };
       }
     },
   };
@@ -81,12 +100,43 @@ export function createWindowFocusTool(): ToolHandler {
       const check = perms.check('window_focus');
       if (!check.allowed) return { success: false, output: null, error: check.reason, durationMs: 0 };
 
-      return {
-        success: false,
-        output: { focused: false, verified: false, available: false },
-        error: 'ENVIRONMENT_UNAVAILABLE: No window manager',
-        durationMs: 0,
-      };
+      const start = Date.now();
+      try {
+        await requireDisplay();
+        const { window } = await import('@nut-tree/nut-js');
+
+        const windowId = String(input.windowId);
+
+        // Try to find the window handle by PID or title
+        const allWindows = await window.filterWindows(() => true);
+        const match = allWindows.find((w: any) =>
+          String(w.processId) === windowId || w.title?.includes(windowId),
+        );
+
+        if (!match) {
+          return {
+            success: false,
+            output: { focused: false, verified: false },
+            error: `Window not found matching ID/title: "${windowId}"`,
+            durationMs: Date.now() - start,
+          };
+        }
+
+        await window.focusWindow(match);
+
+        return {
+          success: true,
+          output: { focused: true, verified: true },
+          durationMs: Date.now() - start,
+        };
+      } catch (err: any) {
+        return {
+          success: false,
+          output: { focused: false, verified: false },
+          error: err.message,
+          durationMs: Date.now() - start,
+        };
+      }
     },
   };
 }
@@ -109,11 +159,34 @@ export function createWindowInfoTool(): ToolHandler {
       const check = perms.check('window_info');
       if (!check.allowed) return { success: false, output: null, error: check.reason, durationMs: 0 };
 
-      return {
-        success: true,
-        output: { note: 'No display server — returning empty info' },
-        durationMs: 0,
-      };
+      const start = Date.now();
+      try {
+        await requireDisplay();
+        const { window } = await import('@nut-tree/nut-js');
+
+        const active = await window.getActiveWindow();
+        const bounds = active?.bounds ?? active?.region;
+
+        return {
+          success: true,
+          output: {
+            title: active?.title ?? '',
+            className: active?.owner?.name ?? '',
+            pid: active?.processId ?? 0,
+            geometry: bounds
+              ? { x: bounds.x, y: bounds.y, width: bounds.width, height: bounds.height }
+              : null,
+          },
+          durationMs: Date.now() - start,
+        };
+      } catch (err: any) {
+        return {
+          success: false,
+          output: null,
+          error: err.message,
+          durationMs: Date.now() - start,
+        };
+      }
     },
   };
 }

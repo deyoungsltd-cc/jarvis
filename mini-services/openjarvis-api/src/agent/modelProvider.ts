@@ -4,13 +4,16 @@
  * Swapping requires zero changes outside the adapter.
  *
  * Supported providers:
- *   'gemini' — Google Gemini (cloud, API key required)
- *   'groq'   — Groq (cloud, API key required)
- *   'local'  — Any OpenAI-compatible local server (Ollama / LM Studio / mlx-vlm / vLLM / llama-server)
- *             Auto-detects running server if LOCAL_LLM_BASE_URL not set.
+ *   'gemini'   — Google Gemini (cloud, API key required)
+ *   'groq'     — Groq (cloud, API key required)
+ *   'local'    — Any OpenAI-compatible local server (Ollama / LM Studio / mlx-vlm / vLLM / llama-server)
+ *               Auto-detects running server if LOCAL_LLM_BASE_URL not set.
+ *   'fallback' — Tries gemini → groq → local in order, skipping any without API keys configured.
  */
 import { ModelProvider, ChatMessage, ToolDefinition, ToolCall, ModelResponse } from './types.js';
 import { LocalLLMProvider } from './localLLMProvider.js';
+import { FallbackProvider, FallbackProviderConfig } from './fallbackProvider.js';
+import { logger } from '../utils/logger.js';
 
 // ---- Gemini Adapter ----
 
@@ -194,7 +197,7 @@ export class GroqProvider implements ModelProvider {
 // ---- Factory ----
 
 export function createModelProvider(
-  provider: 'gemini' | 'groq' | 'local',
+  provider: 'gemini' | 'groq' | 'local' | 'fallback',
 ): ModelProvider {
   switch (provider) {
     case 'gemini': {
@@ -210,7 +213,45 @@ export function createModelProvider(
     case 'local': {
       return new LocalLLMProvider();
     }
+    case 'fallback': {
+      return createFallbackProvider();
+    }
     default:
       throw new Error(`Unknown provider: ${provider}`);
   }
+}
+
+/**
+ * Create a FallbackProvider that tries gemini → groq → local in order.
+ * Providers without their API key configured are silently skipped.
+ */
+export function createFallbackProvider(): FallbackProvider {
+  const configs: FallbackProviderConfig[] = [];
+  const instances: ModelProvider[] = [];
+
+  // Gemini
+  if (process.env.GEMINI_API_KEY) {
+    configs.push({ type: 'gemini', maxRetries: 1 });
+    instances.push(new GeminiProvider(process.env.GEMINI_API_KEY));
+  } else {
+    logger.info('-', 'FallbackProvider: skipping gemini — GEMINI_API_KEY not set');
+  }
+
+  // Groq
+  if (process.env.GROQ_API_KEY) {
+    configs.push({ type: 'groq', maxRetries: 1 });
+    instances.push(new GroqProvider(process.env.GROQ_API_KEY));
+  } else {
+    logger.info('-', 'FallbackProvider: skipping groq — GROQ_API_KEY not set');
+  }
+
+  // Local LLM (always available — may fail at runtime if no server is running)
+  configs.push({ type: 'local', maxRetries: 1 });
+  instances.push(new LocalLLMProvider());
+
+  if (instances.length === 0) {
+    throw new Error('No model providers available for fallback chain. Set at least one API key or ensure a local LLM server is running.');
+  }
+
+  return new FallbackProvider(configs, instances);
 }
