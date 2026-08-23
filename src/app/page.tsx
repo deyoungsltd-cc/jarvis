@@ -14,15 +14,31 @@ import { MemoryTab } from '@/components/openjarvis/memory-tab';
 import { SettingsTab } from '@/components/openjarvis/settings-tab';
 import { VoiceControl } from '@/components/openjarvis/voice-control';
 import { ConnectionBanner } from '@/components/openjarvis/Connection-banner';
-import { ApprovalQueue, ApprovalBadge } from '@/components/openjarvis/approval-queue';
+import { ApprovalQueue } from '@/components/openjarvis/approval-queue';
 import { OnboardingWizard, useOnboarding } from '@/components/openjarvis/onboarding-wizard';
 import { ThemeToggle } from '@/components/openjarvis/theme-toggle';
+import { WorkspaceSwitcher } from '@/components/openjarvis/workspace-switcher';
+import { DaemonStatus } from '@/components/openjarvis/daemon-status';
+import { ExportDialog } from '@/components/openjarvis/export-dialog';
+import { AuditTab } from '@/components/openjarvis/audit-tab';
+import { AnalyticsTab } from '@/components/openjarvis/analytics-tab';
+import { MacroTab } from '@/components/openjarvis/macro-tab';
+import { DeviceTab } from '@/components/openjarvis/device-tab';
+import { RagTab } from '@/components/openjarvis/rag-tab';
+import { SchedulerTab } from '@/components/openjarvis/scheduler-tab';
+import { WebhookTab } from '@/components/openjarvis/webhook-tab';
+import { PluginTab } from '@/components/openjarvis/plugin-tab';
+import { VaultTab } from '@/components/openjarvis/vault-tab';
 
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Separator } from '@/components/ui/separator';
 import { ScrollArea } from '@/components/ui/scroll-area';
-import { Bot, ListTodo, Wrench, Brain, Settings, Shield } from 'lucide-react';
+import {
+  Bot, ListTodo, Wrench, Brain, Settings, Shield,
+  BarChart3, Clock, FileText, Zap, Monitor, Plug,
+  Webhook, Lock, FolderSearch, ClipboardList, Building2,
+} from 'lucide-react';
 
 export default function Dashboard() {
   // ─── Onboarding ────────────────────────────────────────────
@@ -47,6 +63,7 @@ export default function Dashboard() {
   // ─── State ─────────────────────────────────────────────────
   const [activeMission, setActiveMission] = useState<Mission | null>(null);
   const [provider, setProvider] = useState('gemini');
+  const [showExport, setShowExport] = useState(false);
 
   const {
     connected: wsConnected,
@@ -57,7 +74,6 @@ export default function Dashboard() {
     subscribedMissionId,
   } = useJarvisSocket();
 
-  // When a mission is created, subscribe to its WebSocket channel
   const handleMissionCreated = useCallback(
     (mission: Mission) => {
       setActiveMission(mission);
@@ -66,7 +82,6 @@ export default function Dashboard() {
     [subscribe]
   );
 
-  // When selecting a mission from the Missions tab
   const handleSelectMission = useCallback(
     (mission: Mission) => {
       setActiveMission(mission);
@@ -75,43 +90,48 @@ export default function Dashboard() {
     [subscribe]
   );
 
-  // Derive the effective mission display from base + ws updates
   const effectiveMission = useMemo(() => {
     if (!activeMission) return null;
     if (!wsData || subscribedMissionId !== activeMission.id) return activeMission;
     return { ...activeMission, ...wsData };
   }, [activeMission, wsData, subscribedMissionId]);
 
-  // ─── Approval State (Phase 10) ─────────────────────────
   const [pendingApprovals, setPendingApprovals] = useState(0);
-  const [showApprovalPanel, setShowApprovalPanel] = useState(false);
 
   const isExecuting = wsStatus === 'running';
 
   return (
     <div className="min-h-screen flex flex-col bg-background text-foreground">
-      {/* Onboarding Wizard Overlay */}
       {showOnboarding && <OnboardingWizard />}
-      {/* Connection Banner */}
       <ConnectionBanner backendError={backendError} wsConnected={wsConnected} />
 
-      {/* Header */}
-      <header className="border-b border-border px-4 py-3 flex items-center gap-3">
-        <Bot className="h-6 w-6 text-emerald-500" aria-hidden="true" />
-        <h1 className="text-lg font-semibold tracking-tight">OpenJarvis</h1>
+      {/* ─── Header ────────────────────────────────────────── */}
+      <header className="border-b border-border px-4 py-2.5 flex items-center gap-3">
+        <Bot className="h-5 w-5 text-emerald-500 shrink-0" aria-hidden="true" />
+        <h1 className="text-base font-semibold tracking-tight">OpenJarvis</h1>
+        <span className="text-[10px] text-muted-foreground font-mono hidden sm:inline">Qwen3.8-27B-Uncensored</span>
+        <Separator orientation="vertical" className="h-5 mx-1 hidden sm:block" />
+        <WorkspaceSwitcher />
         <span className="flex-1" />
+        <DaemonStatus />
         {wsConnected && backendOk && (
           <span className="flex items-center gap-1.5 text-xs text-emerald-600 dark:text-emerald-400">
             <span className="h-2 w-2 rounded-full bg-emerald-500" aria-hidden="true" />
             Connected
           </span>
         )}
+        <button
+          onClick={() => setShowExport(true)}
+          className="text-xs text-muted-foreground hover:text-foreground transition-colors px-2 py-1 rounded hover:bg-muted"
+        >
+          Export
+        </button>
         <ThemeToggle />
       </header>
 
-      {/* Main Content */}
-      <main className="flex-1 flex flex-col lg:flex-row gap-0 lg:gap-0 overflow-hidden">
-        {/* ─── Left Panel ─────────────────────────────────── */}
+      {/* ─── Main Content ──────────────────────────────────── */}
+      <main className="flex-1 flex flex-col lg:flex-row overflow-hidden">
+        {/* Left Panel */}
         <aside className="w-full lg:w-80 xl:w-96 shrink-0 border-b lg:border-b-0 lg:border-r border-border flex flex-col">
           <ScrollArea className="flex-1">
             <div className="flex flex-col gap-4 p-4">
@@ -128,7 +148,6 @@ export default function Dashboard() {
                 </CardContent>
               </Card>
 
-              {/* Phase 5: Voice Input */}
               <Card>
                 <CardHeader className="pb-3">
                   <CardTitle className="text-sm">Voice Input</CardTitle>
@@ -136,7 +155,6 @@ export default function Dashboard() {
                 <CardContent>
                   <VoiceControl
                     onTranscript={async (text) => {
-                      // When voice transcript arrives, create a real mission via API
                       if (text.trim() && !isExecuting) {
                         try {
                           const mission = await createMission({ goal: text.trim(), provider });
@@ -165,23 +183,105 @@ export default function Dashboard() {
           </ScrollArea>
         </aside>
 
-        {/* ─── Center Panel ───────────────────────────────── */}
-        <section className="flex-1 flex flex-col min-w-0" aria-label="Activity Timeline">
-          <div className="px-4 py-3 border-b border-border flex items-center gap-2">
-            <h2 className="text-sm font-semibold">Activity</h2>
-            {subscribedMissionId && (
-              <span className="text-xs text-muted-foreground font-mono">
-                {subscribedMissionId.slice(0, 8)}
-              </span>
-            )}
-          </div>
-          <ActivityTimeline
-            events={wsEvents}
-            missionId={subscribedMissionId}
-          />
+        {/* Center Panel — Tabbed */}
+        <section className="flex-1 flex flex-col min-w-0">
+          <Tabs defaultValue="activity" className="flex flex-col h-full">
+            <div className="px-4 pt-2 border-b border-border">
+              <TabsList className="h-9">
+                <TabsTrigger value="activity" className="text-xs gap-1">
+                  <ClipboardList className="h-3.5 w-3.5" />
+                  Activity
+                </TabsTrigger>
+                <TabsTrigger value="analytics" className="text-xs gap-1">
+                  <BarChart3 className="h-3.5 w-3.5" />
+                  Analytics
+                </TabsTrigger>
+                <TabsTrigger value="audit" className="text-xs gap-1">
+                  <Clock className="h-3.5 w-3.5" />
+                  Audit Log
+                </TabsTrigger>
+                <TabsTrigger value="macros" className="text-xs gap-1">
+                  <Zap className="h-3.5 w-3.5" />
+                  Macros
+                </TabsTrigger>
+                <TabsTrigger value="devices" className="text-xs gap-1">
+                  <Monitor className="h-3.5 w-3.5" />
+                  Devices
+                </TabsTrigger>
+                <TabsTrigger value="rag" className="text-xs gap-1">
+                  <FolderSearch className="h-3.5 w-3.5" />
+                  RAG
+                </TabsTrigger>
+                <TabsTrigger value="scheduler" className="text-xs gap-1">
+                  <Clock className="h-3.5 w-3.5" />
+                  Scheduler
+                </TabsTrigger>
+                <TabsTrigger value="webhooks" className="text-xs gap-1">
+                  <Webhook className="h-3.5 w-3.5" />
+                  Webhooks
+                </TabsTrigger>
+                <TabsTrigger value="plugins" className="text-xs gap-1">
+                  <Plug className="h-3.5 w-3.5" />
+                  Plugins
+                </TabsTrigger>
+                <TabsTrigger value="vault" className="text-xs gap-1">
+                  <Lock className="h-3.5 w-3.5" />
+                  Vault
+                </TabsTrigger>
+              </TabsList>
+            </div>
+
+            <TabsContent value="activity" className="flex-1 min-h-0 overflow-hidden">
+              <div className="px-4 py-2 flex items-center gap-2 border-b border-border">
+                <h2 className="text-sm font-semibold">Activity</h2>
+                {subscribedMissionId && (
+                  <span className="text-xs text-muted-foreground font-mono">
+                    {subscribedMissionId.slice(0, 8)}
+                  </span>
+                )}
+              </div>
+              <ActivityTimeline events={wsEvents} missionId={subscribedMissionId} />
+            </TabsContent>
+
+            <TabsContent value="analytics" className="flex-1 min-h-0 overflow-auto">
+              <AnalyticsTab />
+            </TabsContent>
+
+            <TabsContent value="audit" className="flex-1 min-h-0 overflow-auto">
+              <AuditTab />
+            </TabsContent>
+
+            <TabsContent value="macros" className="flex-1 min-h-0 overflow-auto">
+              <MacroTab />
+            </TabsContent>
+
+            <TabsContent value="devices" className="flex-1 min-h-0 overflow-auto">
+              <DeviceTab />
+            </TabsContent>
+
+            <TabsContent value="rag" className="flex-1 min-h-0 overflow-auto">
+              <RagTab />
+            </TabsContent>
+
+            <TabsContent value="scheduler" className="flex-1 min-h-0 overflow-auto">
+              <SchedulerTab />
+            </TabsContent>
+
+            <TabsContent value="webhooks" className="flex-1 min-h-0 overflow-auto">
+              <WebhookTab />
+            </TabsContent>
+
+            <TabsContent value="plugins" className="flex-1 min-h-0 overflow-auto">
+              <PluginTab />
+            </TabsContent>
+
+            <TabsContent value="vault" className="flex-1 min-h-0 overflow-auto">
+              <VaultTab />
+            </TabsContent>
+          </Tabs>
         </section>
 
-        {/* ─── Right Panel ────────────────────────────────── */}
+        {/* Right Panel */}
         <aside className="w-full lg:w-80 xl:w-96 shrink-0 border-t lg:border-t-0 lg:border-l border-border flex flex-col">
           <Tabs defaultValue="missions" className="flex flex-col h-full">
             <div className="px-2 pt-2">
@@ -240,11 +340,14 @@ export default function Dashboard() {
         </aside>
       </main>
 
+      {/* Export Dialog */}
+      {showExport && <ExportDialog open={showExport} onOpenChange={setShowExport} />}
+
       {/* Footer */}
       <footer className="border-t border-border px-4 py-2 text-xs text-muted-foreground mt-auto">
         <div className="flex items-center justify-between gap-2">
-          <span>OpenJarvis Agent Dashboard</span>
-          <span className="font-mono">v3.0</span>
+          <span>OpenJarvis — Powered by Qwen3.8-27B-Uncensored</span>
+          <span className="font-mono">v5.0</span>
         </div>
       </footer>
     </div>

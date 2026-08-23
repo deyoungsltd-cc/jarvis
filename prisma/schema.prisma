@@ -1,9 +1,3 @@
-// This is your Prisma schema file,
-// learn more about it in the docs: https://pris.ly/d/prisma-schema
-
-// Looking for ways to speed up your queries, or scale easily with your serverless or edge functions?
-// Try Prisma Accelerate: https://pris.ly/cli/accelerate-init
-
 generator client {
   provider = "prisma-client-js"
 }
@@ -13,20 +7,307 @@ datasource db {
   url      = env("DATABASE_URL")
 }
 
-model User {
-  id        String   @id @default(cuid())
-  email     String   @unique
-  name      String?
-  createdAt DateTime @default(now())
-  updatedAt DateTime @updatedAt
+// ─── Auth ──────────────────────────────────────────────
+model Account {
+  id                String  @id @default(cuid())
+  userId            String
+  type              String
+  provider          String
+  providerAccountId String
+  refresh_token     String?
+  access_token      String?
+  expires_at        Int?
+  token_type        String?
+  scope             String?
+  id_token          String?
+  session_state     String?
+  user              User    @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@unique([provider, providerAccountId])
 }
 
-model Post {
+model Session {
+  id           String   @id @default(cuid())
+  sessionToken String   @unique
+  userId       String
+  expires      DateTime
+  user         User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+}
+
+model User {
+  id            String    @id @default(cuid())
+  name          String?
+  email         String?   @unique
+  emailVerified DateTime?
+  image         String?
+  passwordHash  String?
+  role          String    @default("user") // admin, user
+  createdAt     DateTime  @default(now())
+  updatedAt     DateTime  @updatedAt
+  accounts      Account[]
+  sessions      Session[]
+  workspaces    WorkspaceMember[]
+  auditLogs     AuditLog[]
+  macros        Macro[]
+  apiKeys       ApiKey[]
+}
+
+model VerificationToken {
+  identifier String
+  token      String   @unique
+  expires    DateTime
+
+  @@unique([identifier, token])
+}
+
+model ApiKey {
   id        String   @id @default(cuid())
-  title     String
-  content   String?
-  published Boolean  @default(false)
-  authorId  String
+  name      String
+  key       String   @unique
+  userId    String
+  expiresAt DateTime?
+  createdAt DateTime @default(now())
+  user      User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+}
+
+// ─── Workspaces ────────────────────────────────────────
+model Workspace {
+  id          String   @id @default(cuid())
+  name        String
+  description String?
+  ownerId     String
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+  members     WorkspaceMember[]
+  missions    Mission[]
+  devices     Device[]
+  macros      Macro[]
+}
+
+model WorkspaceMember {
+  id          String   @id @default(cuid())
+  workspaceId String
+  userId      String
+  role        String   @default("member") // owner, admin, member, viewer
+  joinedAt    DateTime @default(now())
+  workspace   Workspace @relation(fields: [workspaceId], references: [id], onDelete: Cascade)
+  user        User      @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@unique([workspaceId, userId])
+}
+
+// ─── Devices (Agent Daemon) ────────────────────────────
+model Device {
+  id            String   @id @default(cuid())
+  name          String
+  hostname      String
+  os            String?
+  arch          String?
+  status        String   @default("offline") // online, offline, idle, busy
+  lastSeenAt    DateTime?
+  ipAddress     String?
+  daemonVersion String?
+  capabilities  String? // JSON array of capability strings
+  workspaceId   String?
+  workspace     Workspace? @relation(fields: [workspaceId], references: [id], onDelete: SetNull)
+  createdAt     DateTime @default(now())
+  updatedAt     DateTime @updatedAt
+  auditLogs     AuditLog[]
+}
+
+// ─── Missions ──────────────────────────────────────────
+model Mission {
+  id            String   @id @default(cuid())
+  goal          String  
+  status        String   @default("draft")
+  provider      String?
+  workspaceId   String?
+  workspace     Workspace? @relation(fields: [workspaceId], references: [id], onDelete: SetNull)
+  deviceId      String?  // which device executed
+  tokenCount    Int      @default(0)
+  toolCallCount Int      @default(0)
+  error         String?
+  createdAt     DateTime @default(now())
+  updatedAt     DateTime @updatedAt
+  events        MissionEvent[]
+  approvals     ApprovalRequest[]
+}
+
+model MissionEvent {
+  id        String   @id @default(cuid())
+  missionId String
+  type      String
+  payload   String? // JSON
+  createdAt DateTime @default(now())
+  mission   Mission  @relation(fields: [missionId], references: [id], onDelete: Cascade)
+}
+
+// ─── Tools ─────────────────────────────────────────────
+model Tool {
+  name        String   @id
+  description String  
+  parameters  String? // JSON
+  riskLevel   String   @default("medium")
+  enabled     Boolean  @default(true)
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+}
+
+// ─── Memory ────────────────────────────────────────────
+model MemoryEntry {
+  id            String    @id @default(cuid())
+  scope         String    @default("working")
+  key           String
+  value         String?   // JSON
+  tags          String?   // JSON array
+  missionId     String?
+  source        String    @default("agent")
+  importance    Int       @default(5)
+  accessCount   Int       @default(0)
+  lastAccessedAt DateTime?
+  expiresAt     DateTime?
+  createdAt     DateTime  @default(now())
+  updatedAt     DateTime  @updatedAt
+}
+
+// ─── Approvals ─────────────────────────────────────────
+model ApprovalRequest {
+  id            String   @id @default(cuid())
+  missionId     String
+  toolName      String
+  capability    String?
+  riskLevel     String   @default("medium")
+  status        String   @default("pending")
+  reason        String?
+  toolInput     String? // JSON
+  resolvedBy    String?
+  response      String?
+  expiresAt     DateTime?
+  createdAt     DateTime @default(now())
+  updatedAt     DateTime @updatedAt
+  mission       Mission  @relation(fields: [missionId], references: [id], onDelete: Cascade)
+}
+
+// ─── Approval Rules ────────────────────────────────────
+model ApprovalRule {
+  id               String   @id @default(cuid())
+  name             String
+  description      String?
+  enabled          Boolean  @default(true)
+  matchRiskLevels  String? // JSON array
+  matchToolNames   String? // JSON array
+  matchCapabilities String? // JSON array
+  action           String   @default("require_manual")
+  priority         Int      @default(0)
+  createdAt        DateTime @default(now())
+  updatedAt        DateTime @updatedAt
+}
+
+// ─── Capability Grants ─────────────────────────────────
+model CapabilityGrant {
+  id                String   @id @default(cuid())
+  capability        String
+  allowed           Boolean
+  scopeType         String   @default("permanent")
+  scopeContext      String? // JSON
+  missionId         String?
+  source            String   @default("manual")
+  approvalRequestId String?
+  createdAt         DateTime @default(now())
+  updatedAt         DateTime @updatedAt
+}
+
+// ─── Audit Logs ────────────────────────────────────────
+model AuditLog {
+  id        String   @id @default(cuid())
+  userId    String?
+  deviceId  String?
+  action    String
+  resource  String?
+  detail    String? // JSON
+  ipAddress String?
+  userAgent String?
+  createdAt DateTime @default(now())
+  user      User?    @relation(fields: [userId], references: [id], onDelete: SetNull)
+  device    Device?  @relation(fields: [deviceId], references: [id], onDelete: SetNull)
+}
+
+// ─── Macros (Action Workflows) ─────────────────────────
+model Macro {
+  id          String   @id @default(cuid())
+  name        String
+  description String?
+  trigger     String? // cron expression or event trigger
+  steps       String   // JSON array of steps
+  enabled     Boolean  @default(true)
+  lastRunAt   DateTime?
+  runCount    Int      @default(0)
+  workspaceId String?
+  userId      String?
+  workspace   Workspace? @relation(fields: [workspaceId], references: [id], onDelete: SetNull)
+  user        User?      @relation(fields: [userId], references: [id], onDelete: SetNull)
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+}
+
+// ─── Plugins ───────────────────────────────────────────
+model Plugin {
+  id          String   @id @default(cuid())
+  name        String   @unique
+  version     String?
+  description String?
+  enabled     Boolean  @default(true)
+  config      String? // JSON
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+}
+
+// ─── RAG Documents ─────────────────────────────────────
+model Document {
+  id          String   @id @default(cuid())
+  filename    String
+  contentType String?
+  size        Int?
+  chunks      String? // JSON array of chunks
+  metadata    String? // JSON
+  createdAt   DateTime @default(now())
+}
+
+// ─── Webhooks ──────────────────────────────────────────
+model Webhook {
+  id          String   @id @default(cuid())
+  url         String
+  events      String   // JSON array
+  secret      String?
+  enabled     Boolean  @default(true)
+  lastTriggerAt DateTime?
+  failCount   Int      @default(0)
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+}
+
+// ─── Scheduler ─────────────────────────────────────────
+model ScheduledJob {
+  id          String   @id @default(cuid())
+  name        String
+  cronExpr    String
+  goal        String  
+  provider    String?
+  enabled     Boolean  @default(true)
+  lastRunAt   DateTime?
+  nextRunAt   DateTime?
+  runCount    Int      @default(0)
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+}
+
+// ─── Secret Vault ──────────────────────────────────────
+model VaultEntry {
+  id        String   @id @default(cuid())
+  key       String   @unique
+  value     String   // AES-256-GCM encrypted
+  iv        String   // initialization vector
+  tag       String   // auth tag
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
 }

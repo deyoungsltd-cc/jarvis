@@ -335,3 +335,204 @@ export interface CapabilityGrantList {
   limit: number;
   offset: number;
 }
+
+// ─── Workspace ──────────────────────────────────────────
+export interface Workspace {
+  id: string;
+  name: string;
+  description?: string;
+  ownerId: string;
+  createdAt: string;
+  updatedAt: string;
+  members?: WorkspaceMember[];
+  _count?: { missions: number; devices: number };
+}
+
+export interface WorkspaceMember {
+  id: string;
+  workspaceId: string;
+  userId: string;
+  role: string;
+  joinedAt: string;
+}
+
+// ─── Device (Agent Daemon) ─────────────────────────────
+export type DeviceStatus = 'online' | 'offline' | 'idle' | 'busy';
+
+export interface Device {
+  id: string;
+  name: string;
+  hostname: string;
+  os?: string;
+  arch?: string;
+  status: DeviceStatus;
+  lastSeenAt?: string;
+  ipAddress?: string;
+  daemonVersion?: string;
+  capabilities?: string;
+  workspaceId?: string;
+  createdAt: string;
+  updatedAt: string;
+}
+
+export interface DaemonCommand {
+  id: string;
+  command: string;
+  params: Record<string, unknown>;
+  createdAt: string;
+}
+
+export interface DaemonCommandResult {
+  commandId: string;
+  deviceId: string;
+  result?: Record<string, unknown>;
+  error?: string;
+}
+
+// ─── Audit Log ──────────────────────────────────────────
+export interface AuditLog {
+  id: string;
+  userId?: string;
+  deviceId?: string;
+  action: string;
+  resource?: string;
+  detail?: string;
+  ipAddress?: string;
+  userAgent?: string;
+  createdAt: string;
+  user?: { id: string; name?: string; email?: string };
+  device?: { id: string; name: string; hostname: string };
+}
+
+export interface AuditLogList {
+  items: AuditLog[];
+  total: number;
+  limit: number;
+  offset: number;
+}
+
+// ─── Macro ──────────────────────────────────────────────
+export interface MacroStep {
+  toolName: string;
+  params: Record<string, unknown>;
+  label?: string;
+  delayMs?: number;
+}
+
+export interface Macro {
+  id: string;
+  name: string;
+  description?: string;
+  trigger?: string;
+  steps: MacroStep[];
+  enabled: boolean;
+  lastRunAt?: string;
+  runCount: number;
+  workspaceId?: string;
+  userId?: string;
+  createdAt: string;
+  updatedAt: string;
+}
+
+// ─── Analytics ──────────────────────────────────────────
+export interface Analytics {
+  totalMissions: number;
+  missionsByStatus: Record<string, number>;
+  missionsByProvider: Record<string, number>;
+  toolUsageCounts: Record<string, number>;
+  dailyMissionCounts: Array<{ date: string; count: number }>;
+  totalMemoryEntries: number;
+  approvalStats: ApprovalStats;
+  totalDevices: number;
+  onlineDevices: number;
+  totalMacros: number;
+  enabledPlugins: number;
+}
+
+// ─── Plugin ─────────────────────────────────────────────
+export interface Plugin {
+  id: string;
+  name: string;
+  version?: string;
+  description?: string;
+  enabled: boolean;
+  config?: string;
+  createdAt: string;
+  updatedAt: string;
+}
+
+// ─── Document (RAG) ─────────────────────────────────────
+export interface RagDocument {
+  id: string;
+  filename: string;
+  contentType?: string;
+  size?: number;
+  chunks?: string;
+  metadata?: string;
+  createdAt: string;
+}
+
+// ─── Webhook ────────────────────────────────────────────
+export interface Webhook {
+  id: string;
+  url: string;
+  events: string;
+  secret?: string;
+  enabled: boolean;
+  lastTriggerAt?: string;
+  failCount: number;
+  createdAt: string;
+  updatedAt: string;
+}
+
+// ─── Scheduled Job ──────────────────────────────────────
+export interface ScheduledJob {
+  id: string;
+  name: string;
+  cronExpr: string;
+  goal: string;
+  provider?: string;
+  enabled: boolean;
+  lastRunAt?: string;
+  nextRunAt?: string;
+  runCount: number;
+  createdAt: string;
+  updatedAt: string;
+}
+
+// ─── Vault ──────────────────────────────────────────────
+export interface VaultEntry {
+  id: string;
+  key: string;
+  value?: string;
+  createdAt: string;
+  updatedAt: string;
+}
+
+// ─── API Key ────────────────────────────────────────────
+export interface ApiKey {
+  id: string;
+  name: string;
+  key: string;
+  userId: string;
+  expiresAt?: string;
+  createdAt: string;
+}
+
+// ─── User ───────────────────────────────────────────────
+export interface UserInfo {
+  id: string;
+  name?: string;
+  email?: string;
+  role: string;
+  createdAt: string;
+}
+
+// ─── Export ─────────────────────────────────────────────
+export type ExportFormat = 'json' | 'markdown' | 'text';
+
+export interface ExportRequest {
+  missionId: string;
+  format: ExportFormat;
+  includeEvents?: boolean;
+}

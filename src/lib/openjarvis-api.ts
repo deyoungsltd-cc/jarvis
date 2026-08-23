@@ -22,6 +22,22 @@ import type {
   ApprovalRequestList,
   ApprovalStats,
   ApprovalRule,
+  Workspace,
+  AuditLogList,
+  ExportRequest,
+  Analytics,
+  Macro,
+  MacroStep,
+  Device,
+  DaemonCommand,
+  DaemonCommandResult,
+  Plugin,
+  RagDocument,
+  Webhook,
+  ScheduledJob,
+  VaultEntry,
+  ApiKey,
+  UserInfo,
 } from './openjarvis-types';
 
 const PORT = '3001';
@@ -390,4 +406,208 @@ export function revokeCapabilityGrant(id: string) {
 
 export function revokeAllCapabilityGrants(capability: string) {
   return request(`/capabilities/grants/${capability}/revoke-all`, { method: 'DELETE' });
+}
+
+// ─── Workspaces ─────────────────────────────────────────
+export function getWorkspaces(): Promise<Workspace[]> {
+  return request('/workspaces');
+}
+
+export function createWorkspace(data: { name: string; description?: string; ownerId?: string }): Promise<Workspace> {
+  return request('/workspaces', { method: 'POST', body: JSON.stringify(data) });
+}
+
+export function getWorkspace(id: string): Promise<Workspace> {
+  return request(`/workspaces/${id}`);
+}
+
+export function updateWorkspace(id: string, data: { name?: string; description?: string }): Promise<Workspace> {
+  return request(`/workspaces/${id}`, { method: 'PATCH', body: JSON.stringify(data) });
+}
+
+export function deleteWorkspace(id: string): Promise<void> {
+  return request(`/workspaces/${id}`, { method: 'DELETE' });
+}
+
+// ─── Audit Logs ─────────────────────────────────────────
+export function getAuditLogs(filters?: { userId?: string; deviceId?: string; action?: string; limit?: number; offset?: string; from?: string; to?: string }): Promise<AuditLogList> {
+  const params = new URLSearchParams();
+  if (filters?.userId) params.set('userId', filters.userId);
+  if (filters?.deviceId) params.set('deviceId', filters.deviceId);
+  if (filters?.action) params.set('action', filters.action);
+  if (filters?.limit) params.set('limit', String(filters.limit));
+  if (filters?.offset) params.set('offset', filters.offset);
+  if (filters?.from) params.set('from', filters.from);
+  if (filters?.to) params.set('to', filters.to);
+  const qs = params.toString();
+  return request(`/audit${qs ? `?${qs}` : ''}`);
+}
+
+// ─── Export ─────────────────────────────────────────────
+export function exportMission(data: ExportRequest): Promise<Blob> {
+  return fetch(url('/export'), {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify(data),
+  }).then(async (res) => {
+    if (!res.ok) throw new Error(`Export failed: ${res.status}`);
+    const blob = await res.blob();
+    return blob;
+  });
+}
+
+// ─── Analytics ──────────────────────────────────────────
+export function getAnalytics(): Promise<Analytics> {
+  return request('/analytics');
+}
+
+// ─── Macros ─────────────────────────────────────────────
+export function getMacros(): Promise<Macro[]> {
+  return request('/macros');
+}
+
+export function createMacro(data: { name: string; description?: string; trigger?: string; steps: MacroStep[] }): Promise<Macro> {
+  return request('/macros', { method: 'POST', body: JSON.stringify(data) });
+}
+
+export function updateMacro(id: string, data: Partial<Pick<Macro, 'name' | 'description' | 'trigger' | 'steps' | 'enabled'>>): Promise<Macro> {
+  return request(`/macros/${id}`, { method: 'PATCH', body: JSON.stringify(data) });
+}
+
+export function deleteMacro(id: string): Promise<void> {
+  return request(`/macros/${id}`, { method: 'DELETE' });
+}
+
+export function runMacro(id: string): Promise<Macro> {
+  return request(`/macros/${id}/run`, { method: 'POST' });
+}
+
+// ─── Devices ────────────────────────────────────────────
+export function getDevices(): Promise<Device[]> {
+  return request('/devices');
+}
+
+export function registerDevice(data: { name: string; hostname: string; os?: string; arch?: string; capabilities?: string[] }): Promise<Device> {
+  return request('/devices', { method: 'POST', body: JSON.stringify(data) });
+}
+
+export function updateDevice(id: string, data: Partial<Pick<Device, 'name' | 'status' | 'ipAddress' | 'daemonVersion' | 'capabilities'>>): Promise<Device> {
+  return request(`/devices/${id}`, { method: 'PATCH', body: JSON.stringify(data) });
+}
+
+export function deleteDevice(id: string): Promise<void> {
+  return request(`/devices/${id}`, { method: 'DELETE' });
+}
+
+// ─── Daemon Commands ────────────────────────────────────
+export function sendDaemonCommand(deviceId: string, command: string, params?: Record<string, unknown>): Promise<{ commandId: string; status: string }> {
+  return request('/daemon/ws', { method: 'POST', body: JSON.stringify({ deviceId, command, params }) });
+}
+
+export function getDaemonCommands(deviceId: string): Promise<{ commands: DaemonCommand[] }> {
+  return request(`/daemon/ws?deviceId=${deviceId}`);
+}
+
+export function reportDaemonResult(data: DaemonCommandResult): Promise<void> {
+  return request('/daemon/result', { method: 'POST', body: JSON.stringify(data) });
+}
+
+// ─── Plugins ────────────────────────────────────────────
+export function getPlugins(): Promise<Plugin[]> {
+  return request('/plugins');
+}
+
+export function createPlugin(data: { name: string; version?: string; description?: string; config?: Record<string, unknown> }): Promise<Plugin> {
+  return request('/plugins', { method: 'POST', body: JSON.stringify(data) });
+}
+
+export function togglePlugin(id: string, enabled: boolean): Promise<Plugin> {
+  return request(`/plugins/${id}`, { method: 'PATCH', body: JSON.stringify({ enabled }) });
+}
+
+export function deletePlugin(id: string): Promise<void> {
+  return request(`/plugins/${id}`, { method: 'DELETE' });
+}
+
+// ─── Documents (RAG) ────────────────────────────────────
+export function getDocuments(): Promise<RagDocument[]> {
+  return request('/documents');
+}
+
+export function uploadDocument(file: File): Promise<RagDocument> {
+  const formData = new FormData();
+  formData.append('file', file);
+  return fetch(url('/documents'), { method: 'POST', body: formData }).then(async (res) => {
+    if (!res.ok) throw new Error(`Upload failed: ${res.status}`);
+    return res.json();
+  });
+}
+
+export function deleteDocument(id: string): Promise<void> {
+  return request(`/documents/${id}`, { method: 'DELETE' });
+}
+
+// ─── Webhooks ───────────────────────────────────────────
+export function getWebhooks(): Promise<Webhook[]> {
+  return request('/webhooks');
+}
+
+export function createWebhook(data: { url: string; events: string[]; secret?: string }): Promise<Webhook> {
+  return request('/webhooks', { method: 'POST', body: JSON.stringify(data) });
+}
+
+export function updateWebhook(id: string, data: Partial<Pick<Webhook, 'url' | 'events' | 'secret' | 'enabled'>>): Promise<Webhook> {
+  return request(`/webhooks/${id}`, { method: 'PATCH', body: JSON.stringify(data) });
+}
+
+export function deleteWebhook(id: string): Promise<void> {
+  return request(`/webhooks/${id}`, { method: 'DELETE' });
+}
+
+// ─── Scheduler ──────────────────────────────────────────
+export function getScheduledJobs(): Promise<ScheduledJob[]> {
+  return request('/scheduler');
+}
+
+export function createScheduledJob(data: { name: string; cronExpr: string; goal: string; provider?: string }): Promise<ScheduledJob> {
+  return request('/scheduler', { method: 'POST', body: JSON.stringify(data) });
+}
+
+export function updateScheduledJob(id: string, data: Partial<Pick<ScheduledJob, 'name' | 'cronExpr' | 'goal' | 'provider' | 'enabled'>>): Promise<ScheduledJob> {
+  return request(`/scheduler/${id}`, { method: 'PATCH', body: JSON.stringify(data) });
+}
+
+export function deleteScheduledJob(id: string): Promise<void> {
+  return request(`/scheduler/${id}`, { method: 'DELETE' });
+}
+
+// ─── Vault ──────────────────────────────────────────────
+export function getVaultEntries(): Promise<Array<Pick<VaultEntry, 'id' | 'key' | 'createdAt' | 'updatedAt'>>> {
+  return request('/vault');
+}
+
+export function storeVaultEntry(key: string, value: string): Promise<VaultEntry> {
+  return request('/vault', { method: 'POST', body: JSON.stringify({ key, value }) });
+}
+
+export function getVaultEntry(key: string): Promise<VaultEntry> {
+  return request(`/vault/${encodeURIComponent(key)}`);
+}
+
+export function deleteVaultEntry(key: string): Promise<void> {
+  return request(`/vault/${encodeURIComponent(key)}`, { method: 'DELETE' });
+}
+
+// ─── API Keys ───────────────────────────────────────────
+export function getApiKeys(): Promise<ApiKey[]> {
+  return request('/api-keys');
+}
+
+export function createApiKey(name: string): Promise<ApiKey> {
+  return request('/api-keys', { method: 'POST', body: JSON.stringify({ name }) });
+}
+
+// ─── Users ──────────────────────────────────────────────
+export function getUsers(): Promise<UserInfo[]> {
+  return request('/users');
 }

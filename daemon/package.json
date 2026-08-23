@@ -1,0 +1,14 @@
+{
+  "name": "openjarvis-daemon",
+  "version": "1.0.0",
+  "description": "OpenJARVIS Agent Daemon - runs on user's machine for hardware control",
+  "main": "index.js",
+  "scripts": {
+    "start": "node index.js",
+    "dev": "node --watch index.js"
+  },
+  "dependencies": {
+    "ws": "^8.18.0",
+    "node-cron": "^3.0.3"
+  }
+}

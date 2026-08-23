@@ -86,11 +86,11 @@ export function SettingsTab({ provider, onProviderChange }: SettingsTabProps) {
             </span>
           </div>
         ) : (
-          <div className="h-10" /> // placeholder to avoid layout shift
+          <div className="h-10" />
         )}
       </div>
 
-      {/* Mobile API Info */
+      {/* Mobile API Info */}
       <div className="flex flex-col gap-2">
         <Label className="text-sm font-medium">Mobile API</Label>
         <div className="p-3 rounded-lg border border-border bg-muted/30 space-y-2">

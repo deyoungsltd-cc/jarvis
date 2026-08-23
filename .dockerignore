@@ -1,0 +1,13 @@
+node_modules
+.next
+git
+*.md
+docker-compose.yml
+Dockerfile
+.env
+.env.local
+dev.log
+server.log
+tool-results
+download
+daemon
