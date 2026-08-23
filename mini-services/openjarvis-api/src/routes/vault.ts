@@ -9,7 +9,7 @@ const router = Router();
 
 /** POST /vault/secrets — store a new secret */
 router.post('/secrets', (req: Request, res: Response) => {
-  const requestId = (req as Record<string, unknown>).requestId as string || '-';
+  const requestId = (req as any).requestId as string || '-';
 
   const { key, value } = req.body;
   if (!key || typeof key !== 'string') {
@@ -29,7 +29,7 @@ router.post('/secrets', (req: Request, res: Response) => {
 
 /** GET /vault/secrets — list all secret key names */
 router.get('/secrets', (_req: Request, res: Response) => {
-  const requestId = (_req as Record<string, unknown>).requestId as string || '-';
+  const requestId = (_req as any).requestId as string || '-';
 
   try {
     const keys = listSecretKeys();
@@ -41,7 +41,7 @@ router.get('/secrets', (_req: Request, res: Response) => {
 
 /** GET /vault/secrets/:key — retrieve and decrypt a secret */
 router.get('/secrets/:key', (req: Request, res: Response) => {
-  const requestId = (req as Record<string, unknown>).requestId as string || '-';
+  const requestId = (req as any).requestId as string || '-';
   const keyName = req.params.key;
 
   if (!keyName) {
@@ -61,7 +61,7 @@ router.get('/secrets/:key', (req: Request, res: Response) => {
 
 /** DELETE /vault/secrets/:key — delete a secret */
 router.delete('/secrets/:key', (req: Request, res: Response) => {
-  const requestId = (req as Record<string, unknown>).requestId as string || '-';
+  const requestId = (req as any).requestId as string || '-';
   const keyName = req.params.key;
 
   if (!keyName) {

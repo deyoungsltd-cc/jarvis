@@ -442,7 +442,7 @@ export const SERVICE_CATALOG: ServiceDefinition[] = [
 
 /** Resource weight totals for go/no-go analysis */
 export function getResourceSummary() {
-  const summary = { lightweight: 0, moderate: 0, heavy: 0, 'on-demand': 0 } as Record<string, ServiceDefinition[]>;
+  const summary = { lightweight: [], moderate: [], heavy: [], 'on-demand': [] } as unknown as Record<string, ServiceDefinition[]>;
   let totalRam = 0;
   let totalDisk = 0;
 

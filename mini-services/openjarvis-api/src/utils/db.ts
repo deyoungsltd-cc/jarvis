@@ -4,7 +4,7 @@
  * Reads database configuration from src/utils/database.ts to ensure
  * DATABASE_URL is set correctly before Prisma connects.
  */
-import { PrismaClient } from '../../node_modules/.prisma/client/index.js';
+import { PrismaClient } from '@prisma/client';
 import { getDatabaseConfig, DatabaseConfig } from './database.js';
 
 // Initialize database config (logs which provider is active)

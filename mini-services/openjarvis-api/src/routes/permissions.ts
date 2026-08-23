@@ -7,7 +7,7 @@ const router = Router();
 /** GET /permissions — list all capabilities with their grant status */
 router.get('/', async (_req: Request, res: Response, next: NextFunction) => {
   try {
-    const requestId = (_req as Record<string, unknown>).requestId as string;
+    const requestId = (_req as any).requestId as string;
     const statuses = await capabilityRegistry.getAllStatuses(requestId);
 
     // Merge with the full capability list for complete view
@@ -44,7 +44,7 @@ router.get('/', async (_req: Request, res: Response, next: NextFunction) => {
 /** POST /permissions/grant — grant a capability */
 router.post('/grant', async (req: Request, res: Response, next: NextFunction) => {
   try {
-    const requestId = (_req as Record<string, unknown>).requestId as string;
+    const requestId = (req as any).requestId as string;
     const { capability, allowed = true, scope, scopeContext, missionId } = req.body;
     if (!capability || typeof capability !== 'string') {
       throw badRequest('VALIDATION_ERROR', 'capability is required', requestId);
@@ -64,7 +64,7 @@ router.post('/grant', async (req: Request, res: Response, next: NextFunction) =>
 /** POST /permissions/revoke — revoke all grants for a capability */
 router.post('/revoke', async (req: Request, res: Response, next: NextFunction) => {
   try {
-    const requestId = (_req as Record<string, unknown>).requestId as string;
+    const requestId = (req as any).requestId as string;
     const { capability } = req.body;
     if (!capability || typeof capability !== 'string') {
       throw badRequest('VALIDATION_ERROR', 'capability is required', requestId);

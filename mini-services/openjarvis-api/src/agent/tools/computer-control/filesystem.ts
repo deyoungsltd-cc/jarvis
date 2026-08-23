@@ -54,7 +54,7 @@ export function createFilesystemReadTool(): ToolHandler {
           return { success: true, output: { type: 'directory', path: targetPath, entries }, durationMs: 0 };
         }
 
-        const content = readFileSync(targetPath, String(input.encoding || 'utf-8'));
+        const content = readFileSync(targetPath, { encoding: (input.encoding || 'utf-8') as BufferEncoding });
         // Truncate very large files to avoid blowing up the context
         const maxLen = 50000;
         const truncated = content.length > maxLen;

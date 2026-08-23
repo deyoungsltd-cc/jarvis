@@ -62,8 +62,8 @@ app.use('/plugins', pluginRoutes);
 app.use('/vault', vaultRoutes);
 app.use('/auth', authRoutes);
 
-app.use((_req, res) => {
-  const requestId = (_req as Record<string, unknown>).requestId as string || '-';
+app.use((_req: any, res: any) => {
+  const requestId = (_req as any).requestId as string || '-';
   res.status(404).json({
     error: {
       code: 'NOT_FOUND',
@@ -87,7 +87,7 @@ const io = new Server(httpServer, {
 // Wire the event bus so missionEventService broadcasts via this Socket.IO instance
 setSocketIO(io);
 
-io.on('connection', (socket) => {
+io.on('connection', (socket: any) => {
   logger.info('-', `WebSocket client connected: ${socket.id}`);
 
   socket.on('subscribe:mission', (missionId: string) => {
@@ -181,7 +181,7 @@ io.on('connection', (socket) => {
     logger.info('-', `WebSocket client disconnected: ${socket.id}`);
   });
 
-  socket.on('error', (err) => {
+  socket.on('error', (err: any) => {
     logger.error('-', `Socket error (${socket.id}): ${err}`);
   });
 });

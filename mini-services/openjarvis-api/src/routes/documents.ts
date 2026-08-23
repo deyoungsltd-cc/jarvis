@@ -5,18 +5,18 @@
  */
 import { Router, Response, NextFunction } from 'express';
 import multer from 'multer';
-import { ragService } from '../services/ragService.js';
+import * as ragService from '../services/ragService.js';
 import { badRequest, notFound } from '../utils/errors.js';
 
 const router = Router();
 
 // Configure multer for file uploads (in-memory storage)
 const upload = multer({
-  storage: multer.memoryStorage(),
+  storage: (multer as any).memoryStorage(),
   limits: {
     fileSize: 50 * 1024 * 1024, // 50MB max
   },
-  fileFilter: (_req, file, cb) => {
+  fileFilter: (_req: any, file: any, cb: any) => {
     const allowed = [
       'application/pdf',
       'text/plain',
@@ -33,9 +33,9 @@ const upload = multer({
 });
 
 /** POST /documents/upload — upload a document */
-router.post('/upload', upload.single('file'), async (req, res: Response, next: NextFunction) => {
+router.post('/upload', upload.single('file'), async (req: any, res: Response, next: NextFunction) => {
   try {
-    const requestId = (req as Record<string, unknown>).requestId as string;
+    const requestId = (req as any).requestId as string;
 
     if (!req.file) {
       throw badRequest('NO_FILE', 'No file uploaded. Use multipart form with field name "file"', requestId);
@@ -59,7 +59,7 @@ router.post('/upload', upload.single('file'), async (req, res: Response, next: N
 });
 
 /** GET /documents — list all documents */
-router.get('/', async (_req, res: Response, next: NextFunction) => {
+router.get('/', async (_req: any, res: Response, next: NextFunction) => {
   try {
     const docs = await ragService.listDocuments();
     res.json({ documents: docs, count: docs.length });
@@ -67,9 +67,9 @@ router.get('/', async (_req, res: Response, next: NextFunction) => {
 });
 
 /** GET /documents/:id — get document details with chunks */
-router.get('/:id', async (req, res: Response, next: NextFunction) => {
+router.get('/:id', async (req: any, res: Response, next: NextFunction) => {
+  const requestId = (req as any).requestId as string;
   try {
-    const requestId = (req as Record<string, unknown>).requestId as string;
     const doc = await ragService.getDocument(req.params.id);
     res.json(doc);
   } catch (err) {
@@ -82,9 +82,9 @@ router.get('/:id', async (req, res: Response, next: NextFunction) => {
 });
 
 /** POST /documents/query — query against documents */
-router.post('/query', async (req, res: Response, next: NextFunction) => {
+router.post('/query', async (req: any, res: Response, next: NextFunction) => {
   try {
-    const requestId = (req as Record<string, unknown>).requestId as string;
+    const requestId = (req as any).requestId as string;
     const { query, topK } = req.body;
 
     if (!query || typeof query !== 'string') {
@@ -97,9 +97,9 @@ router.post('/query', async (req, res: Response, next: NextFunction) => {
 });
 
 /** DELETE /documents/:id — delete a document and its chunks */
-router.delete('/:id', async (req, res: Response, next: NextFunction) => {
+router.delete('/:id', async (req: any, res: Response, next: NextFunction) => {
+  const requestId = (req as any).requestId as string;
   try {
-    const requestId = (req as Record<string, unknown>).requestId as string;
     await ragService.deleteDocument(req.params.id);
     res.json({ deleted: true, id: req.params.id });
   } catch (err) {

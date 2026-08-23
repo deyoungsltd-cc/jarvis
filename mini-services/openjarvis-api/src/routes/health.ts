@@ -4,7 +4,7 @@ import { checkDbConnection } from '../utils/db.js';
 const router = Router();
 
 router.get('/', async (_req: Request, res: Response) => {
-  const requestId = (_req as Record<string, unknown>).requestId as string || '-';
+  const requestId = (_req as any).requestId as string || '-';
 
   const dbStatus = await checkDbConnection();
 

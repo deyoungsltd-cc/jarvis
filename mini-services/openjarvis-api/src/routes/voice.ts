@@ -43,7 +43,7 @@ function ensureInit() {
 }
 
 // ---- GET /voice/status ----
-router.get('/status', async (_req: Request, res: Response) => {
+router.get('/status', async (req: Request, res: Response) => {
   ensureInit();
   try {
     const provider = getActiveProvider();
@@ -60,7 +60,7 @@ router.get('/status', async (_req: Request, res: Response) => {
       error: {
         code: 'VOICE_UNAVAILABLE',
         message: err.message || 'Voice system not available',
-        requestId: (_req as any).requestId || '-',
+        requestId: (req as any).requestId || '-',
       },
     });
   }
@@ -76,7 +76,7 @@ router.post('/provider', async (req: Request, res: Response) => {
       error: {
         code: 'VALIDATION_ERROR',
         message: 'Request body must include "provider" (string)',
-        requestId: (_req as any).requestId || '-',
+        requestId: (req as any).requestId || '-',
       },
     });
     return;
@@ -96,7 +96,7 @@ router.post('/provider', async (req: Request, res: Response) => {
   } catch (err: any) {
     const code = err instanceof VoiceError ? err.code : 'SWITCH_FAILED';
     res.status(400).json({
-      error: { code, message: err.message, requestId: (_req as any).requestId || '-' },
+      error: { code, message: err.message, requestId: (req as any).requestId || '-' },
     });
   }
 });
@@ -112,7 +112,7 @@ router.post('/stt', async (req: Request, res: Response) => {
       error: {
         code: 'VALIDATION_ERROR',
         message: 'Request body must include "audio" (base64-encoded string)',
-        requestId: (_req as any).requestId || '-',
+        requestId: (req as any).requestId || '-',
       },
     });
     return;
@@ -124,7 +124,7 @@ router.post('/stt', async (req: Request, res: Response) => {
       error: {
         code: 'VALIDATION_ERROR',
         message: `Invalid audio format: "${format}". Supported: ${validFormats.join(', ')}`,
-        requestId: (_req as any).requestId || '-',
+        requestId: (req as any).requestId || '-',
       },
     });
     return;
@@ -136,7 +136,7 @@ router.post('/stt', async (req: Request, res: Response) => {
       error: {
         code: 'AUDIO_TOO_LARGE',
         message: 'Audio data exceeds 10MB limit (base64-encoded)',
-        requestId: (_req as any).requestId || '-',
+        requestId: (req as any).requestId || '-',
       },
     });
     return;
@@ -166,7 +166,7 @@ router.post('/stt', async (req: Request, res: Response) => {
     const code = err instanceof VoiceError ? err.code : 'STT_FAILED';
     const status = code === 'TTS_NOT_SUPPORTED' ? 422 : (code === 'MISSING_API_KEY' ? 503 : 500);
     res.status(status).json({
-      error: { code, message: err.message, requestId: (_req as any).requestId || '-' },
+      error: { code, message: err.message, requestId: (req as any).requestId || '-' },
     });
   }
 });
@@ -181,7 +181,7 @@ router.post('/tts', async (req: Request, res: Response) => {
       error: {
         code: 'VALIDATION_ERROR',
         message: 'Request body must include "text" (string)',
-        requestId: (_req as any).requestId || '-',
+        requestId: (req as any).requestId || '-',
       },
     });
     return;
@@ -193,7 +193,7 @@ router.post('/tts', async (req: Request, res: Response) => {
       error: {
         code: 'VALIDATION_ERROR',
         message: 'Text exceeds 5000 character limit for TTS',
-        requestId: (_req as any).requestId || '-',
+        requestId: (req as any).requestId || '-',
       },
     });
     return;
@@ -222,13 +222,13 @@ router.post('/tts', async (req: Request, res: Response) => {
     const code = err instanceof VoiceError ? err.code : 'TTS_FAILED';
     const status = code === 'TTS_NOT_SUPPORTED' ? 422 : (code === 'MISSING_API_KEY' ? 503 : 500);
     res.status(status).json({
-      error: { code, message: err.message, requestId: (_req as any).requestId || '-' },
+      error: { code, message: err.message, requestId: (req as any).requestId || '-' },
     });
   }
 });
 
 // ---- GET /voice/sessions ----
-router.get('/sessions', async (_req: Request, res: Response) => {
+router.get('/sessions', async (req: Request, res: Response) => {
   ensureInit();
   const sessions = getAllSessions();
   res.json(sessions.map(s => ({
@@ -272,7 +272,7 @@ router.get('/sessions/:id', async (req: Request, res: Response) => {
       error: {
         code: 'SESSION_NOT_FOUND',
         message: `Voice session "${req.params.id}" not found`,
-        requestId: (_req as any).requestId || '-',
+        requestId: (req as any).requestId || '-',
       },
     });
     return;
@@ -308,7 +308,7 @@ router.delete('/sessions/:id', async (req: Request, res: Response) => {
       error: {
         code: 'SESSION_NOT_FOUND',
         message: `Voice session "${req.params.id}" not found`,
-        requestId: (_req as any).requestId || '-',
+        requestId: (req as any).requestId || '-',
       },
     });
     return;
@@ -328,7 +328,7 @@ router.post('/sessions/:id/transcript', async (req: Request, res: Response) => {
       error: {
         code: 'VALIDATION_ERROR',
         message: 'Request body must include "text" (string)',
-        requestId: (_req as any).requestId || '-',
+        requestId: (req as any).requestId || '-',
       },
     });
     return;
@@ -346,7 +346,7 @@ router.post('/sessions/:id/transcript', async (req: Request, res: Response) => {
       error: {
         code: 'SESSION_NOT_FOUND',
         message: `Voice session "${req.params.id}" not found`,
-        requestId: (_req as any).requestId || '-',
+        requestId: (req as any).requestId || '-',
       },
     });
     return;
@@ -371,7 +371,7 @@ router.post('/sessions/:id/status', async (req: Request, res: Response) => {
       error: {
         code: 'VALIDATION_ERROR',
         message: `Invalid status. Must be one of: ${validStatuses.join(', ')}`,
-        requestId: (_req as any).requestId || '-',
+        requestId: (req as any).requestId || '-',
       },
     });
     return;
@@ -384,7 +384,7 @@ router.post('/sessions/:id/status', async (req: Request, res: Response) => {
       error: {
         code: 'SESSION_NOT_FOUND',
         message: `Voice session "${req.params.id}" not found`,
-        requestId: (_req as any).requestId || '-',
+        requestId: (req as any).requestId || '-',
       },
     });
     return;
@@ -400,7 +400,7 @@ router.post('/sessions/:id/status', async (req: Request, res: Response) => {
 // ---- Wake Word Detection Routes ----
 
 // POST /voice/wake-word/start — Start always-listening wake word detection
-router.post('/wake-word/start', async (_req: Request, res: Response) => {
+router.post('/wake-word/start', async (req: Request, res: Response) => {
   ensureInit();
   try {
     const detector = getWakeWordDetector();
@@ -416,7 +416,7 @@ router.post('/wake-word/start', async (_req: Request, res: Response) => {
             sttAvailable: status.sttAvailable,
             lastError: status.lastError,
           },
-          requestId: (_req as any).requestId || '-',
+          requestId: (req as any).requestId || '-',
         },
       });
       return;
@@ -435,14 +435,14 @@ router.post('/wake-word/start', async (_req: Request, res: Response) => {
       error: {
         code: 'WAKE_WORD_START_FAILED',
         message: err.message || 'Failed to start wake word detection',
-        requestId: (_req as any).requestId || '-',
+        requestId: (req as any).requestId || '-',
       },
     });
   }
 });
 
 // POST /voice/wake-word/stop — Stop wake word detection
-router.post('/wake-word/stop', async (_req: Request, res: Response) => {
+router.post('/wake-word/stop', async (req: Request, res: Response) => {
   try {
     const detector = getWakeWordDetector();
     await detector.stop();
@@ -453,14 +453,14 @@ router.post('/wake-word/stop', async (_req: Request, res: Response) => {
       error: {
         code: 'WAKE_WORD_STOP_FAILED',
         message: err.message || 'Failed to stop wake word detection',
-        requestId: (_req as any).requestId || '-',
+        requestId: (req as any).requestId || '-',
       },
     });
   }
 });
 
 // GET /voice/wake-word/status — Get wake word detector status
-router.get('/wake-word/status', async (_req: Request, res: Response) => {
+router.get('/wake-word/status', async (req: Request, res: Response) => {
   ensureInit();
   const detector = getWakeWordDetector();
   res.json(detector.getStatus());

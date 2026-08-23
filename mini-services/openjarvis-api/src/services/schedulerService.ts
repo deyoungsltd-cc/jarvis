@@ -43,10 +43,11 @@ const CHECK_INTERVAL_MS = 15_000; // check every 15 seconds
 
 /**
  * Minimal cron parser supporting common patterns:
- *   */5 * * * *     — every 5 minutes
- *   0 9 * * *       — daily at 9:00 AM
- *   30 * * * *      — every hour at :30
- *   0 0 * * 1       — weekly on Monday at midnight
+ * Examples:
+ *   (star-slash-5) * * * *  - every 5 minutes
+ *   0 9 * * *             - daily at 9:00 AM
+ *   30 * * * *            - every hour at :30
+ *   0 0 * * 1             - weekly on Monday at midnight
  *
  * Returns: next Date when the cron should fire.
  */

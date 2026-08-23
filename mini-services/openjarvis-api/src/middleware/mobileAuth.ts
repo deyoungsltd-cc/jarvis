@@ -27,7 +27,7 @@ export interface MobileAuthRequest extends Request {
  */
 export function requireMobileAuth(optional = false) {
   return async (req: MobileAuthRequest, res: Response, next: NextFunction) => {
-    const requestId = (req as Record<string, unknown>).requestId as string;
+    const requestId = (req as any).requestId as string;
     const apiKey = req.headers['x-api-key'] as string
       || (req.query.api_key as string);
 
@@ -63,7 +63,7 @@ export function requireMobileAuth(optional = false) {
  */
 export function jwtAuth(optional = false) {
   return async (req: MobileAuthRequest, res: Response, next: NextFunction) => {
-    const requestId = (req as Record<string, unknown>).requestId as string;
+    const requestId = (req as any).requestId as string;
 
     // --- Try JWT Bearer first ---
     const authHeader = req.headers.authorization as string | undefined;

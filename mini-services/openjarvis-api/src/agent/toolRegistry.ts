@@ -118,7 +118,7 @@ export class ToolRegistry {
         // Validate output against schema
         if (result.success && handler.outputSchema) {
           const outputErr = this.validateJsonSchema(
-            result.output as Record<string, unknown>,
+            result.output as any,
             handler.outputSchema,
           );
           if (outputErr) {

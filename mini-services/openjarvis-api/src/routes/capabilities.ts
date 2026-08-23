@@ -17,7 +17,7 @@ const router = Router();
 /** GET /capabilities/grants — list all capability grants */
 router.get('/grants', async (req: Request, res: Response, next: NextFunction) => {
   try {
-    const requestId = (req as Record<string, unknown>).requestId as string;
+    const requestId = (req as any).requestId as string;
     const result = await capabilityRegistry.list({
       capability: req.query.capability as string,
       allowed: req.query.allowed !== undefined ? req.query.allowed === 'true' : undefined,
@@ -30,9 +30,9 @@ router.get('/grants', async (req: Request, res: Response, next: NextFunction) =>
 });
 
 /** GET /capabilities/statuses — get current authorization status for all capabilities */
-router.get('/statuses', async (_req: Request, res: Response, next: NextFunction) => {
+router.get('/statuses', async (req: Request, res: Response, next: NextFunction) => {
   try {
-    const requestId = (req as Record<string, unknown>).requestId as string;
+    const requestId = (req as any).requestId as string;
     const statuses = await capabilityRegistry.getAllStatuses(requestId);
     res.json(statuses);
   } catch (err) { next(err); }
@@ -41,7 +41,7 @@ router.get('/statuses', async (_req: Request, res: Response, next: NextFunction)
 /** POST /capabilities/grants — create a capability grant */
 router.post('/grants', async (req: Request, res: Response, next: NextFunction) => {
   try {
-    const requestId = (req as Record<string, unknown>).requestId as string;
+    const requestId = (req as any).requestId as string;
     const { capability, allowed, scopeType, scopeContext, missionId } = req.body;
     if (!capability || typeof capability !== 'string') {
       throw badRequest('VALIDATION_ERROR', 'capability is required', requestId);
@@ -64,7 +64,7 @@ router.post('/grants', async (req: Request, res: Response, next: NextFunction) =
 /** GET /capabilities/grants/:id — get a single grant */
 router.get('/grants/:id', async (req: Request, res: Response, next: NextFunction) => {
   try {
-    const requestId = (req as Record<string, unknown>).requestId as string;
+    const requestId = (req as any).requestId as string;
     const grant = await capabilityRegistry.getById(req.params.id, requestId);
     res.json(grant);
   } catch (err) { next(err); }
@@ -73,7 +73,7 @@ router.get('/grants/:id', async (req: Request, res: Response, next: NextFunction
 /** PATCH /capabilities/grants/:id — update a grant */
 router.patch('/grants/:id', async (req: Request, res: Response, next: NextFunction) => {
   try {
-    const requestId = (req as Record<string, unknown>).requestId as string;
+    const requestId = (req as any).requestId as string;
     const { allowed, scopeType, scopeContext } = req.body;
     const grant = await capabilityRegistry.update(req.params.id, {
       allowed,
@@ -87,7 +87,7 @@ router.patch('/grants/:id', async (req: Request, res: Response, next: NextFuncti
 /** DELETE /capabilities/grants/:id — revoke a specific grant */
 router.delete('/grants/:id', async (req: Request, res: Response, next: NextFunction) => {
   try {
-    const requestId = (req as Record<string, unknown>).requestId as string;
+    const requestId = (req as any).requestId as string;
     const result = await capabilityRegistry.revoke(req.params.id, requestId);
     res.json(result);
   } catch (err) { next(err); }
@@ -96,7 +96,7 @@ router.delete('/grants/:id', async (req: Request, res: Response, next: NextFunct
 /** DELETE /capabilities/grants/:capability/revoke-all — revoke ALL grants for a capability */
 router.delete('/grants/:capability/revoke-all', async (req: Request, res: Response, next: NextFunction) => {
   try {
-    const requestId = (req as Record<string, unknown>).requestId as string;
+    const requestId = (req as any).requestId as string;
     const result = await capabilityRegistry.revokeAll(req.params.capability, requestId);
     res.json(result);
   } catch (err) { next(err); }

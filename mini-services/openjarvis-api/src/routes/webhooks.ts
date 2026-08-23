@@ -11,16 +11,16 @@ import type { WebhookType } from '../services/webhookService.js';
 const router = Router();
 
 /** GET /webhooks — list all webhooks */
-router.get('/', (_req, res: Response) => {
+router.get('/', (_req: any, res: Response) => {
   const service = getWebhookService();
   const webhooks = service.listWebhooks();
   res.json({ webhooks, count: webhooks.length });
 });
 
 /** POST /webhooks — add a webhook */
-router.post('/', (req, res: Response, next: NextFunction) => {
+router.post('/', (req: any, res: Response, next: NextFunction) => {
   try {
-    const requestId = (req as Record<string, unknown>).requestId as string;
+    const requestId = (req as any).requestId as string;
     const { name, type, url, chatId, enabled } = req.body;
 
     if (!name || typeof name !== 'string') {
@@ -50,7 +50,7 @@ router.post('/', (req, res: Response, next: NextFunction) => {
 });
 
 /** DELETE /webhooks/:id — remove a webhook */
-router.delete('/:id', (req, res: Response) => {
+router.delete('/:id', (req: any, res: Response) => {
   const service = getWebhookService();
   const removed = service.removeWebhook(req.params.id);
   if (!removed) {
@@ -63,7 +63,7 @@ router.delete('/:id', (req, res: Response) => {
 });
 
 /** POST /webhooks/:id/test — send test message */
-router.post('/:id/test', async (req, res: Response, next: NextFunction) => {
+router.post('/:id/test', async (req: any, res: Response, next: NextFunction) => {
   try {
     const service = getWebhookService();
     const result = await service.testWebhook(req.params.id);
@@ -72,9 +72,9 @@ router.post('/:id/test', async (req, res: Response, next: NextFunction) => {
 });
 
 /** POST /webhooks/broadcast — send message to all active webhooks */
-router.post('/broadcast', async (req, res: Response, next: NextFunction) => {
+router.post('/broadcast', async (req: any, res: Response, next: NextFunction) => {
   try {
-    const requestId = (req as Record<string, unknown>).requestId as string;
+    const requestId = (req as any).requestId as string;
     const { message } = req.body;
 
     if (!message || typeof message !== 'string') {

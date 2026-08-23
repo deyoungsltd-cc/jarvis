@@ -371,7 +371,7 @@ export const mcpPluginManager = {
     // Create transport and connect
     const transport = new InProcessTransport({
       tools: config.tools,
-      handlers: new Map(config.handlers),
+      handlers: new Map(config.handlers) as any,
     });
     await transport.connect();
 

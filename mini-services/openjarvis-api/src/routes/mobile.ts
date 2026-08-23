@@ -11,7 +11,7 @@ import { missionService } from '../services/missionService.js';
 import { missionEventService } from '../services/missionEventService.js';
 import { memoryService } from '../services/memoryService.js';
 import { mobileClientService } from '../services/mobileClientService.js';
-import { notificationService } from '../services/notificationService.js';
+import { getForClient as getNotificationsForClient, markRead as markNotificationRead, markAllRead as markAllNotificationsRead } from '../services/notificationService.js';
 import { requireMobileAuth, type MobileAuthRequest } from '../middleware/mobileAuth.js';
 import { parsePagination, buildPaginatedResponse } from '../mobile/pagination.js';
 import { badRequest } from '../utils/errors.js';
@@ -25,7 +25,7 @@ const router = Router();
 /** POST /mobile/v1/register — register a mobile client, get API key */
 router.post('/register', async (req: MobileAuthRequest, res: Response, next: NextFunction) => {
   try {
-    const requestId = (req as Record<string, unknown>).requestId as string;
+    const requestId = (req as any).requestId as string;
     const { name, platform } = req.body;
     if (!name || typeof name !== 'string') {
       throw badRequest('VALIDATION_ERROR', 'Client name is required', requestId);
@@ -83,7 +83,7 @@ router.get('/missions', async (req: MobileAuthRequest, res: Response, next: Next
 /** GET /mobile/v1/missions/:id — mission detail with event summary */
 router.get('/missions/:id', async (req: MobileAuthRequest, res: Response, next: NextFunction) => {
   try {
-    const requestId = (req as Record<string, unknown>).requestId as string;
+    const requestId = (req as any).requestId as string;
     const mission = await missionService.getById(req.params.id, requestId);
     // Lightweight: don't include full event payloads
     const eventSummary = await db.missionEvent.findMany({
@@ -111,7 +111,7 @@ router.get('/missions/:id', async (req: MobileAuthRequest, res: Response, next: 
 /** POST /mobile/v1/missions — create mission (mobile) */
 router.post('/missions', async (req: MobileAuthRequest, res: Response, next: NextFunction) => {
   try {
-    const requestId = (req as Record<string, unknown>).requestId as string;
+    const requestId = (req as any).requestId as string;
     const { goal } = req.body;
     if (!goal || typeof goal !== 'string') {
       throw badRequest('VALIDATION_ERROR', 'Goal is required', requestId);
@@ -157,7 +157,7 @@ router.get('/missions/:id/events', async (req: MobileAuthRequest, res: Response,
 /** GET /mobile/v1/missions/:id/events/stream — SSE event stream */
 router.get('/missions/:id/events/stream', async (req: MobileAuthRequest, res: Response, next: NextFunction) => {
   try {
-    const requestId = (req as Record<string, unknown>).requestId as string;
+    const requestId = (req as any).requestId as string;
     const mission = await missionService.getById(req.params.id, requestId);
 
     // Set up SSE
@@ -274,7 +274,7 @@ router.get('/memory/search', async (req: MobileAuthRequest, res: Response, next:
   try {
     const q = req.query.q as string;
     if (!q) {
-      const requestId = (req as Record<string, unknown>).requestId as string;
+      const requestId = (req as any).requestId as string;
       throw badRequest('VALIDATION_ERROR', 'Query parameter "q" is required', requestId);
     }
     const results = await memoryService.search(q, {
@@ -304,7 +304,7 @@ router.get('/tools', async (_req: MobileAuthRequest, res: Response, next: NextFu
 /** POST /mobile/v1/agent/run — create mission + run agent (combined) */
 router.post('/agent/run', async (req: MobileAuthRequest, res: Response, next: NextFunction) => {
   try {
-    const requestId = (req as Record<string, unknown>).requestId as string;
+    const requestId = (req as any).requestId as string;
     const { goal } = req.body;
     if (!goal || typeof goal !== 'string') {
       throw badRequest('VALIDATION_ERROR', 'Goal is required', requestId);
@@ -329,7 +329,7 @@ router.get('/notifications', async (req: MobileAuthRequest, res: Response, next:
       res.json({ notifications: [] });
       return;
     }
-    const notifications = await notificationService.getForClient(clientId);
+    const notifications = await getNotificationsForClient(clientId);
     const parsed = notifications.map(n => ({
       id: n.id,
       clientId: n.clientId,
@@ -347,7 +347,7 @@ router.get('/notifications', async (req: MobileAuthRequest, res: Response, next:
 /** POST /mobile/v1/notifications/:id/read — mark as read */
 router.post('/notifications/:id/read', async (req: MobileAuthRequest, res: Response, next: NextFunction) => {
   try {
-    const marked = await notificationService.markRead(req.params.id);
+    const marked = await markNotificationRead(req.params.id);
     res.json({ marked });
   } catch (err) { next(err); }
 });
@@ -360,7 +360,7 @@ router.post('/notifications/read-all', async (req: MobileAuthRequest, res: Respo
       res.json({ marked: 0 });
       return;
     }
-    const count = await notificationService.markAllRead(clientId);
+    const count = await markAllNotificationsRead(clientId);
     res.json({ marked: count });
   } catch (err) { next(err); }
 });

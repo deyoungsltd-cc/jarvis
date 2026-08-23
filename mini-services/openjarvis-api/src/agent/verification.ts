@@ -8,7 +8,7 @@ import { logger } from '../utils/logger.js';
 
 export interface VerificationResult {
   verified: boolean;
-  method: 'screenshot_diff' | 'dom_read' | 'explicit_confirmation' | 'output_check';
+  method: 'screenshot_diff' | 'dom_read' | 'explicit_confirmation' | 'output_check' | 'skip';
   evidence?: string;
   error?: string;
 }

@@ -7,7 +7,7 @@ import { createRequestId, logger } from '../utils/logger.js';
  */
 export function requestLogger(req: Request, res: Response, next: NextFunction) {
   const requestId = (req.headers['x-request-id'] as string) || createRequestId();
-  (req as Record<string, unknown>).requestId = requestId;
+  (req as any).requestId = requestId;
   res.setHeader('X-Request-Id', requestId);
 
   const start = Date.now();

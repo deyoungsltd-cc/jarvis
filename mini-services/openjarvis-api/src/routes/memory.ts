@@ -16,7 +16,7 @@ router.get('/', async (req: Request, res: Response, next: NextFunction) => {
     let entries;
     if (scope && typeof scope === 'string') {
       if (!VALID_SCOPES.includes(scope as any)) {
-        const requestId = (req as Record<string, unknown>).requestId as string;
+        const requestId = (req as any).requestId as string;
         throw badRequest('VALIDATION_ERROR', `Invalid scope. Must be one of: ${VALID_SCOPES.join(', ')}`, requestId);
       }
       entries = await memoryService.listByScope(scope);
@@ -32,7 +32,7 @@ router.get('/search', async (req: Request, res: Response, next: NextFunction) =>
   try {
     const { q, scope, limit, min_importance, tags } = req.query;
     if (!q || typeof q !== 'string') {
-      const requestId = (req as Record<string, unknown>).requestId as string;
+      const requestId = (req as any).requestId as string;
       throw badRequest('VALIDATION_ERROR', 'Query parameter "q" is required', requestId);
     }
     const results = await memoryService.search(q, {
@@ -63,7 +63,7 @@ router.get('/:id', async (req: Request, res: Response, next: NextFunction) => {
   try {
     const entry = await memoryService.getById(req.params.id);
     if (!entry) {
-      const requestId = (req as Record<string, unknown>).requestId as string;
+      const requestId = (req as any).requestId as string;
       throw notFound('NOT_FOUND', `Memory entry not found: ${req.params.id}`, requestId);
     }
     res.json(formatEntry(entry));
@@ -82,7 +82,7 @@ router.get('/:id/associations', async (req: Request, res: Response, next: NextFu
 /** POST /memory — store a new memory */
 router.post('/', async (req: Request, res: Response, next: NextFunction) => {
   try {
-    const requestId = (req as Record<string, unknown>).requestId as string;
+    const requestId = (req as any).requestId as string;
     const { scope, key, value, tags, missionId, source, importance, expiresAt } = req.body;
     if (!scope || !VALID_SCOPES.includes(scope)) {
       throw badRequest('VALIDATION_ERROR', `Scope must be one of: ${VALID_SCOPES.join(', ')}`, requestId);
@@ -113,7 +113,7 @@ router.post('/', async (req: Request, res: Response, next: NextFunction) => {
 /** PATCH /memory/:id — update a memory */
 router.patch('/:id', async (req: Request, res: Response, next: NextFunction) => {
   try {
-    const requestId = (req as Record<string, unknown>).requestId as string;
+    const requestId = (req as any).requestId as string;
     const { value, tags, importance, expiresAt } = req.body;
     if (importance !== undefined && (importance < 1 || importance > 5)) {
       throw badRequest('VALIDATION_ERROR', 'Importance must be between 1 and 5', requestId);
@@ -147,7 +147,7 @@ router.post('/purge-expired', async (_req: Request, res: Response, next: NextFun
 /** POST /memory/bulk-delete — delete multiple memories */
 router.post('/bulk-delete', async (req: Request, res: Response, next: NextFunction) => {
   try {
-    const requestId = (req as Record<string, unknown>).requestId as string;
+    const requestId = (req as any).requestId as string;
     const { ids } = req.body;
     if (!Array.isArray(ids) || ids.length === 0) {
       throw badRequest('VALIDATION_ERROR', 'ids must be a non-empty array', requestId);

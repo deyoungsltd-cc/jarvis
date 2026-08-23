@@ -16,7 +16,7 @@ const router = Router();
  * Returns the status of every plugin that has been tracked.
  */
 router.get('/', (_req: Request, res: Response) => {
-  const requestId = (_req as Record<string, unknown>).requestId as string || '-';
+  const requestId = (_req as any).requestId as string || '-';
   const plugins = pluginService.getPluginStatus();
 
   res.json({
@@ -34,7 +34,7 @@ router.get('/', (_req: Request, res: Response) => {
  * and re-scans the plugins directory from scratch.
  */
 router.post('/reload', async (_req: Request, res: Response) => {
-  const requestId = (_req as Record<string, unknown>).requestId as string || '-';
+  const requestId = (_req as any).requestId as string || '-';
 
   try {
     const registry = getPluginRegistry();
@@ -65,7 +65,7 @@ router.post('/reload', async (_req: Request, res: Response) => {
  * tracking map and the ToolRegistry.
  */
 router.post('/:name/unload', async (req: Request, res: Response) => {
-  const requestId = (req as Record<string, unknown>).requestId as string || '-';
+  const requestId = (req as any).requestId as string || '-';
   const { name } = req.params;
 
   try {

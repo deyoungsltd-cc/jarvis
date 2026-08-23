@@ -39,7 +39,7 @@ export class GroqVoiceProvider implements VoiceProvider {
     try {
       // Groq Whisper accepts a File/Blob. We create a File-like object from the buffer.
       // In Node/Bun, we can use the Blob constructor.
-      const blob = new Blob([audio], { type: 'audio/wav' });
+      const blob = new Blob([audio as unknown as BlobPart], { type: 'audio/wav' });
       const file = new File([blob], 'audio.wav', { type: 'audio/wav' });
 
       const response = await this.client.audio.transcriptions.create({

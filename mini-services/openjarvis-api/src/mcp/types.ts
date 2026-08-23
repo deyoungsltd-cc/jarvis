@@ -81,6 +81,7 @@ export interface McpServerConfig {
   args?: string[];
   url?: string;
   env?: Record<string, string>;
+  enabled?: boolean;
 }
 
 // ---- Transport Interface ----

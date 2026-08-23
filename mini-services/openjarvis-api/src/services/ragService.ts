@@ -106,7 +106,7 @@ async function extractText(buffer: Buffer, mimeType: string, filename: string): 
         const zip = await JSZip.loadAsync(buffer);
         const docXml = zip.file('word/document.xml');
         if (!docXml) return '[DOCX: No document.xml found]';
-        const xmlContent = await docXml.async('string');
+        const xmlContent = await (docXml as any).async('string');
         // Strip XML tags to get plain text
         const text = xmlContent
           .replace(/<[^>]+>/g, ' ')

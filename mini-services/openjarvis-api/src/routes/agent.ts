@@ -18,7 +18,7 @@ type ValidProvider = typeof validProviders[number];
 /** POST /agent/run — execute a mission through the agent loop */
 router.post('/run', async (req: Request, res: Response, next: NextFunction) => {
   try {
-    const requestId = (req as Record<string, unknown>).requestId as string;
+    const requestId = (req as any).requestId as string;
     const { missionId, provider = 'fallback' } = req.body;
 
     if (!missionId) {
@@ -83,7 +83,7 @@ router.post('/run', async (req: Request, res: Response, next: NextFunction) => {
  */
 router.post('/chat/stream', async (req: Request, res: Response, next: NextFunction) => {
   try {
-    const requestId = (req as Record<string, unknown>).requestId as string;
+    const requestId = (req as any).requestId as string;
     const { messages, provider = 'fallback', missionId } = req.body;
 
     if (!messages || !Array.isArray(messages) || messages.length === 0) {

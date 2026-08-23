@@ -10,16 +10,16 @@ import { badRequest, notFound } from '../utils/errors.js';
 const router = Router();
 
 /** GET /scheduler/tasks — list all scheduled tasks */
-router.get('/tasks', (_req, res: Response) => {
+router.get('/tasks', (_req: any, res: Response) => {
   const scheduler = getScheduler();
   const tasks = scheduler.listSchedules();
   res.json({ tasks, count: tasks.length });
 });
 
 /** POST /scheduler/tasks — create a new scheduled task */
-router.post('/tasks', async (req, res: Response, next: NextFunction) => {
+router.post('/tasks', async (req: any, res: Response, next: NextFunction) => {
   try {
-    const requestId = (req as Record<string, unknown>).requestId as string;
+    const requestId = (req as any).requestId as string;
     const { name, cronExpression, intervalMs, goal, provider } = req.body;
 
     if (!name || typeof name !== 'string') {
@@ -49,7 +49,7 @@ router.post('/tasks', async (req, res: Response, next: NextFunction) => {
 });
 
 /** DELETE /scheduler/tasks/:id — remove a task */
-router.delete('/tasks/:id', (req, res: Response) => {
+router.delete('/tasks/:id', (req: any, res: Response) => {
   const scheduler = getScheduler();
   const removed = scheduler.removeSchedule(req.params.id);
   if (!removed) {
@@ -60,7 +60,7 @@ router.delete('/tasks/:id', (req, res: Response) => {
 });
 
 /** POST /scheduler/tasks/:id/toggle — enable/disable */
-router.post('/tasks/:id/toggle', (req, res: Response) => {
+router.post('/tasks/:id/toggle', (req: any, res: Response) => {
   const scheduler = getScheduler();
   const task = scheduler.toggleSchedule(req.params.id);
   if (!task) {
@@ -71,7 +71,7 @@ router.post('/tasks/:id/toggle', (req, res: Response) => {
 });
 
 /** POST /scheduler/tasks/:id/run — trigger immediately */
-router.post('/tasks/:id/run', async (req, res: Response, next: NextFunction) => {
+router.post('/tasks/:id/run', async (req: any, res: Response, next: NextFunction) => {
   try {
     const scheduler = getScheduler();
     const task = await scheduler.runNow(req.params.id);

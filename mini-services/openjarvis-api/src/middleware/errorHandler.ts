@@ -7,7 +7,7 @@ import { logger } from '../utils/logger.js';
  * structured format: { error: { code, message, requestId } }
  */
 export function errorHandler(err: Error, req: Request, res: Response, _next: NextFunction) {
-  const requestId = (req as Record<string, unknown>).requestId as string || '-';
+  const requestId = (req as any).requestId as string || '-';
 
   if (err instanceof AppError) {
     logger.error(requestId, `Operational error: ${err.code} — ${err.message}`);

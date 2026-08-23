@@ -15,7 +15,7 @@ const router = Router();
 
 /** POST /auth/token — exchange API key for JWT pair */
 router.post('/token', async (req: Request, res: Response) => {
-  const requestId = (req as Record<string, unknown>).requestId as string || '-';
+  const requestId = (req as any).requestId as string || '-';
 
   // Accept API key from header or body
   const apiKey = (req.headers['x-api-key'] as string)
@@ -56,7 +56,7 @@ router.post('/token', async (req: Request, res: Response) => {
 
 /** POST /auth/refresh — refresh access token using a refresh token */
 router.post('/refresh', (req: Request, res: Response) => {
-  const requestId = (req as Record<string, unknown>).requestId as string || '-';
+  const requestId = (req as any).requestId as string || '-';
   const { refreshToken } = req.body;
 
   if (!refreshToken || typeof refreshToken !== 'string') {
@@ -82,7 +82,7 @@ router.post('/refresh', (req: Request, res: Response) => {
 
 /** POST /auth/revoke — revoke a token */
 router.post('/revoke', (req: Request, res: Response) => {
-  const requestId = (req as Record<string, unknown>).requestId as string || '-';
+  const requestId = (req as any).requestId as string || '-';
   const { token } = req.body;
 
   if (!token || typeof token !== 'string') {
@@ -97,11 +97,11 @@ router.post('/revoke', (req: Request, res: Response) => {
 
 /** GET /auth/me — inspect current token and return client info */
 router.get('/me', (req: Request, res: Response) => {
-  const requestId = (req as Record<string, unknown>).requestId as string || '-';
+  const requestId = (req as any).requestId as string || '-';
 
   // Try Bearer token from Authorization header
-  const authHeader = req.headers.authorization;
-  if (!authHeader || !authHeader.startsWith('Bearer ')) {
+  const authHeader = String(req.headers.authorization || '');
+  if (!authHeader.startsWith('Bearer ')) {
     return res.status(401).json(
       unauthorized('AUTH_REQUIRED', 'Bearer token required', requestId).toJSON(),
     );

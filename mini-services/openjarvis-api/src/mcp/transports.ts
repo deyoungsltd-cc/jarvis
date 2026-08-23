@@ -309,7 +309,7 @@ export class InProcessTransport implements McpTransportClient {
 
       case 'tools/call': {
         const name = request.params?.name as string;
-        const args = (request.params?.arguments || {}) as Record<string, unknown>;
+        const args = (request.params?.arguments || {}) as any;
         const handler = this.handlers.get(name);
         if (!handler) {
           return {

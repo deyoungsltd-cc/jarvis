@@ -31,7 +31,7 @@ router.get('/servers', async (_req: Request, res: Response, next: NextFunction) 
 /** POST /mcp/servers — register a new MCP server */
 router.post('/servers', async (req: Request, res: Response, next: NextFunction) => {
   try {
-    const requestId = (req as Record<string, unknown>).requestId as string;
+    const requestId = (req as any).requestId as string;
     const { name, description, transport, command, args, url, env } = req.body;
 
     if (!name || typeof name !== 'string') {

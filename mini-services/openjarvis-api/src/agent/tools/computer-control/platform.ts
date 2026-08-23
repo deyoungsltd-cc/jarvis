@@ -217,7 +217,7 @@ export function encodeRawRgbaToPng(
   for (let y = 0; y < height; y++) {
     raw[y * stride] = 0;
     const srcOff = y * width * 4;
-    rgba.copy(raw, y * stride + 1, srcOff, srcOff + width * 4);
+    Buffer.from(rgba).copy(raw, y * stride + 1, srcOff, srcOff + width * 4);
   }
   const compressed = deflateSync(raw);
   const idat = makeChunk('IDAT', compressed);
