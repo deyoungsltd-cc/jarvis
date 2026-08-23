@@ -1,0 +1,322 @@
+index.ts(37,17): error TS2339: Property 'json' does not exist on type '() => Express & Router'.
+index.ts(66,22): error TS2352: Conversion of type 'Request' to type 'Record<string, unknown>' may be a mistake because neither type sufficiently overlaps with the other. If this was intentional, convert the expression to 'unknown' first.
+index.ts(76,9): error TS2769: No overload matches this call.
+index.ts(80,12): error TS7009: 'new' expression, whose target lacks a construct signature, implicitly has an 'any' type.
+src/agent/streamingUtils.ts(21,7): error TS2339: Property 'flushHeaders' does not exist on type 'Response'.
+src/agent/streamingUtils.ts(30,9): error TS2339: Property 'write' does not exist on type 'Response'.
+src/agent/streamingUtils.ts(89,15): error TS2339: Property 'writableEnded' does not exist on type 'Response'.
+src/agent/streamingUtils.ts(89,36): error TS2339: Property 'destroyed' does not exist on type 'Response'.
+src/agent/streamingUtils.ts(113,14): error TS2339: Property 'writableEnded' does not exist on type 'Response'.
+src/agent/streamingUtils.ts(113,36): error TS2339: Property 'destroyed' does not exist on type 'Response'.
+src/agent/streamingUtils.ts(118,14): error TS2339: Property 'writableEnded' does not exist on type 'Response'.
+src/agent/streamingUtils.ts(118,36): error TS2339: Property 'destroyed' does not exist on type 'Response'.
+src/mcp/pluginManager.ts(50,31): error TS2339: Property 'mcpServer' does not exist on type 'PrismaClient<PrismaClientOptions, never, DefaultArgs>'.
+src/mcp/pluginManager.ts(55,29): error TS2339: Property 'mcpServer' does not exist on type 'PrismaClient<PrismaClientOptions, never, DefaultArgs>'.
+src/mcp/pluginManager.ts(73,30): error TS2339: Property 'mcpServer' does not exist on type 'PrismaClient<PrismaClientOptions, never, DefaultArgs>'.
+src/mcp/pluginManager.ts(74,24): error TS7006: Parameter 's' implicitly has an 'any' type.
+src/mcp/pluginManager.ts(78,29): error TS2339: Property 'mcpServer' does not exist on type 'PrismaClient<PrismaClientOptions, never, DefaultArgs>'.
+src/mcp/pluginManager.ts(84,29): error TS2339: Property 'mcpServer' does not exist on type 'PrismaClient<PrismaClientOptions, never, DefaultArgs>'.
+src/mcp/pluginManager.ts(100,30): error TS2339: Property 'mcpServer' does not exist on type 'PrismaClient<PrismaClientOptions, never, DefaultArgs>'.
+src/mcp/pluginManager.ts(108,14): error TS2339: Property 'mcpServer' does not exist on type 'PrismaClient<PrismaClientOptions, never, DefaultArgs>'.
+src/mcp/pluginManager.ts(117,29): error TS2339: Property 'mcpServer' does not exist on type 'PrismaClient<PrismaClientOptions, never, DefaultArgs>'.
+src/mcp/pluginManager.ts(127,14): error TS2339: Property 'mcpServer' does not exist on type 'PrismaClient<PrismaClientOptions, never, DefaultArgs>'.
+src/mcp/pluginManager.ts(150,32): error TS2339: Property 'mcpServer' does not exist on type 'PrismaClient<PrismaClientOptions, never, DefaultArgs>'.
+src/mcp/pluginManager.ts(162,16): error TS2339: Property 'mcpServer' does not exist on type 'PrismaClient<PrismaClientOptions, never, DefaultArgs>'.
+src/mcp/pluginManager.ts(183,16): error TS2339: Property 'mcpServer' does not exist on type 'PrismaClient<PrismaClientOptions, never, DefaultArgs>'.
+src/mcp/pluginManager.ts(201,28): error TS2339: Property 'mcpTool' does not exist on type 'PrismaClient<PrismaClientOptions, never, DefaultArgs>'.
+src/mcp/pluginManager.ts(202,22): error TS7006: Parameter 't' implicitly has an 'any' type.
+src/mcp/pluginManager.ts(222,30): error TS2339: Property 'mcpServer' does not exist on type 'PrismaClient<PrismaClientOptions, never, DefaultArgs>'.
+src/mcp/pluginManager.ts(277,10): error TS2339: Property 'mcpServer' does not exist on type 'PrismaClient<PrismaClientOptions, never, DefaultArgs>'.
+src/mcp/pluginManager.ts(278,10): error TS2339: Property 'mcpServer' does not exist on type 'PrismaClient<PrismaClientOptions, never, DefaultArgs>'.
+src/mcp/pluginManager.ts(279,10): error TS2339: Property 'mcpServer' does not exist on type 'PrismaClient<PrismaClientOptions, never, DefaultArgs>'.
+src/mcp/pluginManager.ts(280,10): error TS2339: Property 'mcpTool' does not exist on type 'PrismaClient<PrismaClientOptions, never, DefaultArgs>'.
+src/mcp/pluginManager.ts(321,14): error TS2339: Property 'mcpTool' does not exist on type 'PrismaClient<PrismaClientOptions, never, DefaultArgs>'.
+src/mcp/pluginManager.ts(326,16): error TS2339: Property 'mcpTool' does not exist on type 'PrismaClient<PrismaClientOptions, never, DefaultArgs>'.
+src/mcp/pluginManager.ts(374,7): error TS2322: Type 'Map<string, (args: Record<string, unknown>) => Promise<{ content: { type: string; text?: string | undefined; }[]; }>>' is not assignable to type 'Map<string, (args: Record<string, unknown>) => Promise<McpCallToolResult>>'.
+src/mcp/pluginManager.ts(386,14): error TS2339: Property 'mcpServer' does not exist on type 'PrismaClient<PrismaClientOptions, never, DefaultArgs>'.
+src/middleware/errorHandler.ts(10,22): error TS2352: Conversion of type 'Request' to type 'Record<string, unknown>' may be a mistake because neither type sufficiently overlaps with the other. If this was intentional, convert the expression to 'unknown' first.
+src/middleware/mobileAuth.ts(30,24): error TS2352: Conversion of type 'MobileAuthRequest' to type 'Record<string, unknown>' may be a mistake because neither type sufficiently overlaps with the other. If this was intentional, convert the expression to 'unknown' first.
+src/middleware/mobileAuth.ts(66,24): error TS2352: Conversion of type 'MobileAuthRequest' to type 'Record<string, unknown>' may be a mistake because neither type sufficiently overlaps with the other. If this was intentional, convert the expression to 'unknown' first.
+src/middleware/rateLimiter.ts(81,11): error TS2339: Property 'set' does not exist on type 'Response'.
+src/middleware/rateLimiter.ts(98,9): error TS2339: Property 'set' does not exist on type 'Response'.
+src/middleware/rateLimiter.ts(99,9): error TS2339: Property 'set' does not exist on type 'Response'.
+src/middleware/rateLimiter.ts(100,9): error TS2339: Property 'set' does not exist on type 'Response'.
+src/middleware/rateLimiter.ts(112,14): error TS2339: Property 'socket' does not exist on type 'Request'.
+src/middleware/requestLogger.ts(10,4): error TS2352: Conversion of type 'Request' to type 'Record<string, unknown>' may be a mistake because neither type sufficiently overlaps with the other. If this was intentional, convert the expression to 'unknown' first.
+src/middleware/requestLogger.ts(16,7): error TS2339: Property 'on' does not exist on type 'Response'.
+src/middleware/requestLogger.ts(18,23): error TS2339: Property 'statusCode' does not exist on type 'Response'.
+src/middleware/requestLogger.ts(18,57): error TS2339: Property 'statusCode' does not exist on type 'Response'.
+src/middleware/requestLogger.ts(19,73): error TS2339: Property 'statusCode' does not exist on type 'Response'.
+src/routes/agent.ts(11,16): error TS2693: 'Router' only refers to a type, but is being used as a value here.
+src/routes/agent.ts(21,24): error TS2352: Conversion of type 'Request' to type 'Record<string, unknown>' may be a mistake because neither type sufficiently overlaps with the other. If this was intentional, convert the expression to 'unknown' first.
+src/routes/agent.ts(86,24): error TS2352: Conversion of type 'Request' to type 'Record<string, unknown>' may be a mistake because neither type sufficiently overlaps with the other. If this was intentional, convert the expression to 'unknown' first.
+src/routes/agent.ts(117,19): error TS2339: Property 'writableEnded' does not exist on type 'Response'.
+src/routes/agent.ts(117,40): error TS2339: Property 'destroyed' does not exist on type 'Response'.
+src/routes/agent.ts(118,15): error TS2339: Property 'write' does not exist on type 'Response'.
+src/routes/agent.ts(123,11): error TS2339: Property 'write' does not exist on type 'Response'.
+src/routes/agent.ts(126,16): error TS2339: Property 'writableEnded' does not exist on type 'Response'.
+src/routes/agent.ts(126,38): error TS2339: Property 'destroyed' does not exist on type 'Response'.
+src/routes/agent.ts(127,13): error TS2339: Property 'write' does not exist on type 'Response'.
+src/routes/approval.ts(10,16): error TS2693: 'Router' only refers to a type, but is being used as a value here.
+src/routes/approval.ts(19,24): error TS2352: Conversion of type 'Request' to type 'Record<string, unknown>' may be a mistake because neither type sufficiently overlaps with the other. If this was intentional, convert the expression to 'unknown' first.
+src/routes/approval.ts(42,24): error TS2352: Conversion of type 'Request' to type 'Record<string, unknown>' may be a mistake because neither type sufficiently overlaps with the other. If this was intentional, convert the expression to 'unknown' first.
+src/routes/approval.ts(51,24): error TS2352: Conversion of type 'Request' to type 'Record<string, unknown>' may be a mistake because neither type sufficiently overlaps with the other. If this was intentional, convert the expression to 'unknown' first.
+src/routes/approval.ts(60,24): error TS2352: Conversion of type 'Request' to type 'Record<string, unknown>' may be a mistake because neither type sufficiently overlaps with the other. If this was intentional, convert the expression to 'unknown' first.
+src/routes/approval.ts(74,24): error TS2352: Conversion of type 'Request' to type 'Record<string, unknown>' may be a mistake because neither type sufficiently overlaps with the other. If this was intentional, convert the expression to 'unknown' first.
+src/routes/approval.ts(84,24): error TS2352: Conversion of type 'Request' to type 'Record<string, unknown>' may be a mistake because neither type sufficiently overlaps with the other. If this was intentional, convert the expression to 'unknown' first.
+src/routes/approval.ts(94,24): error TS2352: Conversion of type 'Request' to type 'Record<string, unknown>' may be a mistake because neither type sufficiently overlaps with the other. If this was intentional, convert the expression to 'unknown' first.
+src/routes/approval.ts(115,24): error TS2352: Conversion of type 'Request' to type 'Record<string, unknown>' may be a mistake because neither type sufficiently overlaps with the other. If this was intentional, convert the expression to 'unknown' first.
+src/routes/approval.ts(137,24): error TS2352: Conversion of type 'Request' to type 'Record<string, unknown>' may be a mistake because neither type sufficiently overlaps with the other. If this was intentional, convert the expression to 'unknown' first.
+src/routes/approval.ts(146,24): error TS2352: Conversion of type 'Request' to type 'Record<string, unknown>' may be a mistake because neither type sufficiently overlaps with the other. If this was intentional, convert the expression to 'unknown' first.
+src/routes/approval.ts(155,24): error TS2352: Conversion of type 'Request' to type 'Record<string, unknown>' may be a mistake because neither type sufficiently overlaps with the other. If this was intentional, convert the expression to 'unknown' first.
+src/routes/auth.ts(14,16): error TS2693: 'Router' only refers to a type, but is being used as a value here.
+src/routes/auth.ts(18,22): error TS2352: Conversion of type 'Request' to type 'Record<string, unknown>' may be a mistake because neither type sufficiently overlaps with the other. If this was intentional, convert the expression to 'unknown' first.
+src/routes/auth.ts(59,22): error TS2352: Conversion of type 'Request' to type 'Record<string, unknown>' may be a mistake because neither type sufficiently overlaps with the other. If this was intentional, convert the expression to 'unknown' first.
+src/routes/auth.ts(85,22): error TS2352: Conversion of type 'Request' to type 'Record<string, unknown>' may be a mistake because neither type sufficiently overlaps with the other. If this was intentional, convert the expression to 'unknown' first.
+src/routes/auth.ts(100,22): error TS2352: Conversion of type 'Request' to type 'Record<string, unknown>' may be a mistake because neither type sufficiently overlaps with the other. If this was intentional, convert the expression to 'unknown' first.
+src/routes/auth.ts(104,34): error TS2339: Property 'startsWith' does not exist on type 'string | string[]'.
+src/routes/auth.ts(111,31): error TS2345: Argument of type 'string | string[]' is not assignable to parameter of type 'string'.
+src/routes/capabilities.ts(11,16): error TS2693: 'Router' only refers to a type, but is being used as a value here.
+src/routes/capabilities.ts(20,24): error TS2352: Conversion of type 'Request' to type 'Record<string, unknown>' may be a mistake because neither type sufficiently overlaps with the other. If this was intentional, convert the expression to 'unknown' first.
+src/routes/capabilities.ts(35,24): error TS2352: Conversion of type 'Request' to type 'Record<string, unknown>' may be a mistake because neither type sufficiently overlaps with the other. If this was intentional, convert the expression to 'unknown' first.
+src/routes/capabilities.ts(44,24): error TS2352: Conversion of type 'Request' to type 'Record<string, unknown>' may be a mistake because neither type sufficiently overlaps with the other. If this was intentional, convert the expression to 'unknown' first.
+src/routes/capabilities.ts(67,24): error TS2352: Conversion of type 'Request' to type 'Record<string, unknown>' may be a mistake because neither type sufficiently overlaps with the other. If this was intentional, convert the expression to 'unknown' first.
+src/routes/capabilities.ts(76,24): error TS2352: Conversion of type 'Request' to type 'Record<string, unknown>' may be a mistake because neither type sufficiently overlaps with the other. If this was intentional, convert the expression to 'unknown' first.
+src/routes/capabilities.ts(90,24): error TS2352: Conversion of type 'Request' to type 'Record<string, unknown>' may be a mistake because neither type sufficiently overlaps with the other. If this was intentional, convert the expression to 'unknown' first.
+src/routes/capabilities.ts(99,24): error TS2352: Conversion of type 'Request' to type 'Record<string, unknown>' may be a mistake because neither type sufficiently overlaps with the other. If this was intentional, convert the expression to 'unknown' first.
+src/routes/documents.ts(11,16): error TS2693: 'Router' only refers to a type, but is being used as a value here.
+src/routes/documents.ts(77,67): error TS2552: Cannot find name 'requestId'. Did you mean 'Request'?
+src/routes/documents.ts(107,67): error TS2552: Cannot find name 'requestId'. Did you mean 'Request'?
+src/routes/health.ts(4,16): error TS2693: 'Router' only refers to a type, but is being used as a value here.
+src/routes/health.ts(7,22): error TS2352: Conversion of type 'Request' to type 'Record<string, unknown>' may be a mistake because neither type sufficiently overlaps with the other. If this was intentional, convert the expression to 'unknown' first.
+src/routes/localLlm.ts(4,16): error TS2693: 'Router' only refers to a type, but is being used as a value here.
+src/routes/mcp.ts(19,16): error TS2693: 'Router' only refers to a type, but is being used as a value here.
+src/routes/mcp.ts(34,24): error TS2352: Conversion of type 'Request' to type 'Record<string, unknown>' may be a mistake because neither type sufficiently overlaps with the other. If this was intentional, convert the expression to 'unknown' first.
+src/routes/mcp.ts(78,21): error TS2554: Expected 1 arguments, but got 0.
+src/routes/memory.ts(10,16): error TS2693: 'Router' only refers to a type, but is being used as a value here.
+src/routes/memory.ts(19,28): error TS2352: Conversion of type 'Request' to type 'Record<string, unknown>' may be a mistake because neither type sufficiently overlaps with the other. If this was intentional, convert the expression to 'unknown' first.
+src/routes/memory.ts(35,26): error TS2352: Conversion of type 'Request' to type 'Record<string, unknown>' may be a mistake because neither type sufficiently overlaps with the other. If this was intentional, convert the expression to 'unknown' first.
+src/routes/memory.ts(66,26): error TS2352: Conversion of type 'Request' to type 'Record<string, unknown>' may be a mistake because neither type sufficiently overlaps with the other. If this was intentional, convert the expression to 'unknown' first.
+src/routes/memory.ts(85,24): error TS2352: Conversion of type 'Request' to type 'Record<string, unknown>' may be a mistake because neither type sufficiently overlaps with the other. If this was intentional, convert the expression to 'unknown' first.
+src/routes/memory.ts(116,24): error TS2352: Conversion of type 'Request' to type 'Record<string, unknown>' may be a mistake because neither type sufficiently overlaps with the other. If this was intentional, convert the expression to 'unknown' first.
+src/routes/memory.ts(150,24): error TS2352: Conversion of type 'Request' to type 'Record<string, unknown>' may be a mistake because neither type sufficiently overlaps with the other. If this was intentional, convert the expression to 'unknown' first.
+src/routes/memory.ts(164,21): error TS2554: Expected 1 arguments, but got 0.
+src/routes/missions.ts(6,16): error TS2693: 'Router' only refers to a type, but is being used as a value here.
+src/routes/missions.ts(11,24): error TS2352: Conversion of type 'Request' to type 'Record<string, unknown>' may be a mistake because neither type sufficiently overlaps with the other. If this was intentional, convert the expression to 'unknown' first.
+src/routes/missions.ts(14,33): error TS7006: Parameter 'm' implicitly has an 'any' type.
+src/routes/missions.ts(17,28): error TS7006: Parameter 'e' implicitly has an 'any' type.
+src/routes/missions.ts(29,24): error TS2352: Conversion of type 'Request' to type 'Record<string, unknown>' may be a mistake because neither type sufficiently overlaps with the other. If this was intentional, convert the expression to 'unknown' first.
+src/routes/missions.ts(34,34): error TS7006: Parameter 'e' implicitly has an 'any' type.
+src/routes/missions.ts(45,24): error TS2352: Conversion of type 'Request' to type 'Record<string, unknown>' may be a mistake because neither type sufficiently overlaps with the other. If this was intentional, convert the expression to 'unknown' first.
+src/routes/missions.ts(50,49): error TS2345: Argument of type 'Record<string, any>' is not assignable to parameter of type 'CreateMissionInput'.
+src/routes/missions.ts(58,24): error TS2352: Conversion of type 'Request' to type 'Record<string, unknown>' may be a mistake because neither type sufficiently overlaps with the other. If this was intentional, convert the expression to 'unknown' first.
+src/routes/missions.ts(70,24): error TS2352: Conversion of type 'Request' to type 'Record<string, unknown>' may be a mistake because neither type sufficiently overlaps with the other. If this was intentional, convert the expression to 'unknown' first.
+src/routes/missions.ts(72,21): error TS2554: Expected 1 arguments, but got 0.
+src/routes/missions.ts(79,24): error TS2352: Conversion of type 'Request' to type 'Record<string, unknown>' may be a mistake because neither type sufficiently overlaps with the other. If this was intentional, convert the expression to 'unknown' first.
+src/routes/missions.ts(81,25): error TS7006: Parameter 'e' implicitly has an 'any' type.
+src/routes/missions.ts(91,24): error TS2352: Conversion of type 'Request' to type 'Record<string, unknown>' may be a mistake because neither type sufficiently overlaps with the other. If this was intentional, convert the expression to 'unknown' first.
+src/routes/mobile.ts(19,16): error TS2693: 'Router' only refers to a type, but is being used as a value here.
+src/routes/mobile.ts(28,24): error TS2352: Conversion of type 'MobileAuthRequest' to type 'Record<string, unknown>' may be a mistake because neither type sufficiently overlaps with the other. If this was intentional, convert the expression to 'unknown' first.
+src/routes/mobile.ts(62,10): error TS2339: Property 'mission' does not exist on type 'PrismaClient<PrismaClientOptions, never, DefaultArgs>'.
+src/routes/mobile.ts(76,10): error TS2339: Property 'mission' does not exist on type 'PrismaClient<PrismaClientOptions, never, DefaultArgs>'.
+src/routes/mobile.ts(86,24): error TS2352: Conversion of type 'MobileAuthRequest' to type 'Record<string, unknown>' may be a mistake because neither type sufficiently overlaps with the other. If this was intentional, convert the expression to 'unknown' first.
+src/routes/mobile.ts(89,35): error TS2339: Property 'missionEvent' does not exist on type 'PrismaClient<PrismaClientOptions, never, DefaultArgs>'.
+src/routes/mobile.ts(106,36): error TS7006: Parameter 'e' implicitly has an 'any' type.
+src/routes/mobile.ts(114,24): error TS2352: Conversion of type 'MobileAuthRequest' to type 'Record<string, unknown>' may be a mistake because neither type sufficiently overlaps with the other. If this was intentional, convert the expression to 'unknown' first.
+src/routes/mobile.ts(137,10): error TS2339: Property 'missionEvent' does not exist on type 'PrismaClient<PrismaClientOptions, never, DefaultArgs>'.
+src/routes/mobile.ts(143,10): error TS2339: Property 'missionEvent' does not exist on type 'PrismaClient<PrismaClientOptions, never, DefaultArgs>'.
+src/routes/mobile.ts(146,31): error TS7006: Parameter 'e' implicitly has an 'any' type.
+src/routes/mobile.ts(160,24): error TS2352: Conversion of type 'MobileAuthRequest' to type 'Record<string, unknown>' may be a mistake because neither type sufficiently overlaps with the other. If this was intentional, convert the expression to 'unknown' first.
+src/routes/mobile.ts(168,9): error TS2339: Property 'flushHeaders' does not exist on type 'Response'.
+src/routes/mobile.ts(171,29): error TS2339: Property 'missionEvent' does not exist on type 'PrismaClient<PrismaClientOptions, never, DefaultArgs>'.
+src/routes/mobile.ts(178,11): error TS2339: Property 'write' does not exist on type 'Response'.
+src/routes/mobile.ts(183,11): error TS2339: Property 'write' does not exist on type 'Response'.
+src/routes/mobile.ts(192,36): error TS2339: Property 'missionEvent' does not exist on type 'PrismaClient<PrismaClientOptions, never, DefaultArgs>'.
+src/routes/mobile.ts(197,40): error TS7006: Parameter 'e' implicitly has an 'any' type.
+src/routes/mobile.ts(201,15): error TS2339: Property 'write' does not exist on type 'Response'.
+src/routes/mobile.ts(208,45): error TS2339: Property 'mission' does not exist on type 'PrismaClient<PrismaClientOptions, never, DefaultArgs>'.
+src/routes/mobile.ts(209,17): error TS2339: Property 'write' does not exist on type 'Response'.
+src/routes/mobile.ts(228,16): error TS2339: Property 'writableEnded' does not exist on type 'Response'.
+src/routes/mobile.ts(229,13): error TS2339: Property 'write' does not exist on type 'Response'.
+src/routes/mobile.ts(248,10): error TS2339: Property 'memoryEntry' does not exist on type 'PrismaClient<PrismaClientOptions, never, DefaultArgs>'.
+src/routes/mobile.ts(254,10): error TS2339: Property 'memoryEntry' does not exist on type 'PrismaClient<PrismaClientOptions, never, DefaultArgs>'.
+src/routes/mobile.ts(257,32): error TS7006: Parameter 'e' implicitly has an 'any' type.
+src/routes/mobile.ts(277,26): error TS2352: Conversion of type 'MobileAuthRequest' to type 'Record<string, unknown>' may be a mistake because neither type sufficiently overlaps with the other. If this was intentional, convert the expression to 'unknown' first.
+src/routes/mobile.ts(293,28): error TS2339: Property 'tool' does not exist on type 'PrismaClient<PrismaClientOptions, never, DefaultArgs>'.
+src/routes/mobile.ts(307,24): error TS2352: Conversion of type 'MobileAuthRequest' to type 'Record<string, unknown>' may be a mistake because neither type sufficiently overlaps with the other. If this was intentional, convert the expression to 'unknown' first.
+src/routes/mobileAdmin.ts(11,16): error TS2693: 'Router' only refers to a type, but is being used as a value here.
+src/routes/mobileAdmin.ts(18,26): error TS7006: Parameter 'c' implicitly has an 'any' type.
+src/routes/mobileAdmin.ts(57,21): error TS2554: Expected 1 arguments, but got 0.
+src/routes/permissions.ts(5,16): error TS2693: 'Router' only refers to a type, but is being used as a value here.
+src/routes/permissions.ts(10,24): error TS2352: Conversion of type 'Request' to type 'Record<string, unknown>' may be a mistake because neither type sufficiently overlaps with the other. If this was intentional, convert the expression to 'unknown' first.
+src/routes/permissions.ts(47,24): error TS2352: Conversion of type 'Request' to type 'Record<string, unknown>' may be a mistake because neither type sufficiently overlaps with the other. If this was intentional, convert the expression to 'unknown' first.
+src/routes/permissions.ts(67,24): error TS2352: Conversion of type 'Request' to type 'Record<string, unknown>' may be a mistake because neither type sufficiently overlaps with the other. If this was intentional, convert the expression to 'unknown' first.
+src/routes/plugins.ts(12,16): error TS2693: 'Router' only refers to a type, but is being used as a value here.
+src/routes/plugins.ts(19,22): error TS2352: Conversion of type 'Request' to type 'Record<string, unknown>' may be a mistake because neither type sufficiently overlaps with the other. If this was intentional, convert the expression to 'unknown' first.
+src/routes/plugins.ts(37,22): error TS2352: Conversion of type 'Request' to type 'Record<string, unknown>' may be a mistake because neither type sufficiently overlaps with the other. If this was intentional, convert the expression to 'unknown' first.
+src/routes/plugins.ts(68,22): error TS2352: Conversion of type 'Request' to type 'Record<string, unknown>' may be a mistake because neither type sufficiently overlaps with the other. If this was intentional, convert the expression to 'unknown' first.
+src/routes/scheduler.ts(10,16): error TS2693: 'Router' only refers to a type, but is being used as a value here.
+src/routes/services.ts(11,16): error TS2693: 'Router' only refers to a type, but is being used as a value here.
+src/routes/tools.ts(5,16): error TS2693: 'Router' only refers to a type, but is being used as a value here.
+src/routes/tools.ts(11,24): error TS7006: Parameter 't' implicitly has an 'any' type.
+src/routes/tools.ts(22,24): error TS2352: Conversion of type 'Request' to type 'Record<string, unknown>' may be a mistake because neither type sufficiently overlaps with the other. If this was intentional, convert the expression to 'unknown' first.
+src/routes/tools.ts(35,24): error TS2352: Conversion of type 'Request' to type 'Record<string, unknown>' may be a mistake because neither type sufficiently overlaps with the other. If this was intentional, convert the expression to 'unknown' first.
+src/routes/tools.ts(43,43): error TS2345: Argument of type 'Record<string, any>' is not assignable to parameter of type 'CreateToolInput'.
+src/routes/tools.ts(55,24): error TS2352: Conversion of type 'Request' to type 'Record<string, unknown>' may be a mistake because neither type sufficiently overlaps with the other. If this was intentional, convert the expression to 'unknown' first.
+src/routes/tools.ts(68,24): error TS2352: Conversion of type 'Request' to type 'Record<string, unknown>' may be a mistake because neither type sufficiently overlaps with the other. If this was intentional, convert the expression to 'unknown' first.
+src/routes/tools.ts(70,21): error TS2554: Expected 1 arguments, but got 0.
+src/routes/vault.ts(8,16): error TS2693: 'Router' only refers to a type, but is being used as a value here.
+src/routes/vault.ts(12,22): error TS2352: Conversion of type 'Request' to type 'Record<string, unknown>' may be a mistake because neither type sufficiently overlaps with the other. If this was intentional, convert the expression to 'unknown' first.
+src/routes/vault.ts(32,22): error TS2352: Conversion of type 'Request' to type 'Record<string, unknown>' may be a mistake because neither type sufficiently overlaps with the other. If this was intentional, convert the expression to 'unknown' first.
+src/routes/vault.ts(44,22): error TS2352: Conversion of type 'Request' to type 'Record<string, unknown>' may be a mistake because neither type sufficiently overlaps with the other. If this was intentional, convert the expression to 'unknown' first.
+src/routes/vault.ts(64,22): error TS2352: Conversion of type 'Request' to type 'Record<string, unknown>' may be a mistake because neither type sufficiently overlaps with the other. If this was intentional, convert the expression to 'unknown' first.
+src/routes/voice.ts(34,16): error TS2693: 'Router' only refers to a type, but is being used as a value here.
+src/routes/webhooks.ts(11,16): error TS2693: 'Router' only refers to a type, but is being used as a value here.
+src/services/approvalService.ts(57,30): error TS2339: Property 'approvalRequest' does not exist on type 'PrismaClient<PrismaClientOptions, never, DefaultArgs>'.
+src/services/approvalService.ts(79,30): error TS2339: Property 'approvalRequest' does not exist on type 'PrismaClient<PrismaClientOptions, never, DefaultArgs>'.
+src/services/approvalService.ts(96,31): error TS2339: Property 'approvalRequest' does not exist on type 'PrismaClient<PrismaClientOptions, never, DefaultArgs>'.
+src/services/approvalService.ts(103,28): error TS2339: Property 'approvalRequest' does not exist on type 'PrismaClient<PrismaClientOptions, never, DefaultArgs>'.
+src/services/approvalService.ts(106,27): error TS7006: Parameter 'r' implicitly has an 'any' type.
+src/services/approvalService.ts(114,31): error TS2339: Property 'approvalRequest' does not exist on type 'PrismaClient<PrismaClientOptions, never, DefaultArgs>'.
+src/services/approvalService.ts(118,25): error TS7006: Parameter 'r' implicitly has an 'any' type.
+src/services/approvalService.ts(138,30): error TS2339: Property 'approvalRequest' does not exist on type 'PrismaClient<PrismaClientOptions, never, DefaultArgs>'.
+src/services/approvalService.ts(146,16): error TS2339: Property 'approvalRequest' does not exist on type 'PrismaClient<PrismaClientOptions, never, DefaultArgs>'.
+src/services/approvalService.ts(150,30): error TS2339: Property 'approvalRequest' does not exist on type 'PrismaClient<PrismaClientOptions, never, DefaultArgs>'.
+src/services/approvalService.ts(194,30): error TS2339: Property 'approvalRequest' does not exist on type 'PrismaClient<PrismaClientOptions, never, DefaultArgs>'.
+src/services/approvalService.ts(200,30): error TS2339: Property 'approvalRequest' does not exist on type 'PrismaClient<PrismaClientOptions, never, DefaultArgs>'.
+src/services/approvalService.ts(217,30): error TS2339: Property 'approvalRequest' does not exist on type 'PrismaClient<PrismaClientOptions, never, DefaultArgs>'.
+src/services/approvalService.ts(223,30): error TS2339: Property 'approvalRequest' does not exist on type 'PrismaClient<PrismaClientOptions, never, DefaultArgs>'.
+src/services/approvalService.ts(239,29): error TS2339: Property 'approvalRequest' does not exist on type 'PrismaClient<PrismaClientOptions, never, DefaultArgs>'.
+src/services/approvalService.ts(250,32): error TS2339: Property 'approvalRequest' does not exist on type 'PrismaClient<PrismaClientOptions, never, DefaultArgs>'.
+src/services/approvalService.ts(254,18): error TS2339: Property 'approvalRequest' does not exist on type 'PrismaClient<PrismaClientOptions, never, DefaultArgs>'.
+src/services/approvalService.ts(271,10): error TS2339: Property 'approvalRequest' does not exist on type 'PrismaClient<PrismaClientOptions, never, DefaultArgs>'.
+src/services/approvalService.ts(272,10): error TS2339: Property 'approvalRequest' does not exist on type 'PrismaClient<PrismaClientOptions, never, DefaultArgs>'.
+src/services/approvalService.ts(273,10): error TS2339: Property 'approvalRequest' does not exist on type 'PrismaClient<PrismaClientOptions, never, DefaultArgs>'.
+src/services/approvalService.ts(274,10): error TS2339: Property 'approvalRequest' does not exist on type 'PrismaClient<PrismaClientOptions, never, DefaultArgs>'.
+src/services/approvalService.ts(275,10): error TS2339: Property 'approvalRequest' does not exist on type 'PrismaClient<PrismaClientOptions, never, DefaultArgs>'.
+src/services/approvalService.ts(276,10): error TS2339: Property 'approvalRequest' does not exist on type 'PrismaClient<PrismaClientOptions, never, DefaultArgs>'.
+src/services/approvalService.ts(291,28): error TS2339: Property 'approvalRule' does not exist on type 'PrismaClient<PrismaClientOptions, never, DefaultArgs>'.
+src/services/approvalService.ts(329,31): error TS2339: Property 'approvalRule' does not exist on type 'PrismaClient<PrismaClientOptions, never, DefaultArgs>'.
+src/services/approvalService.ts(332,27): error TS2339: Property 'approvalRule' does not exist on type 'PrismaClient<PrismaClientOptions, never, DefaultArgs>'.
+src/services/approvalService.ts(350,28): error TS2339: Property 'approvalRule' does not exist on type 'PrismaClient<PrismaClientOptions, never, DefaultArgs>'.
+src/services/approvalService.ts(351,22): error TS7006: Parameter 'r' implicitly has an 'any' type.
+src/services/approvalService.ts(355,27): error TS2339: Property 'approvalRule' does not exist on type 'PrismaClient<PrismaClientOptions, never, DefaultArgs>'.
+src/services/approvalService.ts(361,27): error TS2339: Property 'approvalRule' does not exist on type 'PrismaClient<PrismaClientOptions, never, DefaultArgs>'.
+src/services/approvalService.ts(373,30): error TS2339: Property 'approvalRule' does not exist on type 'PrismaClient<PrismaClientOptions, never, DefaultArgs>'.
+src/services/approvalService.ts(379,27): error TS2339: Property 'approvalRule' does not exist on type 'PrismaClient<PrismaClientOptions, never, DefaultArgs>'.
+src/services/approvalService.ts(381,14): error TS2339: Property 'approvalRule' does not exist on type 'PrismaClient<PrismaClientOptions, never, DefaultArgs>'.
+src/services/capabilityRegistry.ts(78,29): error TS2339: Property 'capabilityGrant' does not exist on type 'PrismaClient<PrismaClientOptions, never, DefaultArgs>'.
+src/services/capabilityRegistry.ts(96,9): error TS7006: Parameter 'g' implicitly has an 'any' type.
+src/services/capabilityRegistry.ts(109,7): error TS7006: Parameter 'g' implicitly has an 'any' type.
+src/services/capabilityRegistry.ts(135,28): error TS2339: Property 'capabilityGrant' does not exist on type 'PrismaClient<PrismaClientOptions, never, DefaultArgs>'.
+src/services/capabilityRegistry.ts(173,29): error TS2339: Property 'capabilityGrant' does not exist on type 'PrismaClient<PrismaClientOptions, never, DefaultArgs>'.
+src/services/capabilityRegistry.ts(180,28): error TS2339: Property 'capabilityGrant' does not exist on type 'PrismaClient<PrismaClientOptions, never, DefaultArgs>'.
+src/services/capabilityRegistry.ts(183,25): error TS7006: Parameter 'g' implicitly has an 'any' type.
+src/services/capabilityRegistry.ts(191,28): error TS2339: Property 'capabilityGrant' does not exist on type 'PrismaClient<PrismaClientOptions, never, DefaultArgs>'.
+src/services/capabilityRegistry.ts(197,28): error TS2339: Property 'capabilityGrant' does not exist on type 'PrismaClient<PrismaClientOptions, never, DefaultArgs>'.
+src/services/capabilityRegistry.ts(207,30): error TS2339: Property 'capabilityGrant' does not exist on type 'PrismaClient<PrismaClientOptions, never, DefaultArgs>'.
+src/services/capabilityRegistry.ts(226,28): error TS2339: Property 'capabilityGrant' does not exist on type 'PrismaClient<PrismaClientOptions, never, DefaultArgs>'.
+src/services/capabilityRegistry.ts(229,14): error TS2339: Property 'capabilityGrant' does not exist on type 'PrismaClient<PrismaClientOptions, never, DefaultArgs>'.
+src/services/capabilityRegistry.ts(248,29): error TS2339: Property 'capabilityGrant' does not exist on type 'PrismaClient<PrismaClientOptions, never, DefaultArgs>'.
+src/services/capabilityRegistry.ts(266,29): error TS2339: Property 'capabilityGrant' does not exist on type 'PrismaClient<PrismaClientOptions, never, DefaultArgs>'.
+src/services/memoryService.ts(85,15): error TS2339: Property 'memoryEntry' does not exist on type 'PrismaClient<PrismaClientOptions, never, DefaultArgs>'.
+src/services/memoryService.ts(101,15): error TS2339: Property 'memoryEntry' does not exist on type 'PrismaClient<PrismaClientOptions, never, DefaultArgs>'.
+src/services/memoryService.ts(106,15): error TS2339: Property 'memoryEntry' does not exist on type 'PrismaClient<PrismaClientOptions, never, DefaultArgs>'.
+src/services/memoryService.ts(111,15): error TS2339: Property 'memoryEntry' does not exist on type 'PrismaClient<PrismaClientOptions, never, DefaultArgs>'.
+src/services/memoryService.ts(119,15): error TS2339: Property 'memoryEntry' does not exist on type 'PrismaClient<PrismaClientOptions, never, DefaultArgs>'.
+src/services/memoryService.ts(126,15): error TS2339: Property 'memoryEntry' does not exist on type 'PrismaClient<PrismaClientOptions, never, DefaultArgs>'.
+src/services/memoryService.ts(140,15): error TS2339: Property 'memoryEntry' does not exist on type 'PrismaClient<PrismaClientOptions, never, DefaultArgs>'.
+src/services/memoryService.ts(148,15): error TS2339: Property 'memoryEntry' does not exist on type 'PrismaClient<PrismaClientOptions, never, DefaultArgs>'.
+src/services/memoryService.ts(153,29): error TS2339: Property 'memoryEntry' does not exist on type 'PrismaClient<PrismaClientOptions, never, DefaultArgs>'.
+src/services/memoryService.ts(161,29): error TS2339: Property 'memoryEntry' does not exist on type 'PrismaClient<PrismaClientOptions, never, DefaultArgs>'.
+src/services/memoryService.ts(170,14): error TS2339: Property 'memoryEntry' does not exist on type 'PrismaClient<PrismaClientOptions, never, DefaultArgs>'.
+src/services/memoryService.ts(202,30): error TS2339: Property 'memoryEntry' does not exist on type 'PrismaClient<PrismaClientOptions, never, DefaultArgs>'.
+src/services/memoryService.ts(209,42): error TS7006: Parameter 'e' implicitly has an 'any' type.
+src/services/memoryService.ts(323,30): error TS2339: Property 'memoryEntry' does not exist on type 'PrismaClient<PrismaClientOptions, never, DefaultArgs>'.
+src/services/memoryService.ts(346,20): error TS2339: Property 'memoryAssociation' does not exist on type 'PrismaClient<PrismaClientOptions, never, DefaultArgs>'.
+src/services/memoryService.ts(355,20): error TS2339: Property 'memoryEntry' does not exist on type 'PrismaClient<PrismaClientOptions, never, DefaultArgs>'.
+src/services/memoryService.ts(371,29): error TS2339: Property 'memoryEntry' does not exist on type 'PrismaClient<PrismaClientOptions, never, DefaultArgs>'.
+src/services/memoryService.ts(381,33): error TS2339: Property 'memoryEntry' does not exist on type 'PrismaClient<PrismaClientOptions, never, DefaultArgs>'.
+src/services/memoryService.ts(415,15): error TS2339: Property 'memoryAssociation' does not exist on type 'PrismaClient<PrismaClientOptions, never, DefaultArgs>'.
+src/services/memoryService.ts(449,35): error TS2339: Property 'memoryAssociation' does not exist on type 'PrismaClient<PrismaClientOptions, never, DefaultArgs>'.
+src/services/memoryService.ts(457,29): error TS7006: Parameter 'a' implicitly has an 'any' type.
+src/services/missionEventService.ts(14,30): error TS2339: Property 'mission' does not exist on type 'PrismaClient<PrismaClientOptions, never, DefaultArgs>'.
+src/services/missionEventService.ts(19,28): error TS2339: Property 'missionEvent' does not exist on type 'PrismaClient<PrismaClientOptions, never, DefaultArgs>'.
+src/services/missionEventService.ts(35,30): error TS2339: Property 'mission' does not exist on type 'PrismaClient<PrismaClientOptions, never, DefaultArgs>'.
+src/services/missionEventService.ts(40,15): error TS2339: Property 'missionEvent' does not exist on type 'PrismaClient<PrismaClientOptions, never, DefaultArgs>'.
+src/services/missionService.ts(30,15): error TS2339: Property 'mission' does not exist on type 'PrismaClient<PrismaClientOptions, never, DefaultArgs>'.
+src/services/missionService.ts(44,30): error TS2339: Property 'mission' does not exist on type 'PrismaClient<PrismaClientOptions, never, DefaultArgs>'.
+src/services/missionService.ts(56,15): error TS2339: Property 'mission' does not exist on type 'PrismaClient<PrismaClientOptions, never, DefaultArgs>'.
+src/services/missionService.ts(76,15): error TS2339: Property 'mission' does not exist on type 'PrismaClient<PrismaClientOptions, never, DefaultArgs>'.
+src/services/missionService.ts(82,15): error TS2339: Property 'mission' does not exist on type 'PrismaClient<PrismaClientOptions, never, DefaultArgs>'.
+src/services/mobileClientService.ts(28,29): error TS2339: Property 'mobileClient' does not exist on type 'PrismaClient<PrismaClientOptions, never, DefaultArgs>'.
+src/services/mobileClientService.ts(43,29): error TS2339: Property 'mobileClient' does not exist on type 'PrismaClient<PrismaClientOptions, never, DefaultArgs>'.
+src/services/mobileClientService.ts(49,14): error TS2339: Property 'mobileClient' does not exist on type 'PrismaClient<PrismaClientOptions, never, DefaultArgs>'.
+src/services/mobileClientService.ts(59,15): error TS2339: Property 'mobileClient' does not exist on type 'PrismaClient<PrismaClientOptions, never, DefaultArgs>'.
+src/services/mobileClientService.ts(66,29): error TS2339: Property 'mobileClient' does not exist on type 'PrismaClient<PrismaClientOptions, never, DefaultArgs>'.
+src/services/mobileClientService.ts(75,15): error TS2339: Property 'mobileClient' does not exist on type 'PrismaClient<PrismaClientOptions, never, DefaultArgs>'.
+src/services/mobileClientService.ts(83,15): error TS2339: Property 'mobileClient' does not exist on type 'PrismaClient<PrismaClientOptions, never, DefaultArgs>'.
+src/services/mobileClientService.ts(89,29): error TS2339: Property 'mobileClient' does not exist on type 'PrismaClient<PrismaClientOptions, never, DefaultArgs>'.
+src/services/notificationService.ts(37,33): error TS2339: Property 'notification' does not exist on type 'PrismaClient<PrismaClientOptions, never, DefaultArgs>'.
+src/services/notificationService.ts(55,34): error TS2339: Property 'notification' does not exist on type 'PrismaClient<PrismaClientOptions, never, DefaultArgs>'.
+src/services/notificationService.ts(72,27): error TS2339: Property 'notification' does not exist on type 'PrismaClient<PrismaClientOptions, never, DefaultArgs>'.
+src/services/notificationService.ts(81,27): error TS2339: Property 'notification' does not exist on type 'PrismaClient<PrismaClientOptions, never, DefaultArgs>'.
+src/services/ragService.ts(109,41): error TS2339: Property 'async' does not exist on type 'JSZip'.
+src/services/ragService.ts(214,29): error TS2339: Property 'document' does not exist on type 'PrismaClient<PrismaClientOptions, never, DefaultArgs>'.
+src/services/ragService.ts(232,24): error TS2339: Property 'document' does not exist on type 'PrismaClient<PrismaClientOptions, never, DefaultArgs>'.
+src/services/ragService.ts(295,30): error TS2339: Property 'documentChunk' does not exist on type 'PrismaClient<PrismaClientOptions, never, DefaultArgs>'.
+src/services/ragService.ts(300,32): error TS7006: Parameter 'chunk' implicitly has an 'any' type.
+src/services/ragService.ts(334,13): error TS7006: Parameter 'c' implicitly has an 'any' type.
+src/services/ragService.ts(335,12): error TS7006: Parameter 'a' implicitly has an 'any' type.
+src/services/ragService.ts(335,15): error TS7006: Parameter 'b' implicitly has an 'any' type.
+src/services/ragService.ts(345,24): error TS2339: Property 'document' does not exist on type 'PrismaClient<PrismaClientOptions, never, DefaultArgs>'.
+src/services/ragService.ts(349,12): error TS2339: Property 'document' does not exist on type 'PrismaClient<PrismaClientOptions, never, DefaultArgs>'.
+src/services/ragService.ts(355,25): error TS2339: Property 'document' does not exist on type 'PrismaClient<PrismaClientOptions, never, DefaultArgs>'.
+src/services/ragService.ts(358,19): error TS7006: Parameter 'd' implicitly has an 'any' type.
+src/services/ragService.ts(373,24): error TS2339: Property 'document' does not exist on type 'PrismaClient<PrismaClientOptions, never, DefaultArgs>'.
+src/services/ragService.ts(393,28): error TS7006: Parameter 'c' implicitly has an 'any' type.
+src/services/serviceManager.ts(105,33): error TS2339: Property 'serviceInstance' does not exist on type 'PrismaClient<PrismaClientOptions, never, DefaultArgs>'.
+src/services/serviceManager.ts(107,18): error TS2339: Property 'serviceInstance' does not exist on type 'PrismaClient<PrismaClientOptions, never, DefaultArgs>'.
+src/services/serviceManager.ts(146,32): error TS2339: Property 'serviceInstance' does not exist on type 'PrismaClient<PrismaClientOptions, never, DefaultArgs>'.
+src/services/serviceManager.ts(155,31): error TS2339: Property 'serviceInstance' does not exist on type 'PrismaClient<PrismaClientOptions, never, DefaultArgs>'.
+src/services/serviceManager.ts(161,31): error TS2339: Property 'serviceInstance' does not exist on type 'PrismaClient<PrismaClientOptions, never, DefaultArgs>'.
+src/services/serviceManager.ts(177,31): error TS2339: Property 'serviceInstance' does not exist on type 'PrismaClient<PrismaClientOptions, never, DefaultArgs>'.
+src/services/serviceManager.ts(186,14): error TS2339: Property 'serviceInstance' does not exist on type 'PrismaClient<PrismaClientOptions, never, DefaultArgs>'.
+src/services/serviceManager.ts(211,32): error TS2339: Property 'serviceInstance' does not exist on type 'PrismaClient<PrismaClientOptions, never, DefaultArgs>'.
+src/services/serviceManager.ts(241,16): error TS2339: Property 'serviceInstance' does not exist on type 'PrismaClient<PrismaClientOptions, never, DefaultArgs>'.
+src/services/serviceManager.ts(274,31): error TS2339: Property 'serviceInstance' does not exist on type 'PrismaClient<PrismaClientOptions, never, DefaultArgs>'.
+src/services/serviceManager.ts(287,14): error TS2339: Property 'serviceInstance' does not exist on type 'PrismaClient<PrismaClientOptions, never, DefaultArgs>'.
+src/services/serviceManager.ts(329,32): error TS2339: Property 'serviceInstance' does not exist on type 'PrismaClient<PrismaClientOptions, never, DefaultArgs>'.
+src/services/serviceManager.ts(363,18): error TS2339: Property 'serviceInstance' does not exist on type 'PrismaClient<PrismaClientOptions, never, DefaultArgs>'.
+src/services/serviceManager.ts(378,31): error TS2339: Property 'serviceInstance' does not exist on type 'PrismaClient<PrismaClientOptions, never, DefaultArgs>'.
+src/services/serviceManager.ts(396,32): error TS2339: Property 'serviceInstance' does not exist on type 'PrismaClient<PrismaClientOptions, never, DefaultArgs>'.
+src/services/serviceManager.ts(409,16): error TS2339: Property 'serviceInstance' does not exist on type 'PrismaClient<PrismaClientOptions, never, DefaultArgs>'.
+src/services/serviceManager.ts(428,31): error TS2339: Property 'serviceInstance' does not exist on type 'PrismaClient<PrismaClientOptions, never, DefaultArgs>'.
+src/services/serviceManager.ts(433,14): error TS2339: Property 'serviceInstance' does not exist on type 'PrismaClient<PrismaClientOptions, never, DefaultArgs>'.
+src/services/serviceManager.ts(446,32): error TS2339: Property 'serviceInstance' does not exist on type 'PrismaClient<PrismaClientOptions, never, DefaultArgs>'.
+src/services/serviceManager.ts(462,16): error TS2339: Property 'serviceInstance' does not exist on type 'PrismaClient<PrismaClientOptions, never, DefaultArgs>'.
+src/services/serviceManager.ts(489,31): error TS2339: Property 'serviceInstance' does not exist on type 'PrismaClient<PrismaClientOptions, never, DefaultArgs>'.
+src/services/serviceManager.ts(529,31): error TS2339: Property 'serviceBackup' does not exist on type 'PrismaClient<PrismaClientOptions, never, DefaultArgs>'.
+src/services/serviceManager.ts(570,29): error TS2339: Property 'serviceBackup' does not exist on type 'PrismaClient<PrismaClientOptions, never, DefaultArgs>'.
+src/services/serviceManager.ts(573,31): error TS2339: Property 'serviceInstance' does not exist on type 'PrismaClient<PrismaClientOptions, never, DefaultArgs>'.
+src/services/serviceManager.ts(610,16): error TS2339: Property 'serviceBackup' does not exist on type 'PrismaClient<PrismaClientOptions, never, DefaultArgs>'.
+src/services/serviceManager.ts(617,32): error TS2339: Property 'serviceInstance' does not exist on type 'PrismaClient<PrismaClientOptions, never, DefaultArgs>'.
+src/services/serviceManager.ts(648,31): error TS2339: Property 'serviceInstance' does not exist on type 'PrismaClient<PrismaClientOptions, never, DefaultArgs>'.
+src/services/serviceManager.ts(664,31): error TS2339: Property 'serviceInstance' does not exist on type 'PrismaClient<PrismaClientOptions, never, DefaultArgs>'.
+src/services/serviceManager.ts(670,32): error TS2339: Property 'serviceInstance' does not exist on type 'PrismaClient<PrismaClientOptions, never, DefaultArgs>'.
+src/services/serviceManager.ts(689,33): error TS2339: Property 'serviceInstance' does not exist on type 'PrismaClient<PrismaClientOptions, never, DefaultArgs>'.
+src/services/serviceManager.ts(694,30): error TS2339: Property 'serviceBackup' does not exist on type 'PrismaClient<PrismaClientOptions, never, DefaultArgs>'.
+src/services/serviceManager.ts(701,42): error TS7006: Parameter 'b' implicitly has an 'any' type.
+src/services/serviceManager.ts(702,28): error TS2339: Property 'serviceInstance' does not exist on type 'PrismaClient<PrismaClientOptions, never, DefaultArgs>'.
+src/services/serviceManager.ts(713,32): error TS2339: Property 'serviceInstance' does not exist on type 'PrismaClient<PrismaClientOptions, never, DefaultArgs>'.
+src/services/serviceManager.ts(717,39): error TS7006: Parameter 'i' implicitly has an 'any' type.
+src/services/serviceManager.ts(719,39): error TS7006: Parameter 'i' implicitly has an 'any' type.
+src/services/serviceManager.ts(848,14): error TS2339: Property 'serviceInstance' does not exist on type 'PrismaClient<PrismaClientOptions, never, DefaultArgs>'.
+src/services/serviceManager.ts(864,32): error TS2339: Property 'serviceInstance' does not exist on type 'PrismaClient<PrismaClientOptions, never, DefaultArgs>'.
+src/services/serviceManager.ts(890,16): error TS2339: Property 'serviceInstance' does not exist on type 'PrismaClient<PrismaClientOptions, never, DefaultArgs>'.
+src/services/toolService.ts(16,31): error TS2339: Property 'tool' does not exist on type 'PrismaClient<PrismaClientOptions, never, DefaultArgs>'.
+src/services/toolService.ts(21,15): error TS2339: Property 'tool' does not exist on type 'PrismaClient<PrismaClientOptions, never, DefaultArgs>'.
+src/services/toolService.ts(35,27): error TS2339: Property 'tool' does not exist on type 'PrismaClient<PrismaClientOptions, never, DefaultArgs>'.
+src/services/toolService.ts(44,15): error TS2339: Property 'tool' does not exist on type 'PrismaClient<PrismaClientOptions, never, DefaultArgs>'.
+src/services/toolService.ts(58,15): error TS2339: Property 'tool' does not exist on type 'PrismaClient<PrismaClientOptions, never, DefaultArgs>'.
+src/services/toolService.ts(64,15): error TS2339: Property 'tool' does not exist on type 'PrismaClient<PrismaClientOptions, never, DefaultArgs>'.
