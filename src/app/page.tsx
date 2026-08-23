@@ -1,6 +1,7 @@
 'use client';
 
 import { useState, useCallback, useEffect, useMemo } from 'react';
+import { useSession, signOut } from 'next-auth/react';
 import { useJarvisSocket } from '@/hooks/useJarvisSocket';
 import { checkHealth, createMission, runAgent } from '@/lib/openjarvis-api';
 import type { Mission } from '@/lib/openjarvis-types';
@@ -38,7 +39,16 @@ import {
   Bot, ListTodo, Wrench, Brain, Settings, Shield,
   BarChart3, Clock, FileText, Zap, Monitor, Plug,
   Webhook, Lock, FolderSearch, ClipboardList, Building2,
+  LogOut, User as UserIcon, ChevronDown,
 } from 'lucide-react';
+import {
+  DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuItem,
+  DropdownMenuSeparator,
+  DropdownMenuTrigger,
+} from '@/components/ui/dropdown-menu';
+import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 
 export default function Dashboard() {
   // ─── Onboarding ────────────────────────────────────────────
@@ -100,6 +110,14 @@ export default function Dashboard() {
 
   const isExecuting = wsStatus === 'running';
 
+  // ─── Auth ──────────────────────────────────────────────
+  const { data: session } = useSession();
+  const userInitial = session?.user?.name?.[0]?.toUpperCase() || session?.user?.email?.[0]?.toUpperCase() || '?';
+
+  const handleSignOut = async () => {
+    await signOut({ callbackUrl: '/login' });
+  };
+
   return (
     <div className="min-h-screen flex flex-col bg-background text-foreground">
       {showOnboarding && <OnboardingWizard />}
@@ -127,6 +145,37 @@ export default function Dashboard() {
           Export
         </button>
         <ThemeToggle />
+        <Separator orientation="vertical" className="h-5 mx-1" />
+        <DropdownMenu>
+          <DropdownMenuTrigger asChild>
+            <button className="flex items-center gap-2 px-2 py-1 rounded-md hover:bg-muted transition-colors">
+              <Avatar className="h-6 w-6">
+                <AvatarImage src={session?.user?.image || ''} alt="" />
+                <AvatarFallback className="text-[10px] bg-emerald-500/20 text-emerald-600 dark:text-emerald-400">{userInitial}</AvatarFallback>
+              </Avatar>
+              <span className="text-xs font-medium hidden sm:inline max-w-[120px] truncate">
+                {session?.user?.name || session?.user?.email || 'User'}
+              </span>
+              <ChevronDown className="h-3 w-3 text-muted-foreground" />
+            </button>
+          </DropdownMenuTrigger>
+          <DropdownMenuContent align="end" className="w-48">
+            <div className="px-2 py-1.5">
+              <p className="text-sm font-medium truncate">{session?.user?.name || 'User'}</p>
+              <p className="text-xs text-muted-foreground truncate">{session?.user?.email}</p>
+            </div>
+            <DropdownMenuSeparator />
+            <DropdownMenuItem onClick={() => window.location.href = '/register'} className="text-xs gap-2 cursor-pointer">
+              <UserIcon className="h-3.5 w-3.5" />
+              Register New Account
+            </DropdownMenuItem>
+            <DropdownMenuSeparator />
+            <DropdownMenuItem onClick={handleSignOut} className="text-xs gap-2 text-destructive focus:text-destructive cursor-pointer">
+              <LogOut className="h-3.5 w-3.5" />
+              Sign Out
+            </DropdownMenuItem>
+          </DropdownMenuContent>
+        </DropdownMenu>
       </header>
 
       {/* ─── Main Content ──────────────────────────────────── */}
