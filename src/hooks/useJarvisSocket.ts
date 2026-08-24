@@ -1,12 +1,12 @@
 'use client';
 
 import { useEffect, useRef, useCallback, useState } from 'react';
-import { io, Socket } from 'socket.io-client';
 import type {
   MissionEvent,
   MissionStatus,
   WsPayload,
 } from '@/lib/openjarvis-types';
+import type { Socket } from 'socket.io-client';
 
 interface UseJarvisSocketReturn {
   connected: boolean;
@@ -100,23 +100,28 @@ export function useJarvisSocket(): UseJarvisSocketReturn {
   );
 
   useEffect(() => {
-    const socket = io('/?XTransformPort=3002', {
-      transports: ['websocket', 'polling'],
-      reconnection: true,
-      reconnectionAttempts: 10,
-      reconnectionDelay: 1000,
-      reconnectionDelayMax: 5000,
+    // Dynamic import: socket.io-client creates a URL at module-eval time
+    // which crashes during Next.js SSR prerendering
+    let socket: Socket | null = null;
+    import('socket.io-client').then(({ io }) => {
+      socket = io('/?XTransformPort=3002', {
+        transports: ['websocket', 'polling'],
+        reconnection: true,
+        reconnectionAttempts: 10,
+        reconnectionDelay: 1000,
+        reconnectionDelayMax: 5000,
+      });
+      socketRef.current = socket;
+      socket.on('connect', () => setConnected(true));
+      socket.on('disconnect', () => setConnected(false));
+      socket.on('connect_error', () => setConnected(false));
     });
 
-    socketRef.current = socket;
-
-    socket.on('connect', () => setConnected(true));
-    socket.on('disconnect', () => setConnected(false));
-    socket.on('connect_error', () => setConnected(false));
-
     return () => {
-      socket.disconnect();
-      socketRef.current = null;
+      if (socket) {
+        socket.disconnect();
+        socketRef.current = null;
+      }
     };
   }, []);
 
