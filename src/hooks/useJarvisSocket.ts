@@ -6,7 +6,9 @@ import type {
   MissionStatus,
   WsPayload,
 } from '@/lib/openjarvis-types';
-import type { Socket } from 'socket.io-client';
+
+// eslint-disable-next-line @typescript-eslint/no-explicit-any
+type SocketLike = any;
 
 interface UseJarvisSocketReturn {
   connected: boolean;
@@ -24,7 +26,7 @@ interface UseJarvisSocketReturn {
 }
 
 export function useJarvisSocket(): UseJarvisSocketReturn {
-  const socketRef = useRef<Socket | null>(null);
+  const socketRef = useRef<SocketLike | null>(null);
   const [connected, setConnected] = useState(false);
   const [events, setEvents] = useState<MissionEvent[]>([]);
   const [currentStatus, setCurrentStatus] = useState<MissionStatus | null>(null);
@@ -33,7 +35,7 @@ export function useJarvisSocket(): UseJarvisSocketReturn {
 
   // Cleanup listeners for a given mission
   const cleanupMission = useCallback(
-    (missionId: string, socket: Socket) => {
+    (missionId: string, socket: SocketLike) => {
       socket.off(`mission:${missionId}:event`);
       socket.off(`mission:${missionId}:status`);
       socket.off(`mission:${missionId}:update`);
@@ -102,7 +104,7 @@ export function useJarvisSocket(): UseJarvisSocketReturn {
   useEffect(() => {
     // Dynamic import: socket.io-client creates a URL at module-eval time
     // which crashes during Next.js SSR prerendering
-    let socket: Socket | null = null;
+    let socket: SocketLike | null = null;
     import('socket.io-client').then(({ io }) => {
       socket = io('/?XTransformPort=3002', {
         transports: ['websocket', 'polling'],
