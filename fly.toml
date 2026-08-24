@@ -1,0 +1,41 @@
+# ─── Fly.io $0 Deployment Config ───────────────────────
+# Free tier: 3 shared VMs + 1GB persistent volume
+
+app = "openjarvis"
+primary_region = "lax"  # Change to closest: sjc sea dfw ord iad ewr yyz mia gru cdg ams lhr fra waw bom hkg nrt sin syd
+
+[build]
+  dockerfile = "Dockerfile"
+
+[env]
+  PORT = "3000"
+  NODE_ENV = "production"
+  DATABASE_URL = "file:/data/dev.db"
+
+[[services]]
+  internal_port = 3000
+  protocol = "tcp"
+  auto_stop_machines = false
+  auto_start_machines = true
+  min_machines_running = 0
+
+  [[services.ports]]
+    port = 80
+    handlers = ["http"]
+
+  [[services.ports]]
+    port = 443
+    handlers = ["tls", "http"]
+
+  [[services.http_checks]]
+    interval = "30s"
+    timeout = "10s"
+    grace_period = "30s"
+    method = "GET"
+    path = "/api"
+
+# Persistent volume for SQLite database + uploads
+[[mounts]]
+  source = "openjarvis_data"
+  destination = "/data"
+  initial_size = "1gb"

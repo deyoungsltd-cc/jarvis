@@ -123,7 +123,7 @@ bun run dev
 # Open http://localhost:3000
 ```
 
-### Option B: Docker (Recommended for Hosting)
+### Option B: Docker (Self-Hosted)
 
 ```bash
 git clone https://github.com/deyoungsltd-cc/jarvis.git
@@ -134,7 +134,38 @@ docker compose up -d
 # Open http://localhost:3000
 ```
 
-### Option C: Local LLM (Zero Cost)
+### Option C: Fly.io (Free — $0/mo)
+
+```bash
+# 1. Install fly CLI: https://fly.io/docs/hands-on/install-flyctl/
+# 2. Sign up: fly auth signup
+# 3. Clone and deploy
+git clone https://github.com/deyoungsltd-cc/jarvis.git
+cd jarvis
+
+# 4. Launch the app (creates VM + 1GB volume for SQLite)
+fly launch
+
+# 5. Create persistent volume for database
+fly volumes create openjarvis_data --size 1gb
+
+# 6. Set secrets (at minimum NEXTAUTH_SECRET)
+fly secrets set NEXTAUTH_SECRET="your-random-64-char-string"
+
+# Optional: Add Google/Apple OAuth
+fly secrets set GOOGLE_CLIENT_ID="your-id"
+fly secrets set GOOGLE_CLIENT_SECRET="your-secret"
+fly secrets set NEXT_PUBLIC_GOOGLE_ENABLED="true"
+
+# 7. Deploy
+fly deploy
+
+# Your app is live at https://openjarvis.fly.dev
+```
+
+**Free tier includes:** 3 shared VMs, 1GB persistent volume, 160GB outbound transfer/month.
+
+### Option D: Local LLM (Zero Cost)
 
 ```bash
 # Install Ollama from https://ollama.com
