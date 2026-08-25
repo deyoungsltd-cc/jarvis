@@ -10,6 +10,8 @@ import { ActivityTimeline } from '@/components/openjarvis/activity-timeline';
 import { MissionsTab } from '@/components/openjarvis/missions-tab';
 import { ToolsTab } from '@/components/openjarvis/tools-tab';
 import { MemoryTab } from '@/components/openjarvis/memory-tab';
+import { ChatTab } from '@/components/openjarvis/chat-tab';
+import { MediaTab } from '@/components/openjarvis/media-tab';
 import { SettingsTab } from '@/components/openjarvis/settings-tab';
 import { ApprovalQueue } from '@/components/openjarvis/approval-queue';
 import { ThemeToggle } from '@/components/openjarvis/theme-toggle';
@@ -21,7 +23,7 @@ import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Separator } from '@/components/ui/separator';
 import { ScrollArea } from '@/components/ui/scroll-area';
 import {
-  Bot, ListTodo, Wrench, Brain, Settings, Shield,
+  Bot, ListTodo, Wrench, Brain, MessageSquare, Sparkles, Settings, Shield,
   LogOut, User as UserIcon, ChevronDown, AlertTriangle,
 } from 'lucide-react';
 import {
@@ -180,12 +182,20 @@ export default function Dashboard() {
 
         {/* Center Panel — Tabbed */}
         <section className="flex-1 flex flex-col min-w-0">
-          <Tabs defaultValue="activity" className="flex flex-col h-full">
+          <Tabs defaultValue="chat" className="flex flex-col h-full">
             <div className="px-4 pt-2 border-b border-border">
               <TabsList className="h-9">
+                <TabsTrigger value="chat" className="text-xs gap-1">
+                  <MessageSquare className="h-3.5 w-3.5" />
+                  Chat
+                </TabsTrigger>
                 <TabsTrigger value="activity" className="text-xs gap-1">
                   <ListTodo className="h-3.5 w-3.5" />
                   Activity
+                </TabsTrigger>
+                <TabsTrigger value="media" className="text-xs gap-1">
+                  <Sparkles className="h-3.5 w-3.5" />
+                  Media
                 </TabsTrigger>
                 <TabsTrigger value="tools" className="text-xs gap-1">
                   <Wrench className="h-3.5 w-3.5" />
@@ -206,12 +216,24 @@ export default function Dashboard() {
               </TabsList>
             </div>
 
+            <TabsContent value="chat" className="flex-1 min-h-0 overflow-hidden">
+              <TabErrorBoundary label="Chat">
+                <ChatTab />
+              </TabErrorBoundary>
+            </TabsContent>
+
             <TabsContent value="activity" className="flex-1 min-h-0 overflow-hidden">
               <TabErrorBoundary label="Activity">
                 <div className="px-4 py-2 border-b border-border">
                   <h2 className="text-sm font-semibold">Activity</h2>
                 </div>
                 <ActivityTimeline events={[]} missionId={null} />
+              </TabErrorBoundary>
+            </TabsContent>
+
+            <TabsContent value="media" className="flex-1 min-h-0 overflow-auto">
+              <TabErrorBoundary label="Media">
+                <MediaTab />
               </TabErrorBoundary>
             </TabsContent>
 
