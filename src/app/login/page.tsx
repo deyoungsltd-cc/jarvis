@@ -143,7 +143,7 @@ function AuthForm() {
         router.refresh();
       }, 1500);
     } catch {
-      setError('Something went wrong');
+      setRegError('Something went wrong');
       setLoading(false);
     }
   };
@@ -175,7 +175,7 @@ function AuthForm() {
 
   const backToKey = () => {
     setStep('key');
-    setError('');
+    setRegError('');
     setLoginError('');
   };
 
@@ -189,10 +189,10 @@ function AuthForm() {
             <CardDescription>Enter your invite key to continue</CardDescription>
           </CardHeader>
           <CardContent className="space-y-4">
-            {error && (
+            {urlError && (
               <div className="flex items-center gap-2 p-3 rounded-lg bg-destructive/10 border border-destructive/20 text-destructive text-sm">
                 <AlertCircle className="h-4 w-4 shrink-0" />
-                <span>{getErrorMessage(error)}</span>
+                <span>{getErrorMessage(urlError)}</span>
               </div>
             )}
             {keyError && (
@@ -252,10 +252,10 @@ function AuthForm() {
               </div>
             ) : (
               <>
-                {error && (
+                {regError && (
                   <div className="flex items-center gap-2 p-3 rounded-lg bg-destructive/10 border border-destructive/20 text-destructive text-sm">
                     <AlertCircle className="h-4 w-4 shrink-0" />
-                    <span>{error}</span>
+                    <span>{regError}</span>
                   </div>
                 )}
                 <div className="flex items-center gap-2 px-3 py-1.5 rounded-md bg-emerald-500/10 border border-emerald-500/20 text-xs text-emerald-600 dark:text-emerald-400">
