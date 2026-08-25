@@ -2,6 +2,13 @@ import { NextRequest, NextResponse } from 'next/server';
 import { db } from '@/lib/db';
 import { requireAuth } from '@/lib/api-auth';
 
+function parseEntry(entry: Record<string, unknown>) {
+  const parsed = { ...entry };
+  try { parsed.value = JSON.parse(parsed.value as string); } catch { /* keep as-is */ }
+  try { parsed.tags = JSON.parse(parsed.tags as string); } catch { parsed.tags = []; }
+  return parsed;
+}
+
 export async function GET(req: NextRequest, { params }: { params: Promise<{ id: string }> }) {
   const auth = await requireAuth();
   if (!auth.ok) return auth.response;
@@ -9,8 +16,9 @@ export async function GET(req: NextRequest, { params }: { params: Promise<{ id: 
     const { id } = await params;
     const entry = await db.memoryEntry.findUnique({ where: { id } });
     if (!entry) return NextResponse.json({ error: 'Memory entry not found' }, { status: 404 });
-    return NextResponse.json(entry);
+    return NextResponse.json(parseEntry(entry as unknown as Record<string, unknown>));
   } catch (error) {
+    console.error('Memory get error:', error);
     return NextResponse.json({ error: 'Failed to fetch memory entry' }, { status: 500 });
   }
 }
@@ -34,8 +42,9 @@ export async function PATCH(req: NextRequest, { params }: { params: Promise<{ id
       where: { id },
       data: { ...data, lastAccessedAt: new Date(), accessCount: { increment: 1 } },
     });
-    return NextResponse.json(entry);
+    return NextResponse.json(parseEntry(entry as unknown as Record<string, unknown>));
   } catch (error) {
+    console.error('Memory update error:', error);
     return NextResponse.json({ error: 'Failed to update memory entry' }, { status: 500 });
   }
 }
@@ -48,6 +57,7 @@ export async function DELETE(req: NextRequest, { params }: { params: Promise<{ i
     await db.memoryEntry.delete({ where: { id } });
     return NextResponse.json({ success: true });
   } catch (error) {
+    console.error('Memory delete error:', error);
     return NextResponse.json({ error: 'Failed to delete memory entry' }, { status: 500 });
   }
 }

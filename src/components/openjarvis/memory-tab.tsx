@@ -86,7 +86,9 @@ export function MemoryTab() {
       const data = await getMemory(
         scopeFilter !== 'all' ? scopeFilter : undefined
       );
-      setEntries(data);
+      // API should return an array, but guard against wrapped responses
+      const entries = Array.isArray(data) ? data : (data as Record<string, unknown>).data;
+      setEntries(Array.isArray(entries) ? entries : []);
     } catch (err) {
       setError(err instanceof Error ? err.message : 'Failed to fetch memory');
     } finally {
@@ -340,7 +342,7 @@ export function MemoryTab() {
                     >
                       {entry.scope}
                     </Badge>
-                    {entry.tags && entry.tags.length > 0 && entry.tags.map(t => (
+                    {Array.isArray(entry.tags) && entry.tags.length > 0 && entry.tags.map(t => (
                       <Badge key={t} variant="secondary" className="text-[10px] h-5">{t}</Badge>
                     ))}
                     <span className="text-[10px] text-muted-foreground ml-auto" title={`Importance: ${entry.importance}/5`}>

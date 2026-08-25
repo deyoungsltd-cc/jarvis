@@ -2,6 +2,14 @@ import { NextRequest, NextResponse } from 'next/server';
 import { db } from '@/lib/db';
 import { requireAuth, sanitize } from '@/lib/api-auth';
 
+/** Parse JSON string fields that Prisma returns as raw strings */
+function parseEntry(entry: Record<string, unknown>) {
+  const parsed = { ...entry };
+  try { parsed.value = JSON.parse(parsed.value as string); } catch { /* keep as-is */ }
+  try { parsed.tags = JSON.parse(parsed.tags as string); } catch { parsed.tags = []; }
+  return parsed;
+}
+
 export async function GET(req: NextRequest) {
   const auth = await requireAuth();
   if (!auth.ok) return auth.response;
@@ -26,8 +34,11 @@ export async function GET(req: NextRequest) {
       db.memoryEntry.count({ where }),
     ]);
 
-    return NextResponse.json({ data: entries, pagination: { page, limit, total, pages: Math.ceil(total / limit) } });
+    // Return flat array — client expects MemoryEntry[] directly
+    const parsed = entries.map(e => parseEntry(e as unknown as Record<string, unknown>));
+    return NextResponse.json(parsed);
   } catch (error) {
+    console.error('Memory list error:', error);
     return NextResponse.json({ error: 'Failed to fetch memory entries' }, { status: 500 });
   }
 }
@@ -50,8 +61,11 @@ export async function POST(req: NextRequest) {
         importance: body.importance ?? 5,
       },
     });
-    return NextResponse.json(entry, { status: 201 });
+
+    // Parse JSON fields before returning
+    return NextResponse.json(parseEntry(entry as unknown as Record<string, unknown>), { status: 201 });
   } catch (error) {
+    console.error('Memory create error:', error);
     return NextResponse.json({ error: 'Failed to create memory entry' }, { status: 500 });
   }
 }
