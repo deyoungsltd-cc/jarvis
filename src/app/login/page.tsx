@@ -210,8 +210,16 @@ export default function LoginPage() {
 
       <div className="relative w-full max-w-md">
         <div className="flex flex-col items-center mb-8">
-          <div className="flex items-center justify-center w-16 h-16 rounded-2xl bg-emerald-500/10 border border-emerald-500/20 mb-4">
-            <Bot className="h-8 w-8 text-emerald-500" />
+          <div className="relative w-24 h-24 mb-4">
+            <div className="absolute inset-0 rounded-full bg-emerald-500/10 blur-lg animate-pulse" />
+            <div className="absolute inset-2 rounded-full border border-emerald-500/30" style={{ transformStyle: 'preserve-3d', animation: 'orb-spin 8s linear infinite' }}>
+              <div className="absolute inset-0 rounded-full border border-emerald-400/20" style={{ transform: 'rotateY(60deg)' }} />
+            </div>
+            <div className="absolute inset-6 rounded-full bg-gradient-to-br from-emerald-500/20 to-transparent" />
+            <div className="absolute inset-0 flex items-center justify-center">
+              <Bot className="h-8 w-8 text-emerald-500" style={{ filter: 'drop-shadow(0 0 12px rgba(16,185,129,0.4))' }} />
+            </div>
+            <style>{`@keyframes orb-spin { from { transform: rotateY(0deg) rotateX(15deg); } to { transform: rotateY(360deg) rotateX(15deg); } }`}</style>
           </div>
           <h1 className="text-2xl font-bold tracking-tight">OpenJARVIS</h1>
           <p className="text-sm text-muted-foreground mt-1">Sign in to your AI agent dashboard</p>

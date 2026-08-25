@@ -1,54 +1,41 @@
-import { NextRequest, NextResponse } from 'next/server';
 import { db } from '@/lib/db';
+import { rateLimit, getIp } from '@/lib/rate-limit';
 
-export async function GET(req: NextRequest) {
+export async function GET(req: Request) {
   try {
-    const { searchParams } = new URL(req.url);
-    const page = parseInt(searchParams.get('page') || '1');
-    const limit = parseInt(searchParams.get('limit') || '50');
-    const status = searchParams.get('status');
-    const workspaceId = searchParams.get('workspaceId');
+    const url = new URL(req.url);
+    const limit = Math.min(Number(url.searchParams.get('limit')) || 50, 100);
+    const offset = Number(url.searchParams.get('offset')) || 0;
 
-    const where: Record<string, unknown> = {};
-    if (status) where.status = status;
-    if (workspaceId) where.workspaceId = workspaceId;
-
-    const [missions, total] = await Promise.all([
-      db.mission.findMany({
-        where,
-        include: {
-          workspace: { select: { id: true, name: true } },
-          _count: { select: { events: true, approvals: true } },
-        },
-        orderBy: { createdAt: 'desc' },
-        skip: (page - 1) * limit,
-        take: limit,
-      }),
-      db.mission.count({ where }),
-    ]);
-
-    return NextResponse.json({ data: missions, pagination: { page, limit, total, pages: Math.ceil(total / limit) } });
-  } catch (error) {
-    return NextResponse.json({ error: 'Failed to fetch missions' }, { status: 500 });
+    const missions = await db.mission.findMany({
+      orderBy: { createdAt: 'desc' },
+      take: limit,
+      skip: offset,
+      include: { events: { orderBy: { createdAt: 'asc' }, take: 50 } },
+    });
+    return Response.json(missions);
+  } catch (err) {
+    const message = err instanceof Error ? err.message : 'Failed to fetch missions';
+    return Response.json({ error: message }, { status: 500 });
   }
 }
 
-export async function POST(req: NextRequest) {
+export async function POST(req: Request) {
   try {
+    if (!rateLimit(getIp(req), 20, 60_000)) {
+      return Response.json({ error: 'Rate limit exceeded.' }, { status: 429 });
+    }
     const body = await req.json();
-    if (!body.goal) return NextResponse.json({ error: 'goal is required' }, { status: 400 });
-
+    const { goal, provider } = body;
+    if (!goal || typeof goal !== 'string') {
+      return Response.json({ error: 'goal is required' }, { status: 400 });
+    }
     const mission = await db.mission.create({
-      data: {
-        goal: body.goal,
-        status: body.status || 'draft',
-        provider: body.provider,
-        workspaceId: body.workspaceId,
-        deviceId: body.deviceId,
-      },
+      data: { goal, status: 'draft', provider: provider || 'openrouter' },
     });
-    return NextResponse.json(mission, { status: 201 });
-  } catch (error) {
-    return NextResponse.json({ error: 'Failed to create mission' }, { status: 500 });
+    return Response.json(mission, { status: 201 });
+  } catch (err) {
+    const message = err instanceof Error ? err.message : 'Failed to create mission';
+    return Response.json({ error: message }, { status: 500 });
   }
 }

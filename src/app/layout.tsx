@@ -16,11 +16,11 @@ const geistMono = Geist_Mono({
 });
 
 export const metadata: Metadata = {
-  title: "OpenJarvis — AI Agent Dashboard",
-  description: "Real-time agent dashboard for OpenJarvis AI agent system powered by Qwen3.8-27B-Uncensored.",
-  keywords: ["OpenJarvis", "AI Agent", "Dashboard", "Qwen3.8", "Hardware Control"],
+  title: "OpenJARVIS — AI Agent Dashboard",
+  description: "Uncensored AI agent dashboard powered by OpenRouter.",
+  keywords: ["OpenJARVIS", "AI Agent", "Dashboard", "OpenRouter", "Uncensored AI"],
   icons: {
-    icon: "https://z-cdn.chatglm.cn/z-ai/static/logo.svg",
+    icon: "/favicon.ico",
   },
 };
 
