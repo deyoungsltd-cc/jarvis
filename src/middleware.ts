@@ -1,14 +1,15 @@
 import { NextResponse } from 'next/server';
 import type { NextRequest } from 'next/server';
 
-// Routes that don't require authentication
-const publicRoutes = ['/login', '/register', '/api/auth'];
+// Page routes that don't require authentication
+const publicPages = ['/login', '/register'];
 
 export function middleware(request: NextRequest) {
   const { pathname } = request.nextUrl;
 
-  // Allow public routes
-  if (publicRoutes.some((route) => pathname.startsWith(route))) {
+  // Let ALL API routes through — they handle their own auth with requireAuth()/requireAdmin()
+  // and return proper JSON errors (401/403) instead of HTML redirects
+  if (pathname.startsWith('/api/')) {
     return NextResponse.next();
   }
 
@@ -21,11 +22,12 @@ export function middleware(request: NextRequest) {
     return NextResponse.next();
   }
 
-  // Admin routes: need both session AND admin role
-  // We check the session cookie exists and let the /admin page verify the role
-  // (since we can't decode JWT in edge middleware without libraries)
+  // Allow public pages
+  if (publicPages.some((route) => pathname.startsWith(route))) {
+    return NextResponse.next();
+  }
 
-  // Check for session token in cookies
+  // Protected pages: check for session token
   const sessionToken = request.cookies.get('next-auth.session-token')?.value ||
     request.cookies.get('__Secure-next-auth.session-token')?.value;
 

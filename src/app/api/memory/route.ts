@@ -3,13 +3,14 @@ import { db } from '@/lib/db';
 import { requireAuth, sanitize } from '@/lib/api-auth';
 
 export async function GET(req: NextRequest) {
+  const auth = await requireAuth();
+  if (!auth.ok) return auth.response;
   try {
-    await requireAuth();
     const { searchParams } = new URL(req.url);
     const scope = searchParams.get('scope');
     const missionId = searchParams.get('missionId');
-    const page = parseInt(searchParams.get('page') || '1');
-    const limit = parseInt(searchParams.get('limit') || '50');
+    const page = Math.max(1, parseInt(searchParams.get('page') || '1') || 1);
+    const limit = Math.min(50, Math.max(1, parseInt(searchParams.get('limit') || '50') || 50));
 
     const where: Record<string, unknown> = {};
     if (scope) where.scope = scope;
@@ -32,8 +33,9 @@ export async function GET(req: NextRequest) {
 }
 
 export async function POST(req: NextRequest) {
+  const auth = await requireAuth();
+  if (!auth.ok) return auth.response;
   try {
-    await requireAuth();
     const body = await req.json();
     if (!body.key) return NextResponse.json({ error: 'key is required' }, { status: 400 });
 

@@ -148,7 +148,8 @@ export interface MemoryStats {
 
 // ─── Agent ──────────────────────────────────────────────────
 export interface AgentRunBody {
-  missionId: string;
+  goal: string;
+  missionId?: string;
   provider?: string;
 }
 

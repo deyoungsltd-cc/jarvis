@@ -4,8 +4,9 @@ import { requireAdmin } from '@/lib/admin-auth';
 
 // GET /api/admin/stats — dashboard overview
 export async function GET() {
+  const auth = await requireAdmin();
+  if (!auth.ok) return auth.response;
   try {
-    await requireAdmin();
 
     const [totalUsers, adminCount, frozenCount, totalMissions, activeMissions, completedMissions, totalKeys, activeKeys] = await Promise.all([
       db.user.count(),
@@ -36,7 +37,6 @@ export async function GET() {
       recentUsers, recentAuditLogs,
     });
   } catch (err) {
-    if (err instanceof NextResponse) return err;
     console.error('Admin stats error:', err);
     return NextResponse.json({ error: 'Failed to fetch stats' }, { status: 500 });
   }

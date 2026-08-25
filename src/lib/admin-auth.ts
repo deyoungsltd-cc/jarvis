@@ -2,22 +2,33 @@ import { getServerSession } from 'next-auth';
 import { authOptions } from '@/app/api/auth/[...nextauth]/route';
 import { NextResponse } from 'next/server';
 
+type AdminResult = { userId: string; email: string; role: string };
+type AuthError = { ok: false; response: NextResponse };
+
 /**
  * Verify the current user is an admin. Call from admin API routes.
- * Returns { userId, email, role } or throws a 403 response.
+ * Returns { userId, email, role } on success.
+ * Returns { ok: false, response } on failure — the caller MUST return that response.
  */
-export async function requireAdmin() {
+export async function requireAdmin(): Promise<AdminResult | AuthError> {
   const session = await getServerSession(authOptions);
   if (!session?.user) {
-    throw new NextResponse(JSON.stringify({ error: 'Unauthorized' }), { status: 401 });
+    return { ok: false, response: NextResponse.json({ error: 'Unauthorized' }, { status: 401 }) };
   }
   const role = (session.user as Record<string, unknown>).role as string | undefined;
   if (role !== 'admin') {
-    throw new NextResponse(JSON.stringify({ error: 'Forbidden: admin only' }), { status: 403 });
+    return { ok: false, response: NextResponse.json({ error: 'Forbidden: admin only' }, { status: 403 }) };
   }
   return {
+    ok: true as const,
     userId: (session.user as Record<string, unknown>).id as string,
     email: session.user.email!,
     role: role!,
-  };
+  } as AdminResult;
+}
+
+/** Helper to unwrap requireAdmin result — use in routes that need the session data */
+export function unwrapAuth(result: AdminResult | AuthError): AdminResult {
+  if (!result.ok) throw result.response;
+  return result;
 }

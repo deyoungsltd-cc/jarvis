@@ -4,11 +4,12 @@ import { requireAdmin } from '@/lib/admin-auth';
 
 // GET /api/admin/users — list all users with pagination
 export async function GET(req: NextRequest) {
+  const auth = await requireAdmin();
+  if (!auth.ok) return auth.response;
   try {
-    await requireAdmin();
     const url = new URL(req.url);
-    const page = Math.max(1, parseInt(url.searchParams.get('page') || '1'));
-    const limit = Math.min(100, Math.max(1, parseInt(url.searchParams.get('limit') || '25')));
+    const page = Math.max(1, parseInt(url.searchParams.get('page') || '1') || 1);
+    const limit = Math.min(100, Math.max(1, parseInt(url.searchParams.get('limit') || '25') || 25));
     const search = url.searchParams.get('search') || '';
 
     const where = search
@@ -31,7 +32,6 @@ export async function GET(req: NextRequest) {
 
     return NextResponse.json({ users, total, page, limit, pages: Math.ceil(total / limit) });
   } catch (err) {
-    if (err instanceof NextResponse) return err;
     console.error('Admin users list error:', err);
     return NextResponse.json({ error: 'Failed to fetch users' }, { status: 500 });
   }
@@ -39,8 +39,9 @@ export async function GET(req: NextRequest) {
 
 // POST /api/admin/users — manually create a user
 export async function POST(req: NextRequest) {
+  const admin = await requireAdmin();
+  if (!admin.ok) return admin.response;
   try {
-    const admin = await requireAdmin();
     const { name, email, password, role } = await req.json();
 
     if (!email || !password) {
@@ -61,7 +62,6 @@ export async function POST(req: NextRequest) {
 
     return NextResponse.json(user, { status: 201 });
   } catch (err) {
-    if (err instanceof NextResponse) return err;
     console.error('Admin create user error:', err);
     if ((err as { code?: string })?.code === 'P2002') {
       return NextResponse.json({ error: 'Email already exists' }, { status: 409 });

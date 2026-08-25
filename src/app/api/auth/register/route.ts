@@ -93,7 +93,8 @@ export async function POST(req: NextRequest) {
     if (dbKey) {
       await db.inviteKey.update({
         where: { id: dbKey.id },
-        data: { useCount: { increment: 1 }, usedBy: user.id },
+        data: { useCount: { increment: 1 } },
+        // Note: usedBy only tracks last user for multi-use keys
       });
     }
 

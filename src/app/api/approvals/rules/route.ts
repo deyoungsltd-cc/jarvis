@@ -1,7 +1,10 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { db } from '@/lib/db';
+import { requireAuth } from '@/lib/api-auth';
 
 export async function GET() {
+  const auth = await requireAuth();
+  if (!auth.ok) return auth.response;
   try {
     const rules = await db.approvalRule.findMany({ orderBy: [{ priority: 'desc' }, { createdAt: 'desc' }] });
     return NextResponse.json(rules);
@@ -11,6 +14,8 @@ export async function GET() {
 }
 
 export async function POST(req: NextRequest) {
+  const auth = await requireAuth();
+  if (!auth.ok) return auth.response;
   try {
     const body = await req.json();
     if (!body.name) return NextResponse.json({ error: 'name is required' }, { status: 400 });

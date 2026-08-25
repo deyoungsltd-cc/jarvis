@@ -4,8 +4,9 @@ import { requireAdmin } from '@/lib/admin-auth';
 
 // PATCH /api/admin/users/[id] — freeze/unfreeze, change role, reset password
 export async function PATCH(req: NextRequest, { params }: { params: Promise<{ id: string }> }) {
+  const admin = await requireAdmin();
+  if (!admin.ok) return admin.response;
   try {
-    const admin = await requireAdmin();
     const { id } = await params;
     const body = await req.json();
     const { frozen, role, password } = body;
@@ -42,7 +43,6 @@ export async function PATCH(req: NextRequest, { params }: { params: Promise<{ id
 
     return NextResponse.json(updated);
   } catch (err) {
-    if (err instanceof NextResponse) return err;
     console.error('Admin update user error:', err);
     return NextResponse.json({ error: 'Failed to update user' }, { status: 500 });
   }
@@ -50,8 +50,9 @@ export async function PATCH(req: NextRequest, { params }: { params: Promise<{ id
 
 // DELETE /api/admin/users/[id] — delete user
 export async function DELETE(req: NextRequest, { params }: { params: Promise<{ id: string }> }) {
+  const admin = await requireAdmin();
+  if (!admin.ok) return admin.response;
   try {
-    const admin = await requireAdmin();
     const { id } = await params;
 
     const user = await db.user.findUnique({ where: { id }, select: { id: true, email: true } });
@@ -68,7 +69,6 @@ export async function DELETE(req: NextRequest, { params }: { params: Promise<{ i
 
     return NextResponse.json({ deleted: true });
   } catch (err) {
-    if (err instanceof NextResponse) return err;
     console.error('Admin delete user error:', err);
     return NextResponse.json({ error: 'Failed to delete user' }, { status: 500 });
   }

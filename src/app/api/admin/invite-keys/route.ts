@@ -9,11 +9,12 @@ function generateCode(): string {
 
 // GET /api/admin/invite-keys — list all keys
 export async function GET(req: NextRequest) {
+  const auth = await requireAdmin();
+  if (!auth.ok) return auth.response;
   try {
-    await requireAdmin();
     const url = new URL(req.url);
-    const page = Math.max(1, parseInt(url.searchParams.get('page') || '1'));
-    const limit = Math.min(100, Math.max(1, parseInt(url.searchParams.get('limit') || '25')));
+    const page = Math.max(1, parseInt(url.searchParams.get('page') || '1') || 1);
+    const limit = Math.min(100, Math.max(1, parseInt(url.searchParams.get('limit') || '25') || 25));
 
     const [keys, total] = await Promise.all([
       db.inviteKey.findMany({
@@ -27,7 +28,6 @@ export async function GET(req: NextRequest) {
 
     return NextResponse.json({ keys, total, page, limit, pages: Math.ceil(total / limit) });
   } catch (err) {
-    if (err instanceof NextResponse) return err;
     console.error('Admin invite keys list error:', err);
     return NextResponse.json({ error: 'Failed to fetch keys' }, { status: 500 });
   }
@@ -35,8 +35,9 @@ export async function GET(req: NextRequest) {
 
 // POST /api/admin/invite-keys — generate new key(s)
 export async function POST(req: NextRequest) {
+  const admin = await requireAdmin();
+  if (!admin.ok) return admin.response;
   try {
-    const admin = await requireAdmin();
     const { count = 1, maxUses = 1, expiresAt } = await req.json();
 
     const numKeys = Math.min(50, Math.max(1, parseInt(String(count)) || 1));
@@ -61,7 +62,6 @@ export async function POST(req: NextRequest) {
 
     return NextResponse.json({ keys }, { status: 201 });
   } catch (err) {
-    if (err instanceof NextResponse) return err;
     console.error('Admin generate keys error:', err);
     return NextResponse.json({ error: 'Failed to generate keys' }, { status: 500 });
   }

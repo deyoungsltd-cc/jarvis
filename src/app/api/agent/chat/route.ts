@@ -14,8 +14,9 @@ interface ChatBody {
 }
 
 export async function POST(req: Request) {
+  const auth = await requireAuth();
+  if (!auth.ok) return auth.response;
   try {
-    await requireAuth();
     // Rate limit
     if (!rateLimit(getIp(req), 10, 60_000)) {
       return NextResponse.json({ error: 'Rate limit exceeded.' }, { status: 429 });
