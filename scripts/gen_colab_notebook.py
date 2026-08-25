@@ -14,18 +14,20 @@ cell0_md = """# Qwen 27B Uncensored — Colab + Cloudflare Tunnel
 If it disconnects, re-run **Cells 4 and 5**."""
 
 cell1_code = """# Cell 1: Check GPU + Install everything
-!nvidia-smi --query-gpu=name,memory.total --format=csv,noheader
+!nvidia-smi
 
 !apt-get update -qq && apt-get install -y -qq git-lfs wget curl build-essential cmake git > /dev/null 2>&1
 !pip install -q gguf mlx-lm > /dev/null 2>&1
 !wget -q https://github.com/cloudflare/cloudflared/releases/latest/download/cloudflared-linux-amd64 -O /usr/local/bin/cloudflared && chmod +x /usr/local/bin/cloudflared
 
-import torch
-vram_gb = torch.cuda.get_device_properties(0).total_mem / 1e9
-print(f"VRAM: {vram_gb:.1f} GB")
+import subprocess
+result = subprocess.run(['nvidia-smi', '--query-gpu=memory.total', '--format=csv,noheader,nounits'], capture_output=True, text=True)
+vram_mb = int(result.stdout.strip().split('.')[0])
+vram_gb = vram_mb / 1024
+print(f'VRAM: {vram_gb:.1f} GB')
 if vram_gb < 14:
-    raise RuntimeError(f"Need 14GB+ VRAM but got {vram_gb:.1f}GB. Change runtime type to T4 GPU!")
-print("Cell 1 done - GPU OK, all deps installed")"""
+    raise RuntimeError(f'Need 14GB+ VRAM but got {vram_gb:.1f}GB. Change runtime type to T4 GPU!')
+print('Cell 1 done - GPU OK, all deps installed')"""
 
 cell2_code = """# Cell 2: Clone model + Build llama.cpp
 import os
