@@ -1,8 +1,10 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { db } from '@/lib/db';
+import { requireAuth } from '@/lib/api-auth';
 
 export async function GET(req: NextRequest) {
   try {
+    await requireAuth();
     const { searchParams } = new URL(req.url);
     const status = searchParams.get('status');
     const missionId = searchParams.get('missionId');
@@ -26,6 +28,7 @@ export async function GET(req: NextRequest) {
 
 export async function POST(req: NextRequest) {
   try {
+    await requireAuth();
     const body = await req.json();
     if (!body.missionId || !body.toolName) {
       return NextResponse.json({ error: 'missionId and toolName are required' }, { status: 400 });

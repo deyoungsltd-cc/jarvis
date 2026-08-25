@@ -16,10 +16,14 @@ export function middleware(request: NextRequest) {
   if (
     pathname.startsWith('/_next') ||
     pathname.startsWith('/favicon') ||
-    pathname.includes('.') // static files like .css, .js, .png
+    pathname.includes('.')
   ) {
     return NextResponse.next();
   }
+
+  // Admin routes: need both session AND admin role
+  // We check the session cookie exists and let the /admin page verify the role
+  // (since we can't decode JWT in edge middleware without libraries)
 
   // Check for session token in cookies
   const sessionToken = request.cookies.get('next-auth.session-token')?.value ||

@@ -60,7 +60,10 @@ async function request<T>(path: string, options?: RequestInit): Promise<T> {
 export function checkHealth(): Promise<HealthCheck> { return request('/health'); }
 
 // ─── Missions ──────────────────────────────────────────────
-export function getMissions(): Promise<Mission[]> { return request('/missions'); }
+export async function getMissions(page = 1, limit = 20): Promise<{ missions: Mission[]; total: number; pages: number }> {
+  return request(`/missions?page=${page}&limit=${limit}`);
+}
+
 export function createMission(body: CreateMissionBody): Promise<Mission> {
   return request('/missions', { method: 'POST', body: JSON.stringify(body) });
 }

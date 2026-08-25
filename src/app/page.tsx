@@ -76,13 +76,14 @@ export default function Dashboard() {
   const isExecuting = currentStatus === 'running' || false;
 
   // ─── Auth (dynamic import) ───────────────────────────────
+  const [userRole, setUserRole] = useState<string | null>(null);
   useEffect(() => {
-    import('next-auth/react').then(({ useSession }) => {
-      // We need to use the hook inside a component, so we fetch session differently
-      import('next-auth/react').then(({ getSession }) => {
-        getSession().then((s) => {
-          setSessionUser(s?.user ? { name: s.user.name, email: s.user.email, image: s.user.image } : null);
-        });
+    import('next-auth/react').then(({ getSession }) => {
+      getSession().then((s) => {
+        if (s?.user) {
+          setSessionUser({ name: s.user.name, email: s.user.email, image: s.user.image });
+          setUserRole((s.user as Record<string, unknown>).role as string | null);
+        }
       });
     });
   }, []);
@@ -139,10 +140,12 @@ export default function Dashboard() {
               <p className="text-xs text-muted-foreground truncate">{sessionUser?.email}</p>
             </div>
             <DropdownMenuSeparator />
-            <DropdownMenuItem onClick={() => window.location.href = '/register'} className="text-xs gap-2 cursor-pointer">
-              <UserIcon className="h-3.5 w-3.5" />
-              Register New Account
-            </DropdownMenuItem>
+            {userRole === 'admin' && (
+              <DropdownMenuItem onClick={() => window.location.href = '/admin'} className="text-xs gap-2 cursor-pointer">
+                <Shield className="h-3.5 w-3.5" />
+                Admin Panel
+              </DropdownMenuItem>
+            )}
             <DropdownMenuSeparator />
             <DropdownMenuItem onClick={handleSignOut} className="text-xs gap-2 text-destructive focus:text-destructive cursor-pointer">
               <LogOut className="h-3.5 w-3.5" />

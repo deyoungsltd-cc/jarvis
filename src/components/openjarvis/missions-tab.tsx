@@ -31,7 +31,7 @@ export function MissionsTab({ onSelectMission, activeMissionId }: MissionsTabPro
     setError(null);
     try {
       const data = await getMissions();
-      setMissions(data);
+      setMissions(data.missions);
     } catch (err) {
       setError(err instanceof Error ? err.message : 'Failed to fetch missions');
     } finally {

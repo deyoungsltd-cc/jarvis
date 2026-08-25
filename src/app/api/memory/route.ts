@@ -1,8 +1,10 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { db } from '@/lib/db';
+import { requireAuth, sanitize } from '@/lib/api-auth';
 
 export async function GET(req: NextRequest) {
   try {
+    await requireAuth();
     const { searchParams } = new URL(req.url);
     const scope = searchParams.get('scope');
     const missionId = searchParams.get('missionId');
@@ -31,6 +33,7 @@ export async function GET(req: NextRequest) {
 
 export async function POST(req: NextRequest) {
   try {
+    await requireAuth();
     const body = await req.json();
     if (!body.key) return NextResponse.json({ error: 'key is required' }, { status: 400 });
 

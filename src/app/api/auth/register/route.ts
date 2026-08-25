@@ -44,9 +44,28 @@ export async function POST(req: NextRequest) {
 
     const { name, email, password, inviteKey } = parsed.data;
 
-    // Verify invite key
-    const validKey = process.env.INVITE_KEY;
-    if (!validKey || inviteKey !== validKey) {
+    // Check invite key against DB first, fall back to env var
+    const dbKey = await db.inviteKey.findUnique({ where: { code: inviteKey } });
+    const envKey = process.env.INVITE_KEY;
+
+    let keyValid = false;
+    if (dbKey) {
+      // DB-based key check
+      if (!dbKey.active) {
+        return NextResponse.json({ error: 'This invite key has been deactivated' }, { status: 403 });
+      }
+      if (dbKey.expiresAt && dbKey.expiresAt < new Date()) {
+        return NextResponse.json({ error: 'This invite key has expired' }, { status: 403 });
+      }
+      if (dbKey.useCount >= dbKey.maxUses) {
+        return NextResponse.json({ error: 'This invite key has reached its usage limit' }, { status: 403 });
+      }
+      keyValid = true;
+    } else if (envKey && inviteKey === envKey) {
+      keyValid = true;
+    }
+
+    if (!keyValid) {
       return NextResponse.json({ error: 'Invalid invite key' }, { status: 403 });
     }
 
@@ -67,6 +86,14 @@ export async function POST(req: NextRequest) {
         role: 'user',
       },
     });
+
+    // Update invite key usage if it's a DB key
+    if (dbKey) {
+      await db.inviteKey.update({
+        where: { id: dbKey.id },
+        data: { useCount: { increment: 1 }, usedBy: user.id },
+      });
+    }
 
     return NextResponse.json(
       { id: user.id, name: user.name, email: user.email, role: user.role, createdAt: user.createdAt },
