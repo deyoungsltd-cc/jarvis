@@ -1,34 +1,21 @@
-# OpenJARVIS Work Log
+# Worklog
 
 ---
-Task ID: 1-18
-Agent: Main Agent
-Task: Full implementation of 22 fixes, admin panel, auth redesign, and all recommendations
+Task ID: 1
+Agent: main
+Task: Self-host Qwen3.8-27B-Uncensored via Google Colab + Cloudflare Tunnel
 
 Work Log:
-- Fixed NextAuth db import bug (missing `import { db } from '@/lib/db'` — root cause of broken registration)
-- Added frozen/sessionVersion fields to User model, created InviteKey model in Prisma schema
-- Redesigned auth flow: /login now has 3-step flow (invite key → register OR sign in)
-- /register now redirects to /login (single auth gateway)
-- Updated registration API to support DB-based invite keys with fallback to env var INVITE_KEY
-- Built complete /admin panel with Users tab (CRUD, freeze/unfreeze, search, pagination), Invite Keys tab (generate, copy, list), Audit Log tab
-- Created admin API routes: /api/admin/users, /api/admin/users/[id], /api/admin/invite-keys, /api/admin/stats
-- Created admin-auth.ts helper for role-based access control
-- Added requireAuth() guard to missions, agent/run, agent/chat, tools, memory, approvals API routes
-- Added input sanitization (XSS prevention via sanitize() helper) to mission creation
-- Replaced Socket.IO useJarvisSocket hook with clean stub (no socket.io-client dependency)
-- Provider already defaulted to 'openrouter', model already set to 70b — confirmed no changes needed
-- Skeleton loading and error boundaries already in place on all tabs
-- Added pagination to missions API response
-- Completed full import audit — all next-auth/react imports are dynamic, no SSR-crashing static imports found
-- Dead code (qwen-provider) was already removed
-- Created /api/admin/seed endpoint for one-time admin account creation
-- Created scripts/seed-admin.ts for local seeding
-- Added admin link in dashboard header dropdown (visible only for admin role)
+- Created Google Colab notebook (Qween_Colab_Setup.ipynb) with 10 cells
+- Notebook handles: deps install, repo clone, MLX→GGUF conversion, llama.cpp build, cloudflared tunnel, server start, URL display, test
+- Wired src/app/api/agent/chat/route.ts with SELF_HOSTED_BASE_URL support (streaming)
+- Wired src/app/api/agent/run/route.ts with SELF_HOSTED_BASE_URL support (agent runs)
+- Updated .env.example with self-hosted config documentation
+- Updated settings-tab.tsx to show self-hosted model info and setup guide
+- Committed and pushed to GitHub (2988fa4..4febe37)
 
 Stage Summary:
-- All 22 tasks completed
-- Login page compiles and serves 200
-- Dev server running clean with no errors
-- Admin credentials generated: admin@openjarvis.ai / gjn#KgCTqCTsaFy2
-- User needs to: push schema to Supabase (npx prisma db push), run seed endpoint, set env vars on Vercel
+- All 4 tasks complete: notebook created, JARVIS wired, .env updated, pushed to GitHub
+- Notebook at: download/Qween_Colab_Setup.ipynb
+- When SELF_HOSTED_BASE_URL is set, JARVIS bypasses OpenRouter entirely and uses the self-hosted llama.cpp endpoint
+- User needs to: open Colab, run notebook, copy URL, set as env var in Vercel
