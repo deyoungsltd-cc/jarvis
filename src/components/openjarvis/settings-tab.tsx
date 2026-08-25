@@ -97,17 +97,13 @@ export function SettingsTab({ provider, onProviderChange }: SettingsTabProps) {
           <Bot className="h-5 w-5 text-emerald-500" />
           <div>
             <p className="text-xs font-medium">Qween (Uncensored)</p>
-            <p className="text-[10px] font-mono text-muted-foreground">nousresearch/hermes-3-llama-3.1-70b</p>
+            <p className="text-[10px] font-mono text-muted-foreground">qwen3.8-27b-uncensored (self-hosted or OpenRouter)</p>
           </div>
           <span className="ml-auto text-[9px] bg-emerald-500/20 text-emerald-600 dark:text-emerald-400 px-2 py-0.5 rounded-full font-medium">ACTIVE</span>
         </div>
         <p className="text-[11px] text-muted-foreground">
-          Fully uncensored — zero guardrails, zero refusals. Costs ~$0.07/M tokens.
-          Auto-falls back to free model if no credits.
+          Fully uncensored — zero guardrails, zero refusals. Set <code className="bg-muted px-1 rounded">SELF_HOSTED_BASE_URL</code> to use your own model (free, no limits). Otherwise uses OpenRouter with auto-fallback.
         </p>
-        <a href="https://openrouter.ai/settings/credits" target="_blank" rel="noreferrer" className="text-[11px] text-primary hover:underline">
-          Add credits at openrouter.ai/settings/credits →
-        </a>
       </div>
 
       {/* ─── Theme ──────────────────────────────── */}
@@ -142,15 +138,17 @@ export function SettingsTab({ provider, onProviderChange }: SettingsTabProps) {
         <CardContent className="p-3 space-y-1.5">
           <div className="flex items-center gap-1.5 text-xs font-medium text-emerald-600 dark:text-emerald-400">
             <AlertTriangle className="h-3.5 w-3.5" />
-            Quick Setup
+            Quick Setup - Self-Hosted (Free)
           </div>
           <ol className="text-[11px] text-muted-foreground space-y-1 list-decimal list-inside">
-            <li>Get a free OpenRouter key at <a href="https://openrouter.ai/keys" target="_blank" className="underline">openrouter.ai/keys</a></li>
-            <li>Go to Vercel Dashboard &rarr; your project &rarr; Settings &rarr; Environment Variables</li>
-            <li>Add <code className="bg-muted px-1 rounded">OPENROUTER_API_KEY</code> with your key value</li>
-            <li>Redeploy. Qween chat + image generation will work immediately.</li>
-            <li>For video/voice, also add <code className="bg-muted px-1 rounded">MINIMAX_API_KEY</code> and/or <code className="bg-muted px-1 rounded">ELEVENLABS_API_KEY</code></li>
+            <li>Open the <a href="https://colab.research.google.com/" target="_blank" className="underline">Colab notebook</a> and run all cells (T4 GPU, free)</li>
+            <li>Copy the <code className="bg-muted px-1 rounded">SELF_HOSTED_BASE_URL</code> from the output</li>
+            <li>Add it to Vercel env vars (or local .env), redeploy</li>
+            <li>Qween runs on YOUR model - free, unlimited, no API key needed</li>
           </ol>
+          <p className="text-[10px] text-muted-foreground mt-1">
+            No OpenRouter key needed when self-hosted. Uses Cloudflare Tunnel.
+          </p>
         </CardContent>
       </Card>
     </div>
