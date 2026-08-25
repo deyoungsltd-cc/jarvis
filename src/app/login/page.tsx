@@ -1,7 +1,6 @@
 'use client';
 
-import { Suspense, useState } from 'react';
-import { signIn } from 'next-auth/react';
+import { Suspense, useState, useCallback } from 'react';
 import { useRouter, useSearchParams } from 'next/navigation';
 import { Bot, Mail, Lock, ArrowRight, Apple, Loader2, AlertCircle } from 'lucide-react';
 import { Button } from '@/components/ui/button';
@@ -26,6 +25,8 @@ function LoginForm() {
     setCredentialError('');
     setLoading(true);
 
+    // Dynamic import to avoid SSR crash
+    const { signIn } = await import('next-auth/react');
     const res = await signIn('credentials', {
       email,
       password,
@@ -42,11 +43,13 @@ function LoginForm() {
     }
   };
 
-  const handleGoogleLogin = () => {
+  const handleGoogleLogin = async () => {
+    const { signIn } = await import('next-auth/react');
     signIn('google', { callbackUrl });
   };
 
-  const handleAppleLogin = () => {
+  const handleAppleLogin = async () => {
+    const { signIn } = await import('next-auth/react');
     signIn('apple', { callbackUrl });
   };
 
@@ -76,7 +79,6 @@ function LoginForm() {
         <CardDescription>Choose your preferred sign-in method</CardDescription>
       </CardHeader>
       <CardContent className="space-y-4">
-        {/* OAuth Error */}
         {error && (
           <div className="flex items-center gap-2 p-3 rounded-lg bg-destructive/10 border border-destructive/20 text-destructive text-sm">
             <AlertCircle className="h-4 w-4 shrink-0" />
@@ -84,7 +86,6 @@ function LoginForm() {
           </div>
         )}
 
-        {/* OAuth Buttons */}
         {showOAuth && (
           <>
             <div className="grid gap-2">
@@ -125,7 +126,6 @@ function LoginForm() {
           </>
         )}
 
-        {/* Email/Password Form */}
         <form onSubmit={handleCredentialsSubmit} className="space-y-3">
           {credentialError && (
             <div className="flex items-center gap-2 p-3 rounded-lg bg-destructive/10 border border-destructive/20 text-destructive text-sm">
@@ -182,7 +182,7 @@ function LoginForm() {
 
         <div className="pt-2 text-center">
           <p className="text-[11px] text-muted-foreground leading-relaxed">
-            Powered by <span className="font-semibold text-foreground">Qwen3.8-27B-Uncensored</span> · Fully private local AI
+            Powered by <span className="font-semibold text-foreground">OpenJARVIS AI</span>
           </p>
         </div>
       </CardContent>
@@ -203,19 +203,17 @@ function LoginLoading() {
 export default function LoginPage() {
   return (
     <div className="min-h-screen flex items-center justify-center bg-background p-4">
-      {/* Background gradient accent */}
       <div className="fixed inset-0 pointer-events-none overflow-hidden">
         <div className="absolute -top-1/2 -left-1/2 w-full h-full rounded-full bg-emerald-500/5 blur-3xl" />
         <div className="absolute -bottom-1/2 -right-1/2 w-full h-full rounded-full bg-emerald-500/3 blur-3xl" />
       </div>
 
       <div className="relative w-full max-w-md">
-        {/* Logo + Title */}
         <div className="flex flex-col items-center mb-8">
           <div className="flex items-center justify-center w-16 h-16 rounded-2xl bg-emerald-500/10 border border-emerald-500/20 mb-4">
             <Bot className="h-8 w-8 text-emerald-500" />
           </div>
-          <h1 className="text-2xl font-bold tracking-tight">OpenJarvis</h1>
+          <h1 className="text-2xl font-bold tracking-tight">OpenJARVIS</h1>
           <p className="text-sm text-muted-foreground mt-1">Sign in to your AI agent dashboard</p>
         </div>
 
@@ -223,7 +221,6 @@ export default function LoginPage() {
           <LoginForm />
         </Suspense>
 
-        {/* Footer links */}
         <div className="flex items-center justify-center gap-3 mt-6">
           <button
             onClick={() => window.location.href = '/register'}

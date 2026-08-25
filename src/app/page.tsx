@@ -127,7 +127,7 @@ export default function Dashboard() {
       <header className="border-b border-border px-4 py-2.5 flex items-center gap-3">
         <Bot className="h-5 w-5 text-emerald-500 shrink-0" aria-hidden="true" />
         <h1 className="text-base font-semibold tracking-tight">OpenJarvis</h1>
-        <span className="text-[10px] text-muted-foreground font-mono hidden sm:inline">Qwen3.8-27B-Uncensored</span>
+        <span className="text-[10px] text-muted-foreground font-mono hidden sm:inline">OpenRouter AI</span>
         <Separator orientation="vertical" className="h-5 mx-1 hidden sm:block" />
         <WorkspaceSwitcher />
         <span className="flex-1" />
@@ -395,7 +395,7 @@ export default function Dashboard() {
       {/* Footer */}
       <footer className="border-t border-border px-4 py-2 text-xs text-muted-foreground mt-auto">
         <div className="flex items-center justify-between gap-2">
-          <span>OpenJarvis — Powered by Qwen3.8-27B-Uncensored</span>
+          <span>OpenJARVIS — Powered by OpenRouter AI</span>
           <span className="font-mono">v5.0</span>
         </div>
       </footer>

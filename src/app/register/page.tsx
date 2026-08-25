@@ -1,7 +1,6 @@
 'use client';
 
-import { useState } from 'react';
-import { signIn } from 'next-auth/react';
+import { useState, useCallback } from 'react';
 import { useRouter } from 'next/navigation';
 import { Bot, Mail, Lock, User, ArrowRight, Loader2, AlertCircle, CheckCircle2 } from 'lucide-react';
 import { Button } from '@/components/ui/button';
@@ -19,6 +18,20 @@ export default function RegisterPage() {
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState('');
   const [success, setSuccess] = useState(false);
+
+  const doSignIn = useCallback(async (emailVal: string, passwordVal: string) => {
+    // Dynamic import to avoid SSR crash from next-auth/react
+    const { signIn } = await import('next-auth/react');
+    const signInRes = await signIn('credentials', {
+      email: emailVal,
+      password: passwordVal,
+      redirect: false,
+    });
+    if (!signInRes?.error) {
+      router.push('/');
+      router.refresh();
+    }
+  }, [router]);
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -53,16 +66,8 @@ export default function RegisterPage() {
       setSuccess(true);
 
       // Auto sign in after registration
-      setTimeout(async () => {
-        const signInRes = await signIn('credentials', {
-          email,
-          password,
-          redirect: false,
-        });
-        if (!signInRes?.error) {
-          router.push('/');
-          router.refresh();
-        }
+      setTimeout(() => {
+        doSignIn(email, password);
       }, 1500);
     } catch {
       setError('Something went wrong');
@@ -82,7 +87,7 @@ export default function RegisterPage() {
             <Bot className="h-8 w-8 text-emerald-500" />
           </div>
           <h1 className="text-2xl font-bold tracking-tight">Create Account</h1>
-          <p className="text-sm text-muted-foreground mt-1">Get started with OpenJarvis</p>
+          <p className="text-sm text-muted-foreground mt-1">Get started with OpenJARVIS</p>
         </div>
 
         {success ? (
@@ -205,7 +210,7 @@ export default function RegisterPage() {
 
               <div className="pt-2 text-center">
                 <p className="text-[11px] text-muted-foreground leading-relaxed">
-                  Powered by <span className="font-semibold text-foreground">Qwen3.8-27B-Uncensored</span>
+                  Powered by <span className="font-semibold text-foreground">OpenJARVIS AI</span>
                 </p>
               </div>
             </CardContent>
