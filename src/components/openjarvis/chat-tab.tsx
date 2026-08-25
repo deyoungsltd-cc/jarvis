@@ -5,7 +5,8 @@ import { Button } from '@/components/ui/button';
 import { Textarea } from '@/components/ui/textarea';
 import { ScrollArea } from '@/components/ui/scroll-area';
 import { Avatar, AvatarFallback } from '@/components/ui/avatar';
-import { Loader2, Send, Trash2, Bot, User, AlertCircle, Settings } from 'lucide-react';
+import { Badge } from '@/components/ui/badge';
+import { Loader2, Send, Trash2, Bot, User, AlertCircle, Settings, Zap } from 'lucide-react';
 import { streamChat } from '@/lib/openjarvis-api';
 
 interface Message {
@@ -15,11 +16,19 @@ interface Message {
   timestamp: Date;
 }
 
+interface ModelInfo {
+  model: string;
+  provider: string;
+  name: string;
+  uncensored: boolean;
+}
+
 export function ChatTab() {
   const [messages, setMessages] = useState<Message[]>([]);
   const [input, setInput] = useState('');
   const [streaming, setStreaming] = useState(false);
   const [error, setError] = useState<string | null>(null);
+  const [modelInfo, setModelInfo] = useState<ModelInfo | null>(null);
   const scrollRef = useRef<HTMLDivElement>(null);
   const textareaRef = useRef<HTMLTextAreaElement>(null);
   const abortRef = useRef<AbortController | null>(null);
@@ -30,6 +39,14 @@ export function ChatTab() {
       scrollRef.current.scrollTop = scrollRef.current.scrollHeight;
     }
   }, [messages, streaming]);
+
+  // Fetch model info on mount
+  useEffect(() => {
+    fetch('/api/agent/chat')
+      .then(r => r.ok ? r.json() : null)
+      .then(setModelInfo)
+      .catch(() => {});
+  }, []);
 
   const handleSend = useCallback(async () => {
     const text = input.trim();
@@ -128,16 +145,27 @@ export function ChatTab() {
         <div className="flex flex-col gap-4 p-1 min-h-full">
           {messages.length === 0 && (
             <div className="flex flex-col items-center justify-center h-full min-h-[200px] gap-3 text-muted-foreground">
-              <Bot className="h-10 w-10 opacity-30" />
-              <p className="text-sm">Start a conversation with JARVIS</p>
-              <p className="text-xs opacity-60">Uncensored AI — no guardrails, no refusals</p>
+              <div className="relative">
+                <Bot className="h-12 w-12 opacity-40" />
+                <Zap className="h-4 w-4 absolute -top-1 -right-1 text-emerald-500" />
+              </div>
+              <p className="text-sm font-medium">Qween — Uncensored AI</p>
+              {modelInfo && (
+                <div className="flex flex-col items-center gap-1">
+                  <Badge variant="outline" className="text-[10px] font-mono gap-1">
+                    <Zap className="h-2.5 w-2.5 text-emerald-500" />
+                    {modelInfo.model}
+                  </Badge>
+                  <p className="text-[10px] opacity-50">Zero guardrails · Zero refusals · Fully unrestricted</p>
+                </div>
+              )}
             </div>
           )}
           {messages.map((msg) => (
             <div key={msg.id} className={`flex gap-3 ${msg.role === 'user' ? 'justify-end' : ''}`}>
               {msg.role === 'assistant' && (
                 <Avatar className="h-7 w-7 shrink-0 mt-1">
-                  <AvatarFallback className="bg-emerald-500/20 text-emerald-600 dark:text-emerald-400 text-xs">J</AvatarFallback>
+                  <AvatarFallback className="bg-emerald-500/20 text-emerald-600 dark:text-emerald-400 text-xs font-bold">Q</AvatarFallback>
                 </Avatar>
               )}
               <div className={`max-w-[80%] rounded-xl px-3 py-2 text-sm ${
@@ -157,7 +185,7 @@ export function ChatTab() {
           {streaming && messages[messages.length - 1]?.content === '' && (
             <div className="flex gap-3">
               <Avatar className="h-7 w-7 shrink-0">
-                <AvatarFallback className="bg-emerald-500/20 text-emerald-600 dark:text-emerald-400 text-xs">J</AvatarFallback>
+                <AvatarFallback className="bg-emerald-500/20 text-emerald-600 dark:text-emerald-400 text-xs font-bold">Q</AvatarFallback>
               </Avatar>
               <div className="bg-muted border border-border rounded-xl px-3 py-2">
                 <Loader2 className="h-4 w-4 animate-spin text-muted-foreground" />
@@ -180,7 +208,7 @@ export function ChatTab() {
             value={input}
             onChange={(e) => setInput(e.target.value)}
             onKeyDown={handleKeyDown}
-            placeholder="Ask JARVIS anything..."
+            placeholder="Ask Qween anything..."
             className="min-h-[44px] max-h-[120px] pr-12 resize-none text-sm"
             rows={1}
             disabled={streaming}
@@ -194,6 +222,14 @@ export function ChatTab() {
           <Button size="icon" className="h-9 w-9 shrink-0" onClick={handleSend} disabled={!input.trim()} title="Send">
             <Send className="h-4 w-4" />
           </Button>
+        )}
+      </div>
+      <div className="flex items-center justify-center gap-2">
+        {modelInfo && (
+          <Badge variant="secondary" className="text-[9px] font-mono gap-1 h-5">
+            <Zap className="h-2.5 w-2.5 text-emerald-500" />
+            {modelInfo.name} · {modelInfo.uncensored ? 'Uncensored' : 'Filtered'}
+          </Badge>
         )}
       </div>
       <p className="text-[10px] text-muted-foreground text-center">Enter to send · Shift+Enter for newline</p>

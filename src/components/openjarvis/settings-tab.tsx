@@ -4,10 +4,7 @@ import { useTheme } from 'next-themes';
 import { Label } from '@/components/ui/label';
 import { Input } from '@/components/ui/input';
 import { Card, CardContent } from '@/components/ui/card';
-import {
-  Select, SelectContent, SelectItem, SelectTrigger, SelectValue,
-} from '@/components/ui/select';
-import { Moon, Sun, Monitor, Key, Bot, Image, Video, Mic, ExternalLink, AlertTriangle } from 'lucide-react';
+import { Moon, Sun, Monitor, Key, Bot, Video, Mic, ExternalLink, AlertTriangle } from 'lucide-react';
 import { useSyncExternalStore } from 'react';
 
 interface SettingsTabProps {
@@ -18,8 +15,8 @@ interface SettingsTabProps {
 const API_KEYS = [
   {
     key: 'OPENROUTER_API_KEY',
-    label: 'OpenRouter API Key',
-    description: 'Uncensored AI chat + image generation (Flux, SDXL)',
+    label: 'OpenRouter API Key (Qween)',
+    description: 'Uncensored AI chat (Qween/Hermes 3) + image generation (Flux, SDXL)',
     icon: Bot,
     color: 'text-emerald-500',
     url: 'https://openrouter.ai/keys',
@@ -95,17 +92,17 @@ export function SettingsTab({ provider, onProviderChange }: SettingsTabProps) {
 
       {/* ─── Model Provider ──────────────────────────── */}
       <div className="flex flex-col gap-2">
-        <Label htmlFor="provider-select" className="text-sm font-medium">Model Provider</Label>
-        <Select value={provider} onValueChange={onProviderChange}>
-          <SelectTrigger id="provider-select" className="w-full">
-            <SelectValue placeholder="Select provider" />
-          </SelectTrigger>
-          <SelectContent>
-            <SelectItem value="openrouter">OpenRouter (Uncensored)</SelectItem>
-          </SelectContent>
-        </Select>
+        <Label htmlFor="provider-select" className="text-sm font-medium">AI Model</Label>
+        <div className="flex items-center gap-2 p-3 rounded-lg border border-emerald-500/30 bg-emerald-500/5">
+          <Bot className="h-5 w-5 text-emerald-500" />
+          <div>
+            <p className="text-xs font-medium">Qween (Uncensored)</p>
+            <p className="text-[10px] font-mono text-muted-foreground">nousresearch/hermes-3-llama-3.1-70b:free</p>
+          </div>
+          <span className="ml-auto text-[9px] bg-emerald-500/20 text-emerald-600 dark:text-emerald-400 px-2 py-0.5 rounded-full font-medium">ACTIVE</span>
+        </div>
         <p className="text-[11px] text-muted-foreground">
-          Default: <span className="font-mono">nousresearch/hermes-3-llama-3.1-70b:free</span>
+          Fully uncensored — zero guardrails, zero refusals. Override with <code className="bg-muted px-1 rounded">OPENROUTER_MODEL</code> env var.
         </p>
       </div>
 
@@ -147,8 +144,8 @@ export function SettingsTab({ provider, onProviderChange }: SettingsTabProps) {
             <li>Get a free OpenRouter key at <a href="https://openrouter.ai/keys" target="_blank" className="underline">openrouter.ai/keys</a></li>
             <li>Go to Vercel Dashboard &rarr; your project &rarr; Settings &rarr; Environment Variables</li>
             <li>Add <code className="bg-muted px-1 rounded">OPENROUTER_API_KEY</code> with your key value</li>
-            <li>Redeploy. Chat + image generation will work immediately.</li>
-            <li>For video/voice, also add MINIMAX_API_KEY and/or ELEVENLABS_API_KEY</li>
+            <li>Redeploy. Qween chat + image generation will work immediately.</li>
+            <li>For video/voice, also add <code className="bg-muted px-1 rounded">MINIMAX_API_KEY</code> and/or <code className="bg-muted px-1 rounded">ELEVENLABS_API_KEY</code></li>
           </ol>
         </CardContent>
       </Card>

@@ -131,8 +131,8 @@ export class OpenRouterProvider implements ModelProvider {
   }
 }
 
-export function createOpenRouterProvider(): OpenRouterProvider {
+export function createOpenRouterProvider(modelName?: string): OpenRouterProvider {
   const key = process.env.OPENROUTER_API_KEY;
   if (!key) throw new Error('OPENROUTER_API_KEY is not set');
-  return new OpenRouterProvider(key);
+  return new OpenRouterProvider(key, modelName);
 }
