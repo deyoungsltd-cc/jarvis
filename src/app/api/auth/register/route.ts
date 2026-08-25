@@ -44,8 +44,10 @@ export async function POST(req: NextRequest) {
 
     const { name, email, password, inviteKey } = parsed.data;
 
-    // Check invite key against DB first, fall back to env var
-    const dbKey = await db.inviteKey.findUnique({ where: { code: inviteKey } });
+    // Case-insensitive key lookup — PostgreSQL is case-sensitive by default
+    const dbKey = await db.inviteKey.findFirst({
+      where: { code: { equals: inviteKey.trim(), mode: 'insensitive' } },
+    });
     const envKey = process.env.INVITE_KEY;
 
     let keyValid = false;
@@ -101,6 +103,6 @@ export async function POST(req: NextRequest) {
     );
   } catch (error) {
     console.error('Registration error:', error);
-    return NextResponse.json({ error: 'Registration failed' }, { status: 500 });
+    return NextResponse.json({ error: 'Registration failed. Is DATABASE_URL configured?' }, { status: 500 });
   }
 }

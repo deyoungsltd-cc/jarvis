@@ -98,13 +98,17 @@ function AuthForm() {
         body: JSON.stringify({ inviteKey: inviteKey.trim() }),
       });
       if (res.status === 403) {
-        const data = await res.json();
-        setKeyError(data.error || 'Invalid invite key');
+        try {
+          const data = await res.json();
+          setKeyError(data.error || 'Invalid invite key');
+        } catch { setKeyError('Invalid invite key'); }
         setKeyLoading(false);
         return;
       }
       if (!res.ok) {
-        setKeyError('Failed to validate key. Try again.');
+        let msg = 'Failed to validate key';
+        try { const d = await res.json(); msg = d.error || msg; } catch {}
+        setKeyError(msg);
         setKeyLoading(false);
         return;
       }

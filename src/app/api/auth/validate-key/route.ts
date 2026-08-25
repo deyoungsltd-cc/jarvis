@@ -8,8 +8,12 @@ export async function POST(req: NextRequest) {
       return NextResponse.json({ error: 'Invite key is required' }, { status: 400 });
     }
 
-    // Check DB invite key
-    const dbKey = await db.inviteKey.findUnique({ where: { code: inviteKey.trim() } });
+    const code = inviteKey.trim();
+
+    // Case-insensitive lookup — PostgreSQL is case-sensitive by default
+    const dbKey = await db.inviteKey.findFirst({
+      where: { code: { equals: code, mode: 'insensitive' } },
+    });
 
     if (dbKey) {
       if (!dbKey.active) {
@@ -24,15 +28,15 @@ export async function POST(req: NextRequest) {
       return NextResponse.json({ valid: true });
     }
 
-    // Fallback: check env var
+    // Fallback: check env var (case-sensitive for env)
     const envKey = process.env.INVITE_KEY;
-    if (envKey && inviteKey.trim() === envKey) {
+    if (envKey && code === envKey) {
       return NextResponse.json({ valid: true });
     }
 
     return NextResponse.json({ error: 'Invalid invite key' }, { status: 403 });
   } catch (error) {
     console.error('Key validation error:', error);
-    return NextResponse.json({ error: 'Key validation failed' }, { status: 500 });
+    return NextResponse.json({ error: 'Key validation failed. Is DATABASE_URL configured?' }, { status: 500 });
   }
 }
