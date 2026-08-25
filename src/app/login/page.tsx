@@ -84,7 +84,7 @@ function AuthForm() {
     }
   };
 
-  // Step 1: Validate invite key
+  // Step 1: Validate invite key (non-destructive — uses dedicated endpoint)
   const handleKeySubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     setKeyError('');
@@ -92,23 +92,25 @@ function AuthForm() {
 
     setKeyLoading(true);
     try {
-      const res = await fetch('/api/auth/register', {
+      const res = await fetch('/api/auth/validate-key', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ inviteKey, email: '_validate_only@check.com', password: 'aaaaaaaa', confirmPassword: 'aaaaaaaa' }),
+        body: JSON.stringify({ inviteKey: inviteKey.trim() }),
       });
-      // If 403 = invalid key, 409 = key valid but email taken (meaning key works)
-      // We just want to know if the key is valid
       if (res.status === 403) {
-        setKeyError('Invalid invite key');
+        const data = await res.json();
+        setKeyError(data.error || 'Invalid invite key');
         setKeyLoading(false);
         return;
       }
-      // Any other response means the key is valid (even 400 validation errors on the dummy data)
+      if (!res.ok) {
+        setKeyError('Failed to validate key. Try again.');
+        setKeyLoading(false);
+        return;
+      }
       setStep('register');
     } catch {
-      // Network error - assume key might be valid, let them try
-      setStep('register');
+      setKeyError('Network error. Check your connection.');
     }
     setKeyLoading(false);
   };
