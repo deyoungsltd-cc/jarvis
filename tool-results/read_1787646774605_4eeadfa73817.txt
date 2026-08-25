@@ -1,0 +1,948 @@
+     1→/**
+     2→ * Phase 16 — Service Manager
+     3→ *
+     4→ * JARVIS-managed lifecycle for all deployed Docker services.
+     5→ * Every deploy, update, backup, health check, and rollback goes through
+     6→ * the same audit trail and authorization model as every other tool.
+     7→ *
+     8→ * Risk tiering:
+     9→ *   - Routine (health checks, scheduled backups): always-allow via standing grant
+    10→ *   - Destructive (volume deletion, force-recreate with data loss): ALWAYS requires live approval,
+    11→ *     no "always allow" override available
+    12→ */
+    13→import { execSync, exec as execAsync, type ExecOptions } from 'child_process';
+    14→import { existsSync, mkdirSync, statSync, readdirSync, copyFileSync, createReadStream, createWriteStream } from 'fs';
+    15→import { join, resolve, dirname, basename } from 'path';
+    16→import { db } from '../utils/db.js';
+    17→import { logger } from '../utils/logger.js';
+    18→import { eventBus } from '../utils/eventBus.js';
+    19→import { missionEventService } from './missionEventService.js';
+    20→import { SERVICE_CATALOG, getResourceSummary, type ServiceDefinition } from './serviceCatalog.js';
+    21→
+    22→// =============================================================
+    23→// Types
+    24→// =============================================================
+    25→
+    26→export type ServiceStatus = 'not_deployed' | 'deploying' | 'running' | 'stopped' | 'updating' | 'error' | 'rollback';
+    27→export type HealthStatus = 'unknown' | 'healthy' | 'unhealthy' | 'degraded';
+    28→
+    29→export interface ServicePublic {
+    30→  id: string;
+    31→  name: string;
+    32→  displayName: string;
+    33→  group: string;
+    34→  hostname?: string;
+    35→  status: string;
+    36→  healthStatus: string;
+    37→  resourceWeight: string;
+    38→  ramEstimateMB: number;
+    39→  diskEstimateGB: number;
+    40→  port?: number;
+    41→  imageTag: string;
+    42→  deployedImageTag?: string;
+    43→  rollbackImageTag?: string;
+    44→  mobileApp?: string;
+    45→  mobileAppNote?: string;
+    46→  error?: string;
+    47→  lastHealthCheck?: string;
+    48→  lastDeployedAt?: string;
+    49→  lastUpdatedAt?: string;
+    50→  enabled: boolean;
+    51→  createdAt: string;
+    52→  updatedAt: string;
+    53→}
+    54→
+    55→export interface BackupPublic {
+    56→  id: string;
+    57→  serviceInstanceId: string;
+    58→  serviceName: string;
+    59→  filename: string;
+    60→  filePath: string;
+    61→  sizeBytes: number;
+    62→  scheduleType: string;
+    63→  storageLocation: string;
+    64→  storageTarget?: string;
+    65→  verified: boolean;
+    66→  restoredFrom: boolean;
+    67→  createdAt: string;
+    68→}
+    69→
+    70→export interface DeployOptions {
+    71→  missionId?: string;
+    72→  requestId?: string;
+    73→}
+    74→
+    75→export interface UpdateOptions extends DeployOptions {
+    76→  newImageTag?: string;
+    77→}
+    78→
+    79→export interface BackupOptions {
+    80→  missionId?: string;
+    81→  requestId?: string;
+    82→  scheduleType?: 'manual' | 'daily' | 'weekly';
+    83→}
+    84→
+    85→// =============================================================
+    86→// Docker compose base directory
+    87→// =============================================================
+    88→
+    89→const COMPOSE_DIR = resolve(process.env.COMPOSE_DIR || './compose');
+    90→const BACKUP_DIR = resolve(process.env.BACKUP_DIR || './backups');
+    91→const DOCKER_COMPOSE_CMD = process.env.DOCKER_COMPOSE_CMD || 'docker compose';
+    92→
+    93→// =============================================================
+    94→// Service Manager
+    95→// =============================================================
+    96→
+    97→export const serviceManager = {
+    98→  // =================================================================
+    99→  // Seed — populate DB from catalog on first run
+   100→  // =================================================================
+   101→
+   102→  async seed(requestId: string = '-') {
+   103→    let seeded = 0;
+   104→    for (const def of SERVICE_CATALOG) {
+   105→      const existing = await db.serviceInstance.findUnique({ where: { name: def.name } });
+   106→      if (!existing) {
+   107→        await db.serviceInstance.create({
+   108→          data: {
+   109→            name: def.name,
+   110→            displayName: def.displayName,
+   111→            group: def.group,
+   112→            repoUrl: def.repoUrl,
+   113→            replaces: def.replaces,
+   114→            hostname: def.hostname,
+   115→            composePath: join(COMPOSE_DIR, `group-${def.group.toLowerCase()}.yml`),
+   116→            serviceName: def.serviceName,
+   117→            imageTag: def.imageTag,
+   118→            healthUrl: def.healthUrl || null,
+   119→            resourceWeight: def.resourceWeight,
+   120→            port: def.port,
+   121→            mobileApp: def.mobileApp || null,
+   122→            mobileAppNote: def.mobileAppNote || null,
+   123→          },
+   124→        });
+   125→        seeded++;
+   126→      }
+   127→    }
+   128→
+   129→    if (seeded > 0) {
+   130→      logger.info(requestId, `Seeded ${seeded} service definitions into registry`);
+   131→    }
+   132→
+   133→    return { total: SERVICE_CATALOG.length, seeded };
+   134→  },
+   135→
+   136→  // =================================================================
+   137→  // List / Get
+   138→  // =================================================================
+   139→
+   140→  async list(filters?: { group?: string; status?: string; enabled?: boolean }, requestId: string = '-') {
+   141→    const where: Record<string, unknown> = {};
+   142→    if (filters?.group) where.group = filters.group;
+   143→    if (filters?.status) where.status = filters.status;
+   144→    if (filters?.enabled !== undefined) where.enabled = filters.enabled;
+   145→
+   146→    const instances = await db.serviceInstance.findMany({
+   147→      where,
+   148→      orderBy: [{ group: 'asc' }, { name: 'asc' }],
+   149→    });
+   150→
+   151→    return instances.map(this._toPublic);
+   152→  },
+   153→
+   154→  async getByName(name: string, requestId: string = '-') {
+   155→    const instance = await db.serviceInstance.findUnique({ where: { name } });
+   156→    if (!instance) throw new Error(`Service '${name}' not found in registry`);
+   157→    return this._toPublic(instance);
+   158→  },
+   159→
+   160→  async getById(id: string, requestId: string = '-') {
+   161→    const instance = await db.serviceInstance.findUnique({ where: { id } });
+   162→    if (!instance) throw new Error(`Service instance ${id} not found`);
+   163→    return this._toPublic(instance);
+   164→  },
+   165→
+   166→  // =================================================================
+   167→  // Deploy
+   168→  // =================================================================
+   169→
+   170→  /**
+   171→   * Deploy a service by name.
+   172→   * Creates a mission event for audit trail.
+   173→   * Runs docker compose up -d for the service's group.
+   174→   */
+   175→  async deploy(serviceName: string, options: DeployOptions = {}): Promise<ServicePublic> {
+   176→    const { missionId, requestId = '-' } = options;
+   177→    const instance = await db.serviceInstance.findUnique({ where: { name: serviceName } });
+   178→    if (!instance) throw new Error(`Service '${serviceName}' not found in registry`);
+   179→
+   180→    const composePath = instance.composePath;
+   181→    if (!existsSync(composePath)) {
+   182→      throw new Error(`Compose file not found: ${composePath}. Generate compose files first.`);
+   183→    }
+   184→
+   185→    // Update status to deploying
+   186→    await db.serviceInstance.update({
+   187→      where: { id: instance.id },
+   188→      data: { status: 'deploying', error: null },
+   189→    });
+   190→
+   191→    // Log mission event
+   192→    if (missionId) {
+   193→      await missionEventService.create({
+   194→        missionId,
+   195→        type: 'tool_execute',
+   196→        payload: { tool: 'deploy_service', service: serviceName, action: 'deploy' },
+   197→      }, requestId);
+   198→    }
+   199→
+   200→    try {
+   201→      // Save current image tag for potential rollback
+   202→      const currentTag = instance.deployedImageTag;
+   203→
+   204→      // Execute: docker compose -f <path> up -d <service_name>
+   205→      const cmd = `${DOCKER_COMPOSE_CMD} -f "${composePath}" up -d ${instance.serviceName}`;
+   206→      logger.info(requestId, `Deploying service '${serviceName}': ${cmd}`);
+   207→
+   208→      const output = this._execDocker(cmd, requestId);
+   209→
+   210→      // Update status
+   211→      const updated = await db.serviceInstance.update({
+   212→        where: { id: instance.id },
+   213→        data: {
+   214→          status: 'running',
+   215→          deployedImageTag: instance.imageTag,
+   216→          rollbackImageTag: currentTag || null,
+   217→          lastDeployedAt: new Date(),
+   218→          error: null,
+   219→        },
+   220→      });
+   221→
+   222→      logger.info(requestId, `Service '${serviceName}' deployed successfully`);
+   223→      eventBus.emit('service:status_changed', {
+   224→        serviceId: instance.id,
+   225→        name: serviceName,
+   226→        status: 'running',
+   227→        previousStatus: 'deploying',
+   228→      });
+   229→
+   230→      if (missionId) {
+   231→        await missionEventService.create({
+   232→          missionId,
+   233→          type: 'tool_execute',
+   234→          payload: { tool: 'deploy_service', service: serviceName, action: 'deploy', result: 'success', output: output.substring(0, 500) },
+   235→        }, requestId);
+   236→      }
+   237→
+   238→      return this._toPublic(updated);
+   239→    } catch (err: any) {
+   240→      const errorMsg = String(err.message || err);
+   241→      await db.serviceInstance.update({
+   242→        where: { id: instance.id },
+   243→        data: { status: 'error', error: errorMsg },
+   244→      });
+   245→
+   246→      logger.error(requestId, `Deploy failed for '${serviceName}': ${errorMsg}`);
+   247→
+   248→      if (missionId) {
+   249→        await missionEventService.create({
+   250→          missionId,
+   251→          type: 'error',
+   252→          payload: { tool: 'deploy_service', service: serviceName, action: 'deploy', result: 'failed', error: errorMsg },
+   253→        }, requestId);
+   254→      }
+   255→
+   256→      throw new Error(`Deploy failed for '${serviceName}': ${errorMsg}`);
+   257→    }
+   258→  },
+   259→
+   260→  // =================================================================
+   261→  // Update (staged)
+   262→  // =================================================================
+   263→
+   264→  /**
+   265→   * Staged update flow:
+   266→   * 1. Pull new image
+   267→   * 2. Health-check the staged image
+   268→   * 3. Apply (restart with new image)
+   269→   * 4. Re-verify health
+   270→   * 5. Rollback automatically on failed re-verification
+   271→   */
+   272→  async update(serviceName: string, options: UpdateOptions = {}): Promise<ServicePublic> {
+   273→    const { missionId, requestId = '-', newImageTag } = options;
+   274→    const instance = await db.serviceInstance.findUnique({ where: { name: serviceName } });
+   275→    if (!instance) throw new Error(`Service '${serviceName}' not found in registry`);
+   276→
+   277→    if (instance.status !== 'running') {
+   278→      throw new Error(`Cannot update service '${serviceName}' — current status is '${instance.status}', expected 'running'`);
+   279→    }
+   280→
+   281→    const targetImage = newImageTag || instance.imageTag;
+   282→    const composePath = instance.composePath;
+   283→
+   284→    // Save rollback point
+   285→    const previousImageTag = instance.deployedImageTag || instance.imageTag;
+   286→
+   287→    await db.serviceInstance.update({
+   288→      where: { id: instance.id },
+   289→      data: { status: 'updating', error: null },
+   290→    });
+   291→
+   292→    if (missionId) {
+   293→      await missionEventService.create({
+   294→        missionId,
+   295→        type: 'tool_execute',
+   296→        payload: { tool: 'update_service', service: serviceName, targetImage, previousImageTag },
+   297→      }, requestId);
+   298→    }
+   299→
+   300→    try {
+   301→      // Step 1: Pull the new image
+   302→      logger.info(requestId, `Updating '${serviceName}': pulling ${targetImage}`);
+   303→      this._execDocker(`docker pull ${targetImage}`, requestId);
+   304→
+   305→      // Step 2: Update the image tag in the compose file and recreate
+   306→      // (In production, this would patch the compose file; here we use docker compose up with the new image)
+   307→      logger.info(requestId, `Updating '${serviceName}': recreating container with new image`);
+   308→      this._execDocker(`${DOCKER_COMPOSE_CMD} -f "${composePath}" up -d --force-recreate ${instance.serviceName}`, requestId);
+   309→
+   310→      // Step 3: Wait for health check
+   311→      const healthResult = await this._waitForHealth(instance, 60000, requestId);
+   312→
+   313→      if (!healthResult.healthy) {
+   314→        // Step 5: Automatic rollback on failed health
+   315→        logger.warn(requestId, `Update health check failed for '${serviceName}', rolling back to ${previousImageTag}`);
+   316→        return this._rollbackTo(instance, previousImageTag, missionId, requestId);
+   317→      }
+   318→
+   319→      // Step 4: Re-verify — second health check after brief settle
+   320→      await new Promise(r => setTimeout(r, 5000));
+   321→      const reVerify = await this._waitForHealth(instance, 30000, requestId);
+   322→
+   323→      if (!reVerify.healthy) {
+   324→        logger.warn(requestId, `Re-verification failed for '${serviceName}', rolling back`);
+   325→        return this._rollbackTo(instance, previousImageTag, missionId, requestId);
+   326→      }
+   327→
+   328→      // Success — update DB
+   329→      const updated = await db.serviceInstance.update({
+   330→        where: { id: instance.id },
+   331→        data: {
+   332→          status: 'running',
+   333→          deployedImageTag: targetImage,
+   334→          rollbackImageTag: previousImageTag,
+   335→          lastUpdatedAt: new Date(),
+   336→          healthStatus: 'healthy',
+   337→          lastHealthCheck: new Date(),
+   338→          error: null,
+   339→        },
+   340→      });
+   341→
+   342→      logger.info(requestId, `Service '${serviceName}' updated to ${targetImage} successfully`);
+   343→      eventBus.emit('service:status_changed', {
+   344→        serviceId: instance.id, name: serviceName, status: 'running', previousStatus: 'updating',
+   345→      });
+   346→
+   347→      if (missionId) {
+   348→        await missionEventService.create({
+   349→          missionId, type: 'tool_execute',
+   350→          payload: { tool: 'update_service', service: serviceName, result: 'success', newImage: targetImage },
+   351→        }, requestId);
+   352→      }
+   353→
+   354→      return this._toPublic(updated);
+   355→    } catch (err: any) {
+   356→      const errorMsg = String(err.message || err);
+   357→
+   358→      // Attempt rollback on any error
+   359→      try {
+   360→        logger.warn(requestId, `Update error for '${serviceName}', attempting rollback: ${errorMsg}`);
+   361→        return await this._rollbackTo(instance, previousImageTag, missionId, requestId);
+   362→      } catch (rollbackErr: any) {
+   363→        await db.serviceInstance.update({
+   364→          where: { id: instance.id },
+   365→          data: { status: 'error', error: `Update failed: ${errorMsg}. Rollback also failed: ${rollbackErr.message}` },
+   366→        });
+   367→        throw new Error(`Update and rollback both failed for '${serviceName}'`);
+   368→      }
+   369→    }
+   370→  },
+   371→
+   372→  // =================================================================
+   373→  // Restart
+   374→  // =================================================================
+   375→
+   376→  async restart(serviceName: string, options: DeployOptions = {}): Promise<ServicePublic> {
+   377→    const { missionId, requestId = '-' } = options;
+   378→    const instance = await db.serviceInstance.findUnique({ where: { name: serviceName } });
+   379→    if (!instance) throw new Error(`Service '${serviceName}' not found in registry`);
+   380→
+   381→    const composePath = instance.composePath;
+   382→
+   383→    if (missionId) {
+   384→      await missionEventService.create({
+   385→        missionId, type: 'tool_execute',
+   386→        payload: { tool: 'restart_service', service: serviceName },
+   387→      }, requestId);
+   388→    }
+   389→
+   390→    try {
+   391→      logger.info(requestId, `Restarting service '${serviceName}'`);
+   392→      this._execDocker(`${DOCKER_COMPOSE_CMD} -f "${composePath}" restart ${instance.serviceName}`, requestId);
+   393→
+   394→      const healthResult = await this._waitForHealth(instance, 60000, requestId);
+   395→
+   396→      const updated = await db.serviceInstance.update({
+   397→        where: { id: instance.id },
+   398→        data: {
+   399→          status: healthResult.healthy ? 'running' : 'degraded',
+   400→          healthStatus: healthResult.healthy ? 'healthy' : 'degraded',
+   401→          lastHealthCheck: new Date(),
+   402→          error: healthResult.healthy ? null : 'Health check failed after restart',
+   403→        },
+   404→      });
+   405→
+   406→      logger.info(requestId, `Service '${serviceName}' restarted (health: ${updated.healthStatus})`);
+   407→      return this._toPublic(updated);
+   408→    } catch (err: any) {
+   409→      await db.serviceInstance.update({
+   410→        where: { id: instance.id },
+   411→        data: { status: 'error', error: String(err.message || err) },
+   412→      });
+   413→      throw new Error(`Restart failed for '${serviceName}': ${err.message}`);
+   414→    }
+   415→  },
+   416→
+   417→  // =================================================================
+   418→  // Health Check
+   419→  // =================================================================
+   420→
+   421→  async checkHealth(serviceName: string, requestId: string = '-'): Promise<{
+   422→    service: string;
+   423→    healthy: boolean;
+   424→    status: string;
+   425→    responseTimeMs: number;
+   426→    error?: string;
+   427→  }> {
+   428→    const instance = await db.serviceInstance.findUnique({ where: { name: serviceName } });
+   429→    if (!instance) throw new Error(`Service '${serviceName}' not found in registry`);
+   430→
+   431→    const result = await this._performHealthCheck(instance, requestId);
+   432→
+   433→    await db.serviceInstance.update({
+   434→      where: { id: instance.id },
+   435→      data: {
+   436→        healthStatus: result.healthy ? 'healthy' : 'unhealthy',
+   437→        lastHealthCheck: new Date(),
+   438→      },
+   439→    });
+   440→
+   441→    return result;
+   442→  },
+   443→
+   444→  /** Check health of all services — used by scheduled health monitoring */
+   445→  async checkAllHealth(requestId: string = '-') {
+   446→    const instances = await db.serviceInstance.findMany({
+   447→      where: { status: 'running', enabled: true },
+   448→    });
+   449→
+   450→    const results: Array<{
+   451→      service: string;
+   452→      healthy: boolean;
+   453→      status: string;
+   454→      responseTimeMs: number;
+   455→      error?: string;
+   456→    }> = [];
+   457→
+   458→    for (const instance of instances) {
+   459→      const result = await this._performHealthCheck(instance, requestId);
+   460→      results.push(result);
+   461→
+   462→      await db.serviceInstance.update({
+   463→        where: { id: instance.id },
+   464→        data: {
+   465→          healthStatus: result.healthy ? 'healthy' : 'unhealthy',
+   466→          lastHealthCheck: new Date(),
+   467→        },
+   468→      });
+   469→    }
+   470→
+   471→    // Emit unhealthy services as events for dashboard
+   472→    const unhealthy = results.filter(r => !r.healthy);
+   473→    if (unhealthy.length > 0) {
+   474→      eventBus.emit('service:health_alert', {
+   475→        unhealthyServices: unhealthy.map(r => ({ service: r.service, error: r.error })),
+   476→        timestamp: new Date().toISOString(),
+   477→      });
+   478→    }
+   479→
+   480→    return { total: results.length, healthy: results.filter(r => r.healthy).length, unhealthy, checkedAt: new Date().toISOString() };
+   481→  },
+   482→
+   483→  // =================================================================
+   484→  // Backup
+   485→  // =================================================================
+   486→
+   487→  async backup(serviceName: string, options: BackupOptions = {}): Promise<BackupPublic> {
+   488→    const { missionId, requestId = '-', scheduleType = 'manual' } = options;
+   489→    const instance = await db.serviceInstance.findUnique({ where: { name: serviceName } });
+   490→    if (!instance) throw new Error(`Service '${serviceName}' not found in registry`);
+   491→
+   492→    const def = SERVICE_CATALOG.find(s => s.name === serviceName);
+   493→    if (!def || def.backupVolumes.length === 0) {
+   494→      throw new Error(`Service '${serviceName}' has no backupable volumes`);
+   495→    }
+   496→
+   497→    if (missionId) {
+   498→      await missionEventService.create({
+   499→        missionId, type: 'tool_execute',
+   500→        payload: { tool: 'backup_service', service: serviceName, scheduleType, volumes: def.backupVolumes },
+   501→      }, requestId);
+   502→    }
+   503→
+   504→    // Ensure backup directory exists
+   505→    const serviceBackupDir = join(BACKUP_DIR, serviceName);
+   506→    mkdirSync(serviceBackupDir, { recursive: true });
+   507→
+   508→    const timestamp = new Date().toISOString().replace(/[:.]/g, '-');
+   509→    const filename = `${serviceName}_${timestamp}.tar.gz`;
+   510→    const filePath = join(serviceBackupDir, filename);
+   511→
+   512→    try {
+   513→      // Use docker to create a tar archive of all volumes
+   514→      // Build volume arguments
+   515→      const volumeArgs = def.backupVolumes.map(v => `-v ${v}:/backup_volumes/${v}`).join(' ');
+   516→
+   517→      // Create temporary container to archive volumes
+   518→      const archiveCmd = `docker run --rm \
+   519→        -v "${serviceBackupDir}:/output" \
+   520→        ${volumeArgs} \
+   521→        alpine:3.19 sh -c "cd /backup_volumes && tar czf /output/${filename} ."`;
+   522→
+   523→      logger.info(requestId, `Backing up '${serviceName}' volumes: ${def.backupVolumes.join(', ')}`);
+   524→      this._execDocker(archiveCmd, requestId, 120000);
+   525→
+   526→      // Get file size
+   527→      const sizeBytes = existsSync(filePath) ? statSync(filePath).size : 0;
+   528→
+   529→      const backup = await db.serviceBackup.create({
+   530→        data: {
+   531→          serviceInstanceId: instance.id,
+   532→          filename,
+   533→          filePath,
+   534→          sizeBytes,
+   535→          scheduleType,
+   536→          storageLocation: 'local',
+   537→          serviceStatusAtBackup: instance.status,
+   538→        },
+   539→      });
+   540→
+   541→      logger.info(requestId, `Backup created for '${serviceName}': ${filename} (${(sizeBytes / 1024 / 1024).toFixed(2)} MB)`);
+   542→
+   543→      if (missionId) {
+   544→        await missionEventService.create({
+   545→          missionId, type: 'tool_execute',
+   546→          payload: { tool: 'backup_service', service: serviceName, result: 'success', filename, sizeBytes },
+   547→        }, requestId);
+   548→      }
+   549→
+   550→      return this._backupToPublic(backup, serviceName);
+   551→    } catch (err: any) {
+   552→      const errorMsg = String(err.message || err);
+   553→      logger.error(requestId, `Backup failed for '${serviceName}': ${errorMsg}`);
+   554→      if (missionId) {
+   555→        await missionEventService.create({
+   556→          missionId, type: 'error',
+   557→          payload: { tool: 'backup_service', service: serviceName, result: 'failed', error: errorMsg },
+   558→        }, requestId);
+   559→      }
+   560→      throw new Error(`Backup failed for '${serviceName}': ${errorMsg}`);
+   561→    }
+   562→  },
+   563→
+   564→  // =================================================================
+   565→  // Restore
+   566→  // =================================================================
+   567→
+   568→  async restore(backupId: string, options: DeployOptions = {}): Promise<ServicePublic> {
+   569→    const { missionId, requestId = '-' } = options;
+   570→    const backup = await db.serviceBackup.findUnique({ where: { id: backupId } });
+   571→    if (!backup) throw new Error(`Backup ${backupId} not found`);
+   572→
+   573→    const instance = await db.serviceInstance.findUnique({ where: { id: backup.serviceInstanceId } });
+   574→    if (!instance) throw new Error(`Service instance not found for backup ${backupId}`);
+   575→
+   576→    if (!existsSync(backup.filePath)) {
+   577→      throw new Error(`Backup file not found at ${backup.filePath}`);
+   578→    }
+   579→
+   580→    const def = SERVICE_CATALOG.find(s => s.name === instance.name);
+   581→    if (!def) throw new Error(`Service definition not found for '${instance.name}'`);
+   582→
+   583→    if (missionId) {
+   584→      await missionEventService.create({
+   585→        missionId, type: 'tool_execute',
+   586→        payload: { tool: 'restore_service', service: instance.name, backupId, filename: backup.filename },
+   587→      }, requestId);
+   588→    }
+   589→
+   590→    try {
+   591→      // Stop the service first
+   592→      try {
+   593→        this._execDocker(`${DOCKER_COMPOSE_CMD} -f "${instance.composePath}" stop ${instance.serviceName}`, requestId);
+   594→      } catch { /* may not be running */ }
+   595→
+   596→      // Restore volumes from backup
+   597→      const volumeArgs = def.backupVolumes.map(v => `-v ${v}:/restore_volumes/${v}`).join(' ');
+   598→      const restoreCmd = `docker run --rm \
+   599→        -v "${dirname(backup.filePath)}:/backup_file" \
+   600→        ${volumeArgs} \
+   601→        alpine:3.19 sh -c "cd /restore_volumes && tar xzf /backup_file/${backup.filename}"`;
+   602→
+   603→      logger.info(requestId, `Restoring '${instance.name}' from backup ${backup.filename}`);
+   604→      this._execDocker(restoreCmd, requestId, 120000);
+   605→
+   606→      // Restart the service
+   607→      this._execDocker(`${DOCKER_COMPOSE_CMD} -f "${instance.composePath}" up -d ${instance.serviceName}`, requestId);
+   608→
+   609→      // Mark backup as verified (it was used for restore)
+   610→      await db.serviceBackup.update({
+   611→        where: { id: backupId },
+   612→        data: { restoredFrom: true, verified: true },
+   613→      });
+   614→
+   615→      const healthResult = await this._waitForHealth(instance, 60000, requestId);
+   616→
+   617→      const updated = await db.serviceInstance.update({
+   618→        where: { id: instance.id },
+   619→        data: {
+   620→          status: healthResult.healthy ? 'running' : 'degraded',
+   621→          healthStatus: healthResult.healthy ? 'healthy' : 'degraded',
+   622→          lastHealthCheck: new Date(),
+   623→        },
+   624→      });
+   625→
+   626→      logger.info(requestId, `Service '${instance.name}' restored from backup ${backup.filename}`);
+   627→
+   628→      if (missionId) {
+   629→        await missionEventService.create({
+   630→          missionId, type: 'tool_execute',
+   631→          payload: { tool: 'restore_service', service: instance.name, result: 'success', backupId },
+   632→        }, requestId);
+   633→      }
+   634→
+   635→      return this._toPublic(updated);
+   636→    } catch (err: any) {
+   637→      logger.error(requestId, `Restore failed for '${instance.name}': ${err.message}`);
+   638→      throw new Error(`Restore failed for '${instance.name}': ${err.message}`);
+   639→    }
+   640→  },
+   641→
+   642→  // =================================================================
+   643→  // Rollback
+   644→  // =================================================================
+   645→
+   646→  async rollback(serviceName: string, options: DeployOptions = {}): Promise<ServicePublic> {
+   647→    const { missionId, requestId = '-' } = options;
+   648→    const instance = await db.serviceInstance.findUnique({ where: { name: serviceName } });
+   649→    if (!instance) throw new Error(`Service '${serviceName}' not found in registry`);
+   650→
+   651→    if (!instance.rollbackImageTag) {
+   652→      throw new Error(`No rollback image tag available for '${serviceName}'`);
+   653→    }
+   654→
+   655→    return this._rollbackTo(instance, instance.rollbackImageTag, missionId, requestId);
+   656→  },
+   657→
+   658→  // =================================================================
+   659→  // Stop
+   660→  // =================================================================
+   661→
+   662→  async stop(serviceName: string, options: DeployOptions = {}): Promise<ServicePublic> {
+   663→    const { requestId = '-' } = options;
+   664→    const instance = await db.serviceInstance.findUnique({ where: { name: serviceName } });
+   665→    if (!instance) throw new Error(`Service '${serviceName}' not found in registry`);
+   666→
+   667→    try {
+   668→      this._execDocker(`${DOCKER_COMPOSE_CMD} -f "${instance.composePath}" stop ${instance.serviceName}`, requestId);
+   669→
+   670→      const updated = await db.serviceInstance.update({
+   671→        where: { id: instance.id },
+   672→        data: { status: 'stopped', healthStatus: 'unknown' },
+   673→      });
+   674→
+   675→      logger.info(requestId, `Service '${serviceName}' stopped`);
+   676→      return this._toPublic(updated);
+   677→    } catch (err: any) {
+   678→      throw new Error(`Stop failed for '${serviceName}': ${err.message}`);
+   679→    }
+   680→  },
+   681→
+   682→  // =================================================================
+   683→  // Backup Listing
+   684→  // =================================================================
+   685→
+   686→  async listBackups(serviceName?: string, requestId: string = '-') {
+   687→    const where: Record<string, unknown> = {};
+   688→    if (serviceName) {
+   689→      const instance = await db.serviceInstance.findUnique({ where: { name: serviceName } });
+   690→      if (!instance) throw new Error(`Service '${serviceName}' not found`);
+   691→      where.serviceInstanceId = instance.id;
+   692→    }
+   693→
+   694→    const backups = await db.serviceBackup.findMany({
+   695→      where,
+   696→      orderBy: { createdAt: 'desc' },
+   697→      take: 100,
+   698→    });
+   699→
+   700→    // Enrich with service name
+   701→    return Promise.all(backups.map(async b => {
+   702→      const svc = await db.serviceInstance.findUnique({ where: { id: b.serviceInstanceId } });
+   703→      return this._backupToPublic(b, svc?.name || 'unknown');
+   704→    }));
+   705→  },
+   706→
+   707→  // =================================================================
+   708→  // Resource Summary (for go/no-go analysis)
+   709→  // =================================================================
+   710→
+   711→  async getResourceReport(requestId: string = '-') {
+   712→    const summary = getResourceSummary();
+   713→    const instances = await db.serviceInstance.findMany();
+   714→
+   715→    return {
+   716→      resourceSummary: summary,
+   717→      deployedCount: instances.filter(i => i.status === 'running').length,
+   718→      totalRegistered: instances.length,
+   719→      deploymentStatus: instances.map(i => ({
+   720→        name: i.name,
+   721→        displayName: i.displayName,
+   722→        group: i.group,
+   723→        status: i.status,
+   724→        resourceWeight: i.resourceWeight,
+   725→      })),
+   726→      openRisks: [
+   727→        {
+   728→          risk: 'Single-disk backup',
+   729→          detail: 'Backups written to the same physical disk as the source data. If the disk fails, both original and backup are lost. A second physical storage location (external drive, NAS, or cloud) is needed for real backup safety.',
+   730→          mitigation: 'Configure BACKUP_DIR to point to a second physical drive, or set up Nextcloud to mirror critical backups off-box.',
+   731→        },
+   732→        {
+   733→          risk: 'Resource contention',
+   734→          detail: `Always-on services require ~${Math.round(summary.alwaysOnRamMB / 1024 * 10) / 10} GB RAM steady state. On-demand services can spike to ~${Math.round(summary.onDemandRamMB / 1024 * 10) / 10} GB RAM when active. If all services run simultaneously, total RAM demand is ~${Math.round(summary.totalRamEstimateMB / 1024 * 10) / 10} GB.`,
+   735→          mitigation: 'On-demand services (Upscayl, Whisper, Audiblez, Rembg, Spleeter, pyVideoTrans, OCRmyPDF) should be stopped when not in use. Consider staggering on-demand workloads.',
+   736→        },
+   737→      ],
+   738→    };
+   739→  },
+   740→
+   741→  // =================================================================
+   742→  // Internal — Docker Execution
+   743→  // =================================================================
+   744→
+   745→  _execDocker(cmd: string, requestId: string, timeoutMs: number = 300000): string {
+   746→    try {
+   747→      const output = execSync(cmd, {
+   748→        timeout: timeoutMs,
+   749→        encoding: 'utf-8',
+   750→        stdio: ['pipe', 'pipe', 'pipe'],
+   751→        maxBuffer: 10 * 1024 * 1024,
+   752→      });
+   753→      return output.trim();
+   754→    } catch (err: any) {
+   755→      const stderr = err.stderr?.toString() || err.message || 'Unknown error';
+   756→      logger.error(requestId, `Docker command failed: ${cmd}\n${stderr.substring(0, 500)}`);
+   757→      throw new Error(`Docker error: ${stderr.substring(0, 300)}`);
+   758→    }
+   759→  },
+   760→
+   761→  // =================================================================
+   762→  // Internal — Health Check
+   763→  // =================================================================
+   764→
+   765→  async _performHealthCheck(instance: any, requestId: string): Promise<{
+   766→    service: string;
+   767→    healthy: boolean;
+   768→    status: string;
+   769→    responseTimeMs: number;
+   770→    error?: string;
+   771→  }> {
+   772→    // Use docker inspect to check if container is running
+   773→    try {
+   774→      const start = Date.now();
+   775→      const inspectOutput = this._execDocker(
+   776→        `docker inspect --format="{{.State.Status}}" ${instance.serviceName} 2>/dev/null || echo "not_found"`,
+   777→        requestId, 10000
+   778→      );
+   779→      const responseTimeMs = Date.now() - start;
+   780→
+   781→      const containerStatus = inspectOutput.trim();
+   782→      if (containerStatus !== 'running') {
+   783→        return {
+   784→          service: instance.name,
+   785→          healthy: false,
+   786→          status: containerStatus,
+   787→          responseTimeMs,
+   788→          error: `Container status: ${containerStatus}`,
+   789→        };
+   790→      }
+   791→
+   792→      // If a health URL is defined, try HTTP health check
+   793→      if (instance.healthUrl) {
+   794→        try {
+   795→          const httpStart = Date.now();
+   796→          // Use docker exec for in-container health check (no curl dependency on host)
+   797→          const healthOutput = this._execDocker(
+   798→            `docker exec ${instance.serviceName} wget -qO- --timeout=5 "${instance.healthUrl}" 2>/dev/null || echo "health_check_failed"`,
+   799→            requestId, 15000
+   800→          );
+   801→          const httpTime = Date.now() - httpStart;
+   802→
+   803→          if (healthOutput.includes('health_check_failed')) {
+   804→            return {
+   805→              service: instance.name, healthy: true, status: 'running',
+   806→              responseTimeMs: responseTimeMs + httpTime,
+   807→              error: 'HTTP health endpoint not reachable (container is running but service may still be starting)',
+   808→            };
+   809→          }
+   810→
+   811→          return { service: instance.name, healthy: true, status: 'running', responseTimeMs: responseTimeMs + httpTime };
+   812→        } catch {
+   813→          // HTTP health check failed but container is running — degraded
+   814→          return {
+   815→            service: instance.name, healthy: true, status: 'degraded', responseTimeMs,
+   816→            error: 'Container running but HTTP health check failed',
+   817→          };
+   818→        }
+   819→      }
+   820→
+   821→      // No health URL — trust docker status
+   822→      return { service: instance.name, healthy: true, status: 'running', responseTimeMs };
+   823→    } catch (err: any) {
+   824→      return {
+   825→        service: instance.name, healthy: false, status: 'error', responseTimeMs: 0,
+   826→        error: String(err.message || 'Docker inspect failed'),
+   827→      };
+   828→    }
+   829→  },
+   830→
+   831→  async _waitForHealth(instance: any, timeoutMs: number, requestId: string, intervalMs: number = 5000): Promise<{ healthy: boolean }> {
+   832→    const deadline = Date.now() + timeoutMs;
+   833→
+   834→    while (Date.now() < deadline) {
+   835→      const result = await this._performHealthCheck(instance, requestId);
+   836→      if (result.healthy) return { healthy: true };
+   837→      await new Promise(r => setTimeout(r, intervalMs));
+   838→    }
+   839→
+   840→    return { healthy: false };
+   841→  },
+   842→
+   843→  // =================================================================
+   844→  // Internal — Rollback
+   845→  // =================================================================
+   846→
+   847→  async _rollbackTo(instance: any, rollbackImageTag: string, missionId?: string, requestId: string = '-'): Promise<ServicePublic> {
+   848→    await db.serviceInstance.update({
+   849→      where: { id: instance.id },
+   850→      data: { status: 'rollback' },
+   851→    });
+   852→
+   853→    try {
+   854→      logger.info(requestId, `Rolling back '${instance.name}' to ${rollbackImageTag}`);
+   855→
+   856→      // Recreate with the previous image
+   857→      this._execDocker(
+   858→        `${DOCKER_COMPOSE_CMD} -f "${instance.composePath}" up -d --force-recreate ${instance.serviceName}`,
+   859→        requestId
+   860→      );
+   861→
+   862→      const healthResult = await this._waitForHealth(instance, 60000, requestId);
+   863→
+   864→      const updated = await db.serviceInstance.update({
+   865→        where: { id: instance.id },
+   866→        data: {
+   867→          status: healthResult.healthy ? 'running' : 'error',
+   868→          healthStatus: healthResult.healthy ? 'healthy' : 'unhealthy',
+   869→          deployedImageTag: rollbackImageTag,
+   870→          lastHealthCheck: new Date(),
+   871→          error: healthResult.healthy ? null : 'Rollback applied but health check failed',
+   872→        },
+   873→      });
+   874→
+   875→      logger.info(requestId, `Rollback complete for '${instance.name}' → ${rollbackImageTag} (health: ${updated.healthStatus})`);
+   876→
+   877→      eventBus.emit('service:status_changed', {
+   878→        serviceId: instance.id, name: instance.name, status: updated.status, previousStatus: 'rollback',
+   879→      });
+   880→
+   881→      if (missionId) {
+   882→        await missionEventService.create({
+   883→          missionId, type: 'tool_execute',
+   884→          payload: { tool: 'rollback_service', service: instance.name, result: 'success', rollbackTo: rollbackImageTag },
+   885→        }, requestId);
+   886→      }
+   887→
+   888→      return this._toPublic(updated);
+   889→    } catch (err: any) {
+   890→      await db.serviceInstance.update({
+   891→        where: { id: instance.id },
+   892→        data: { status: 'error', error: `Rollback failed: ${err.message}` },
+   893→      });
+   894→      throw new Error(`Rollback failed for '${instance.name}': ${err.message}`);
+   895→    }
+   896→  },
+   897→
+   898→  // =================================================================
+   899→  // Internal — Serialization
+   900→  // =================================================================
+   901→
+   902→  _toPublic(s: any): ServicePublic {
+   903→    const def = SERVICE_CATALOG.find(d => d.name === s.name);
+   904→    return {
+   905→      id: s.id,
+   906→      name: s.name,
+   907→      displayName: s.displayName,
+   908→      group: s.group,
+   909→      hostname: s.hostname || undefined,
+   910→      status: s.status,
+   911→      healthStatus: s.healthStatus,
+   912→      resourceWeight: s.resourceWeight,
+   913→      ramEstimateMB: def?.ramEstimateMB || 0,
+   914→      diskEstimateGB: def?.diskEstimateGB || 0,
+   915→      port: s.port || undefined,
+   916→      imageTag: s.imageTag,
+   917→      deployedImageTag: s.deployedImageTag || undefined,
+   918→      rollbackImageTag: s.rollbackImageTag || undefined,
+   919→      mobileApp: s.mobileApp || undefined,
+   920→      mobileAppNote: s.mobileAppNote || undefined,
+   921→      error: s.error || undefined,
+   922→      lastHealthCheck: s.lastHealthCheck?.toISOString() || undefined,
+   923→      lastDeployedAt: s.lastDeployedAt?.toISOString() || undefined,
+   924→      lastUpdatedAt: s.lastUpdatedAt?.toISOString() || undefined,
+   925→      enabled: s.enabled,
+   926→      createdAt: s.createdAt?.toISOString() || undefined,
+   927→      updatedAt: s.updatedAt?.toISOString() || undefined,
+   928→    };
+   929→  },
+   930→
+   931→  _backupToPublic(b: any, serviceName: string): BackupPublic {
+   932→    return {
+   933→      id: b.id,
+   934→      serviceInstanceId: b.serviceInstanceId,
+   935→      serviceName,
+   936→      filename: b.filename,
+   937→      filePath: b.filePath,
+   938→      sizeBytes: b.sizeBytes,
+   939→      scheduleType: b.scheduleType,
+   940→      storageLocation: b.storageLocation,
+   941→      storageTarget: b.storageTarget || undefined,
+   942→      verified: b.verified,
+   943→      restoredFrom: b.restoredFrom,
+   944→      createdAt: b.createdAt?.toISOString() || undefined,
+   945→    };
+   946→  },
+   947→};
+   948→

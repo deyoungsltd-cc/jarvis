@@ -42,7 +42,13 @@ import type {
 
 const PORT = '3001';
 
+// Internal API: routes go to Next.js /api/*
 function url(path: string): string {
+  return `/api${path}`;
+}
+
+// External API: routes go to Express backend via proxy (legacy)
+function externalUrl(path: string): string {
   return `${path}?XTransformPort=${PORT}`;
 }
 
@@ -610,4 +616,19 @@ export function createApiKey(name: string): Promise<ApiKey> {
 // ─── Users ──────────────────────────────────────────────
 export function getUsers(): Promise<UserInfo[]> {
   return request('/users');
+}
+
+// ─── Agent Chat (streaming) ────────────────────────────────
+export async function streamChat(messages: Array<{ role: 'user' | 'assistant'; content: string }>): Promise<ReadableStream> {
+  const res = await fetch(url('/agent/chat'), {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify({ messages }),
+  });
+  if (!res.ok) {
+    const body = await res.text().catch(() => res.statusText);
+    throw new Error(`Chat API ${res.status}: ${body}`);
+  }
+  if (!res.body) throw new Error('No response body');
+  return res.body;
 }
