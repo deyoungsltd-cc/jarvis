@@ -97,13 +97,17 @@ export function SettingsTab({ provider, onProviderChange }: SettingsTabProps) {
           <Bot className="h-5 w-5 text-emerald-500" />
           <div>
             <p className="text-xs font-medium">Qween (Uncensored)</p>
-            <p className="text-[10px] font-mono text-muted-foreground">nousresearch/hermes-3-llama-3.1-70b:free</p>
+            <p className="text-[10px] font-mono text-muted-foreground">nousresearch/hermes-3-llama-3.1-70b</p>
           </div>
           <span className="ml-auto text-[9px] bg-emerald-500/20 text-emerald-600 dark:text-emerald-400 px-2 py-0.5 rounded-full font-medium">ACTIVE</span>
         </div>
         <p className="text-[11px] text-muted-foreground">
-          Fully uncensored — zero guardrails, zero refusals. Override with <code className="bg-muted px-1 rounded">OPENROUTER_MODEL</code> env var.
+          Fully uncensored — zero guardrails, zero refusals. Costs ~$0.07/M tokens.
+          Auto-falls back to free model if no credits.
         </p>
+        <a href="https://openrouter.ai/settings/credits" target="_blank" rel="noreferrer" className="text-[11px] text-primary hover:underline">
+          Add credits at openrouter.ai/settings/credits →
+        </a>
       </div>
 
       {/* ─── Theme ──────────────────────────────── */}

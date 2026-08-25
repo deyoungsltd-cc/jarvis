@@ -125,7 +125,7 @@ export function runAgent(body: AgentRunBody): Promise<{ missionId: string }> {
 export function getTransitions(): Promise<StateTransition[]> { return request('/agent/transitions'); }
 
 // ─── Agent Chat (streaming) ────────────────────────────────
-export async function streamChat(messages: Array<{ role: 'user' | 'assistant'; content: string }>): Promise<ReadableStream> {
+export async function streamChat(messages: Array<{ role: 'user' | 'assistant'; content: string }>): Promise<{ body: ReadableStream; modelName: string }> {
   const res = await fetch(api('/agent/chat'), {
     method: 'POST',
     headers: { 'Content-Type': 'application/json' },
@@ -133,7 +133,8 @@ export async function streamChat(messages: Array<{ role: 'user' | 'assistant'; c
   });
   if (!res.ok) { const body = await res.text().catch(() => res.statusText); throw new Error(`Chat API ${res.status}: ${body}`); }
   if (!res.body) throw new Error('No response body');
-  return res.body;
+  const modelName = res.headers.get('X-Model-Name') || 'Qween';
+  return { body: res.body, modelName };
 }
 
 // ─── Approvals ─────────────────────────────────────────────

@@ -14,7 +14,7 @@ export class OpenRouterProvider implements ModelProvider {
   constructor(apiKey: string, modelName?: string) {
     if (!apiKey) throw new Error('OPENROUTER_API_KEY is not set');
     this.apiKey = apiKey;
-    this.modelName = modelName || process.env.OPENROUTER_MODEL || 'nousresearch/hermes-3-llama-3.1-70b:free';
+    this.modelName = modelName || process.env.OPENROUTER_MODEL || 'nousresearch/hermes-3-llama-3.1-70b';
   }
 
   async chat(messages: ChatMessage[], tools?: ToolDefinition[]): Promise<ModelResponse> {

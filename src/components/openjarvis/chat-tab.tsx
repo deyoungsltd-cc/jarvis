@@ -29,6 +29,7 @@ export function ChatTab() {
   const [streaming, setStreaming] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [modelInfo, setModelInfo] = useState<ModelInfo | null>(null);
+  const [activeModel, setActiveModel] = useState<string | null>(null);
   const scrollRef = useRef<HTMLDivElement>(null);
   const textareaRef = useRef<HTMLTextAreaElement>(null);
   const abortRef = useRef<AbortController | null>(null);
@@ -77,10 +78,11 @@ export function ChatTab() {
         content: m.content,
       }));
 
-      const response = await streamChat(chatHistory);
+      const { body, modelName } = await streamChat(chatHistory);
       abortRef.current = new AbortController();
+      setActiveModel(modelName);
 
-      const reader = response.getReader();
+      const reader = body.getReader();
       const decoder = new TextDecoder();
       let fullContent = '';
 
@@ -225,12 +227,11 @@ export function ChatTab() {
         )}
       </div>
       <div className="flex items-center justify-center gap-2">
-        {modelInfo && (
-          <Badge variant="secondary" className="text-[9px] font-mono gap-1 h-5">
+        <Badge variant="secondary" className="text-[9px] font-mono gap-1 h-5">
             <Zap className="h-2.5 w-2.5 text-emerald-500" />
-            {modelInfo.name} · {modelInfo.uncensored ? 'Uncensored' : 'Filtered'}
+            {activeModel || modelInfo?.name || 'Qween'}
+            {activeModel?.includes('Fallback') && <span className="text-amber-500">· Free Mode</span>}
           </Badge>
-        )}
       </div>
       <p className="text-[10px] text-muted-foreground text-center">Enter to send · Shift+Enter for newline</p>
     </div>
