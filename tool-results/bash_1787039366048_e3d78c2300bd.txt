@@ -1,0 +1,1416 @@
+=== TEST 10: GET /health ===
+{
+    "status": "healthy",
+    "uptime": 5.01845235,
+    "timestamp": "2026-08-18T07:49:25.529Z",
+    "database": {
+        "connected": true,
+        "latencyMs": 8
+    },
+    "process": {
+        "nodeVersion": "v24.3.0",
+        "platform": "linux",
+        "memoryUsage": {
+            "rss": 92585984,
+            "heapTotal": 7224320,
+            "heapUsed": 7711034,
+            "external": 2820346,
+            "arrayBuffers": 112
+        }
+    },
+    "requestId": "617640a5-f00b-4778-9a20-c7abd1d2570a"
+}
+
+=== TEST 11: GET /missions ===
+[
+    {
+        "id": "033af512-e8d7-4c84-9ec1-6ac3eb9641bc",
+        "owner": "default",
+        "goal": "Event test mission",
+        "status": "draft",
+        "plan": null,
+        "riskLevel": "low",
+        "budget": 100000,
+        "maxToolCalls": 50,
+        "toolCallCount": 0,
+        "tokenUsage": 0,
+        "createdAt": "2026-08-18T07:45:28.007Z",
+        "updatedAt": "2026-08-18T07:45:28.007Z",
+        "events": []
+    },
+    {
+        "id": "627779eb-3a7f-4a57-8df1-0108e1dd8876",
+        "owner": "default",
+        "goal": "Event test mission",
+        "status": "draft",
+        "plan": null,
+        "riskLevel": "low",
+        "budget": 100000,
+        "maxToolCalls": 50,
+        "toolCallCount": 0,
+        "tokenUsage": 0,
+        "createdAt": "2026-08-18T07:45:28.003Z",
+        "updatedAt": "2026-08-18T07:45:28.003Z",
+        "events": [
+            {
+                "id": "71cbfdf7-19c5-465d-9702-4dc6706b642f",
+                "missionId": "627779eb-3a7f-4a57-8df1-0108e1dd8876",
+                "type": "plan",
+                "payload": null,
+                "createdAt": "2026-08-18T07:45:28.004Z"
+            },
+            {
+                "id": "18c6088c-6336-43ad-a907-b0a5313dc25a",
+                "missionId": "627779eb-3a7f-4a57-8df1-0108e1dd8876",
+                "type": "tool_execute",
+                "payload": null,
+                "createdAt": "2026-08-18T07:45:28.005Z"
+            }
+        ]
+    },
+    {
+        "id": "9f79c324-dae3-4fac-9d54-cea3da67b5f1",
+        "owner": "default",
+        "goal": "Event test mission",
+        "status": "draft",
+        "plan": null,
+        "riskLevel": "low",
+        "budget": 100000,
+        "maxToolCalls": 50,
+        "toolCallCount": 0,
+        "tokenUsage": 0,
+        "createdAt": "2026-08-18T07:45:28.000Z",
+        "updatedAt": "2026-08-18T07:45:28.000Z",
+        "events": [
+            {
+                "id": "bcb26a0d-25a2-48f5-aea7-41832520a2e9",
+                "missionId": "9f79c324-dae3-4fac-9d54-cea3da67b5f1",
+                "type": "interpret",
+                "payload": {
+                    "raw": "user input"
+                },
+                "createdAt": "2026-08-18T07:45:28.001Z"
+            }
+        ]
+    }
+]
+
+=== TEST 12: GET /tools ===
+[]
+
+=== TEST 13: GET /memory ===
+[
+    {
+        "id": "1ff755b0-c708-4a9f-9f14-699e9b539525",
+        "scope": "semantic",
+        "key": "tool_search_1_64_1787039214574",
+        "value": "Docker containers isolate applications",
+        "tags": [
+            "docker",
+            "containers"
+        ],
+        "missionId": null,
+        "source": "agent",
+        "importance": 3,
+        "accessCount": 1,
+        "lastAccessedAt": "2026-08-18T07:46:54.576Z",
+        "expiresAt": null,
+        "createdAt": "2026-08-18T07:46:54.574Z",
+        "updatedAt": "2026-08-18T07:46:54.576Z"
+    },
+    {
+        "id": "5fb01dd3-96e0-4dc3-ac69-bd7426cf7926",
+        "scope": "preference",
+        "key": "tool_recall_63_1787039214564",
+        "value": "dark mode preferred",
+        "tags": [],
+        "missionId": null,
+        "source": "agent",
+        "importance": 3,
+        "accessCount": 1,
+        "lastAccessedAt": "2026-08-18T07:46:54.569Z",
+        "expiresAt": null,
+        "createdAt": "2026-08-18T07:46:54.565Z",
+        "updatedAt": "2026-08-18T07:46:54.570Z"
+    },
+    {
+        "id": "d256cfc2-f197-40d4-92e7-dc6edf822881",
+        "scope": "semantic",
+        "key": "ctxb_limit_9_61_1787039214559",
+        "value": "Fact 9 about databases and SQL queries",
+        "tags": [
+            "database",
+            "sql"
+        ],
+        "missionId": null,
+        "source": "agent",
+        "importance": 4,
+        "accessCount": 1,
+        "lastAccessedAt": "2026-08-18T07:46:54.562Z",
+        "expiresAt": null,
+        "createdAt": "2026-08-18T07:46:54.560Z",
+        "updatedAt": "2026-08-18T07:46:54.566Z"
+    },
+    {
+        "id": "83bc60cc-f0bb-4a70-bdcc-0a77383e2b29",
+        "scope": "semantic",
+        "key": "ctxb_limit_8_60_1787039214559",
+        "value": "Fact 8 about databases and SQL queries",
+        "tags": [
+            "database",
+            "sql"
+        ],
+        "missionId": null,
+        "source": "agent",
+        "importance": 4,
+        "accessCount": 1,
+        "lastAccessedAt": "2026-08-18T07:46:54.562Z",
+        "expiresAt": null,
+        "createdAt": "2026-08-18T07:46:54.559Z",
+        "updatedAt": "2026-08-18T07:46:54.564Z"
+    },
+    {
+        "id": "44e0802c-9a55-42c7-af04-52be690a71a8",
+        "scope": "semantic",
+        "key": "tool_store_62_1787039214562",
+        "value": "Stored via agent tool",
+        "tags": [
+            "agent-tool",
+            "test"
+        ],
+        "missionId": null,
+        "source": "agent",
+        "importance": 4,
+        "accessCount": 0,
+        "lastAccessedAt": null,
+        "expiresAt": null,
+        "createdAt": "2026-08-18T07:46:54.564Z",
+        "updatedAt": "2026-08-18T07:46:54.564Z"
+    },
+    {
+        "id": "7db9dee4-4ffd-44c8-9a7c-eae046aa8abd",
+        "scope": "semantic",
+        "key": "ctxb_limit_7_59_1787039214558",
+        "value": "Fact 7 about databases and SQL queries",
+        "tags": [
+            "database",
+            "sql"
+        ],
+        "missionId": null,
+        "source": "agent",
+        "importance": 4,
+        "accessCount": 1,
+        "lastAccessedAt": "2026-08-18T07:46:54.562Z",
+        "expiresAt": null,
+        "createdAt": "2026-08-18T07:46:54.559Z",
+        "updatedAt": "2026-08-18T07:46:54.563Z"
+    },
+    {
+        "id": "9f137c6f-78da-4722-a834-616f367c49b5",
+        "scope": "semantic",
+        "key": "ctxb_limit_5_57_1787039214557",
+        "value": "Fact 5 about databases and SQL queries",
+        "tags": [
+            "database",
+            "sql"
+        ],
+        "missionId": null,
+        "source": "agent",
+        "importance": 4,
+        "accessCount": 0,
+        "lastAccessedAt": null,
+        "expiresAt": null,
+        "createdAt": "2026-08-18T07:46:54.558Z",
+        "updatedAt": "2026-08-18T07:46:54.558Z"
+    },
+    {
+        "id": "3307f40f-1996-4b26-b30d-414620ec763c",
+        "scope": "semantic",
+        "key": "ctxb_limit_6_58_1787039214557",
+        "value": "Fact 6 about databases and SQL queries",
+        "tags": [
+            "database",
+            "sql"
+        ],
+        "missionId": null,
+        "source": "agent",
+        "importance": 4,
+        "accessCount": 0,
+        "lastAccessedAt": null,
+        "expiresAt": null,
+        "createdAt": "2026-08-18T07:46:54.558Z",
+        "updatedAt": "2026-08-18T07:46:54.558Z"
+    },
+    {
+        "id": "7d586a95-def6-4a38-a07e-2fc4f9dda8d4",
+        "scope": "semantic",
+        "key": "ctxb_limit_3_55_1787039214556",
+        "value": "Fact 3 about databases and SQL queries",
+        "tags": [
+            "database",
+            "sql"
+        ],
+        "missionId": null,
+        "source": "agent",
+        "importance": 4,
+        "accessCount": 0,
+        "lastAccessedAt": null,
+        "expiresAt": null,
+        "createdAt": "2026-08-18T07:46:54.557Z",
+        "updatedAt": "2026-08-18T07:46:54.557Z"
+    },
+    {
+        "id": "b5da18fc-7fa6-4f24-9c53-129681a7c23c",
+        "scope": "semantic",
+        "key": "ctxb_limit_4_56_1787039214557",
+        "value": "Fact 4 about databases and SQL queries",
+        "tags": [
+            "database",
+            "sql"
+        ],
+        "missionId": null,
+        "source": "agent",
+        "importance": 4,
+        "accessCount": 0,
+        "lastAccessedAt": null,
+        "expiresAt": null,
+        "createdAt": "2026-08-18T07:46:54.557Z",
+        "updatedAt": "2026-08-18T07:46:54.557Z"
+    },
+    {
+        "id": "6ece008e-6eec-48bd-83ef-766f9d56a41c",
+        "scope": "semantic",
+        "key": "ctxb_limit_1_53_1787039214555",
+        "value": "Fact 1 about databases and SQL queries",
+        "tags": [
+            "database",
+            "sql"
+        ],
+        "missionId": null,
+        "source": "agent",
+        "importance": 4,
+        "accessCount": 0,
+        "lastAccessedAt": null,
+        "expiresAt": null,
+        "createdAt": "2026-08-18T07:46:54.556Z",
+        "updatedAt": "2026-08-18T07:46:54.556Z"
+    },
+    {
+        "id": "dbafa113-c3e9-4731-bd85-4ecd214d10a9",
+        "scope": "semantic",
+        "key": "ctxb_limit_2_54_1787039214556",
+        "value": "Fact 2 about databases and SQL queries",
+        "tags": [
+            "database",
+            "sql"
+        ],
+        "missionId": null,
+        "source": "agent",
+        "importance": 4,
+        "accessCount": 0,
+        "lastAccessedAt": null,
+        "expiresAt": null,
+        "createdAt": "2026-08-18T07:46:54.556Z",
+        "updatedAt": "2026-08-18T07:46:54.556Z"
+    },
+    {
+        "id": "9ceb524f-98fd-4b8c-968e-d8c83e13c365",
+        "scope": "semantic",
+        "key": "ctxb_limit_0_52_1787039214554",
+        "value": "Fact 0 about databases and SQL queries",
+        "tags": [
+            "database",
+            "sql"
+        ],
+        "missionId": null,
+        "source": "agent",
+        "importance": 4,
+        "accessCount": 0,
+        "lastAccessedAt": null,
+        "expiresAt": null,
+        "createdAt": "2026-08-18T07:46:54.555Z",
+        "updatedAt": "2026-08-18T07:46:54.555Z"
+    },
+    {
+        "id": "b9f24b47-af1a-4c90-92e5-43c0c46a1ce4",
+        "scope": "semantic",
+        "key": "search_python_11_1787039214462",
+        "value": "Python is a high-level programming language used for web development",
+        "tags": [
+            "python",
+            "web",
+            "programming"
+        ],
+        "missionId": null,
+        "source": "agent",
+        "importance": 4,
+        "accessCount": 1,
+        "lastAccessedAt": "2026-08-18T07:46:54.548Z",
+        "expiresAt": null,
+        "createdAt": "2026-08-18T07:46:54.463Z",
+        "updatedAt": "2026-08-18T07:46:54.554Z"
+    },
+    {
+        "id": "67008f64-6bcb-4b16-bf41-19ca1c89a586",
+        "scope": "semantic",
+        "key": "search_python_14_1787039214466",
+        "value": "Python is a high-level programming language used for web development",
+        "tags": [
+            "python",
+            "web",
+            "programming"
+        ],
+        "missionId": null,
+        "source": "agent",
+        "importance": 4,
+        "accessCount": 1,
+        "lastAccessedAt": "2026-08-18T07:46:54.548Z",
+        "expiresAt": null,
+        "createdAt": "2026-08-18T07:46:54.466Z",
+        "updatedAt": "2026-08-18T07:46:54.553Z"
+    },
+    {
+        "id": "22978a30-87c9-464e-bfe6-eae045d29196",
+        "scope": "semantic",
+        "key": "ctx_limit_4_38_1787039214498",
+        "value": "Fact 4 about testing",
+        "tags": [
+            "testing"
+        ],
+        "missionId": null,
+        "source": "agent",
+        "importance": 4,
+        "accessCount": 1,
+        "lastAccessedAt": "2026-08-18T07:46:54.548Z",
+        "expiresAt": null,
+        "createdAt": "2026-08-18T07:46:54.498Z",
+        "updatedAt": "2026-08-18T07:46:54.553Z"
+    },
+    {
+        "id": "4b7dd8fd-bd5c-4d2a-ae8d-41488a63e7c3",
+        "scope": "semantic",
+        "key": "search_python_8_1787039214457",
+        "value": "Python is a high-level programming language used for web development",
+        "tags": [
+            "python",
+            "web",
+            "programming"
+        ],
+        "missionId": null,
+        "source": "agent",
+        "importance": 4,
+        "accessCount": 1,
+        "lastAccessedAt": "2026-08-18T07:46:54.548Z",
+        "expiresAt": null,
+        "createdAt": "2026-08-18T07:46:54.458Z",
+        "updatedAt": "2026-08-18T07:46:54.552Z"
+    },
+    {
+        "id": "7d61e226-e5b4-4176-b7de-347e1914d86c",
+        "scope": "semantic",
+        "key": "search_python_17_1787039214469",
+        "value": "Python is a high-level programming language used for web development",
+        "tags": [
+            "python",
+            "web",
+            "programming"
+        ],
+        "missionId": null,
+        "source": "agent",
+        "importance": 4,
+        "accessCount": 1,
+        "lastAccessedAt": "2026-08-18T07:46:54.548Z",
+        "expiresAt": null,
+        "createdAt": "2026-08-18T07:46:54.470Z",
+        "updatedAt": "2026-08-18T07:46:54.552Z"
+    },
+    {
+        "id": "823e4afd-5b1b-4c1f-925e-ab3761ad5955",
+        "scope": "semantic",
+        "key": "search_python_20_1787039214472",
+        "value": "Python is a high-level programming language used for web development",
+        "tags": [
+            "python",
+            "web",
+            "programming"
+        ],
+        "missionId": null,
+        "source": "agent",
+        "importance": 4,
+        "accessCount": 1,
+        "lastAccessedAt": "2026-08-18T07:46:54.548Z",
+        "expiresAt": null,
+        "createdAt": "2026-08-18T07:46:54.473Z",
+        "updatedAt": "2026-08-18T07:46:54.552Z"
+    },
+    {
+        "id": "cc61b28f-9672-4760-9e05-f16f8e721e31",
+        "scope": "semantic",
+        "key": "search_python_23_1787039214477",
+        "value": "Python is a high-level programming language used for web development",
+        "tags": [
+            "python",
+            "web",
+            "programming"
+        ],
+        "missionId": null,
+        "source": "agent",
+        "importance": 4,
+        "accessCount": 1,
+        "lastAccessedAt": "2026-08-18T07:46:54.548Z",
+        "expiresAt": null,
+        "createdAt": "2026-08-18T07:46:54.478Z",
+        "updatedAt": "2026-08-18T07:46:54.551Z"
+    },
+    {
+        "id": "5b264da3-fe07-4531-b21d-4d8b81e6fb92",
+        "scope": "semantic",
+        "key": "search_python_26_1787039214481",
+        "value": "Python is a high-level programming language used for web development",
+        "tags": [
+            "python",
+            "web",
+            "programming"
+        ],
+        "missionId": null,
+        "source": "agent",
+        "importance": 4,
+        "accessCount": 1,
+        "lastAccessedAt": "2026-08-18T07:46:54.548Z",
+        "expiresAt": null,
+        "createdAt": "2026-08-18T07:46:54.482Z",
+        "updatedAt": "2026-08-18T07:46:54.551Z"
+    },
+    {
+        "id": "544c54bc-d467-4a3b-969c-71063a2b2985",
+        "scope": "semantic",
+        "key": "search_python_29_1787039214486",
+        "value": "Python is a high-level programming language used for web development",
+        "tags": [
+            "python",
+            "web",
+            "programming"
+        ],
+        "missionId": null,
+        "source": "agent",
+        "importance": 4,
+        "accessCount": 1,
+        "lastAccessedAt": "2026-08-18T07:46:54.548Z",
+        "expiresAt": null,
+        "createdAt": "2026-08-18T07:46:54.487Z",
+        "updatedAt": "2026-08-18T07:46:54.551Z"
+    },
+    {
+        "id": "40856825-84b3-4f18-9a84-e2c744c0932d",
+        "scope": "semantic",
+        "key": "ctxb_react_51_1787039214543",
+        "value": "React uses JSX for templating",
+        "tags": [
+            "react",
+            "jsx"
+        ],
+        "missionId": null,
+        "source": "agent",
+        "importance": 4,
+        "accessCount": 1,
+        "lastAccessedAt": "2026-08-18T07:46:54.548Z",
+        "expiresAt": null,
+        "createdAt": "2026-08-18T07:46:54.544Z",
+        "updatedAt": "2026-08-18T07:46:54.549Z"
+    },
+    {
+        "id": "f2d3aaa0-dac1-48ce-b645-e9aac62aaf6d",
+        "scope": "semantic",
+        "key": "dir_b_50_1787039214539",
+        "value": "B",
+        "tags": [],
+        "missionId": null,
+        "source": "agent",
+        "importance": 3,
+        "accessCount": 0,
+        "lastAccessedAt": null,
+        "expiresAt": null,
+        "createdAt": "2026-08-18T07:46:54.540Z",
+        "updatedAt": "2026-08-18T07:46:54.540Z"
+    },
+    {
+        "id": "320d3dbf-9341-4627-8787-5b706186941e",
+        "scope": "semantic",
+        "key": "dir_a_49_1787039214539",
+        "value": "A",
+        "tags": [],
+        "missionId": null,
+        "source": "agent",
+        "importance": 3,
+        "accessCount": 0,
+        "lastAccessedAt": null,
+        "expiresAt": null,
+        "createdAt": "2026-08-18T07:46:54.539Z",
+        "updatedAt": "2026-08-18T07:46:54.539Z"
+    },
+    {
+        "id": "dda6561e-5574-464d-bd80-64d6f010557e",
+        "scope": "semantic",
+        "key": "assoc_get_a_47_1787039214535",
+        "value": "node A",
+        "tags": [],
+        "missionId": null,
+        "source": "agent",
+        "importance": 3,
+        "accessCount": 0,
+        "lastAccessedAt": null,
+        "expiresAt": null,
+        "createdAt": "2026-08-18T07:46:54.536Z",
+        "updatedAt": "2026-08-18T07:46:54.536Z"
+    },
+    {
+        "id": "998a14dd-9485-4e25-9beb-e15fe4a7b2d2",
+        "scope": "semantic",
+        "key": "assoc_get_b_48_1787039214536",
+        "value": "node B",
+        "tags": [],
+        "missionId": null,
+        "source": "agent",
+        "importance": 3,
+        "accessCount": 0,
+        "lastAccessedAt": null,
+        "expiresAt": null,
+        "createdAt": "2026-08-18T07:46:54.536Z",
+        "updatedAt": "2026-08-18T07:46:54.536Z"
+    },
+    {
+        "id": "2c13c973-bce5-4131-ad22-dde12a772d52",
+        "scope": "semantic",
+        "key": "assoc_self_46_1787039214534",
+        "value": "self",
+        "tags": [],
+        "missionId": null,
+        "source": "agent",
+        "importance": 3,
+        "accessCount": 0,
+        "lastAccessedAt": null,
+        "expiresAt": null,
+        "createdAt": "2026-08-18T07:46:54.535Z",
+        "updatedAt": "2026-08-18T07:46:54.535Z"
+    },
+    {
+        "id": "66944ae3-d6b5-46ae-bda1-aa9ba4bfd6ab",
+        "scope": "semantic",
+        "key": "assoc_b_45_1787039214532",
+        "value": "concept B",
+        "tags": [],
+        "missionId": null,
+        "source": "agent",
+        "importance": 3,
+        "accessCount": 0,
+        "lastAccessedAt": null,
+        "expiresAt": null,
+        "createdAt": "2026-08-18T07:46:54.533Z",
+        "updatedAt": "2026-08-18T07:46:54.533Z"
+    },
+    {
+        "id": "426d8973-f8b5-4a94-98f2-f6f2608e8d5c",
+        "scope": "semantic",
+        "key": "assoc_a_44_1787039214532",
+        "value": "concept A",
+        "tags": [],
+        "missionId": null,
+        "source": "agent",
+        "importance": 3,
+        "accessCount": 0,
+        "lastAccessedAt": null,
+        "expiresAt": null,
+        "createdAt": "2026-08-18T07:46:54.532Z",
+        "updatedAt": "2026-08-18T07:46:54.532Z"
+    },
+    {
+        "id": "47cd69fe-bd68-43cd-b1fd-3ef16be40192",
+        "scope": "semantic",
+        "key": "consolidate_43_1787039214518",
+        "value": "version 3 (latest)",
+        "tags": [],
+        "missionId": null,
+        "source": "agent",
+        "importance": 3,
+        "accessCount": 0,
+        "lastAccessedAt": null,
+        "expiresAt": null,
+        "createdAt": "2026-08-18T07:46:54.520Z",
+        "updatedAt": "2026-08-18T07:46:54.520Z"
+    },
+    {
+        "id": "81e25d87-ffb9-4027-b965-9e3a0c196b7e",
+        "scope": "semantic",
+        "key": "touch_multi_40_1787039214503",
+        "value": "accessed many times",
+        "tags": [],
+        "missionId": null,
+        "source": "agent",
+        "importance": 3,
+        "accessCount": 5,
+        "lastAccessedAt": "2026-08-18T07:46:54.506Z",
+        "expiresAt": null,
+        "createdAt": "2026-08-18T07:46:54.504Z",
+        "updatedAt": "2026-08-18T07:46:54.507Z"
+    },
+    {
+        "id": "6a0c1ab8-7bdd-4dae-9c01-1745cd020311",
+        "scope": "semantic",
+        "key": "touch_test_39_1787039214501",
+        "value": "frequently accessed fact",
+        "tags": [],
+        "missionId": null,
+        "source": "agent",
+        "importance": 3,
+        "accessCount": 1,
+        "lastAccessedAt": "2026-08-18T07:46:54.502Z",
+        "expiresAt": null,
+        "createdAt": "2026-08-18T07:46:54.502Z",
+        "updatedAt": "2026-08-18T07:46:54.502Z"
+    },
+    {
+        "id": "27a7337e-1564-47c5-8a7e-d9d706a5842e",
+        "scope": "semantic",
+        "key": "ctx_limit_2_36_1787039214496",
+        "value": "Fact 2 about testing",
+        "tags": [
+            "testing"
+        ],
+        "missionId": null,
+        "source": "agent",
+        "importance": 4,
+        "accessCount": 0,
+        "lastAccessedAt": null,
+        "expiresAt": null,
+        "createdAt": "2026-08-18T07:46:54.497Z",
+        "updatedAt": "2026-08-18T07:46:54.497Z"
+    },
+    {
+        "id": "2bc7caa0-ece8-4370-b9ca-1ea6cf69f5b9",
+        "scope": "semantic",
+        "key": "ctx_limit_3_37_1787039214497",
+        "value": "Fact 3 about testing",
+        "tags": [
+            "testing"
+        ],
+        "missionId": null,
+        "source": "agent",
+        "importance": 4,
+        "accessCount": 0,
+        "lastAccessedAt": null,
+        "expiresAt": null,
+        "createdAt": "2026-08-18T07:46:54.497Z",
+        "updatedAt": "2026-08-18T07:46:54.497Z"
+    },
+    {
+        "id": "01964b79-a8f6-430b-9f04-84d54990301c",
+        "scope": "semantic",
+        "key": "ctx_limit_0_34_1787039214495",
+        "value": "Fact 0 about testing",
+        "tags": [
+            "testing"
+        ],
+        "missionId": null,
+        "source": "agent",
+        "importance": 4,
+        "accessCount": 0,
+        "lastAccessedAt": null,
+        "expiresAt": null,
+        "createdAt": "2026-08-18T07:46:54.496Z",
+        "updatedAt": "2026-08-18T07:46:54.496Z"
+    },
+    {
+        "id": "b3bf3aa3-1e8a-4479-a330-40e28bc28ed7",
+        "scope": "semantic",
+        "key": "ctx_limit_1_35_1787039214496",
+        "value": "Fact 1 about testing",
+        "tags": [
+            "testing"
+        ],
+        "missionId": null,
+        "source": "agent",
+        "importance": 4,
+        "accessCount": 0,
+        "lastAccessedAt": null,
+        "expiresAt": null,
+        "createdAt": "2026-08-18T07:46:54.496Z",
+        "updatedAt": "2026-08-18T07:46:54.496Z"
+    },
+    {
+        "id": "f6b2e007-4bef-4ede-a758-b083171f613c",
+        "scope": "semantic",
+        "key": "ctx_react_33_1787039214490",
+        "value": "React is a component-based UI library",
+        "tags": [
+            "react",
+            "frontend"
+        ],
+        "missionId": null,
+        "source": "agent",
+        "importance": 4,
+        "accessCount": 0,
+        "lastAccessedAt": null,
+        "expiresAt": null,
+        "createdAt": "2026-08-18T07:46:54.491Z",
+        "updatedAt": "2026-08-18T07:46:54.491Z"
+    },
+    {
+        "id": "d567bb24-77c8-4856-87e3-7746badeb388",
+        "scope": "preference",
+        "key": "imp_src_test_32_1787039214488",
+        "value": "User prefers dark theme",
+        "tags": [
+            "theme",
+            "ui"
+        ],
+        "missionId": null,
+        "source": "user",
+        "importance": 2,
+        "accessCount": 0,
+        "lastAccessedAt": null,
+        "expiresAt": null,
+        "createdAt": "2026-08-18T07:46:54.489Z",
+        "updatedAt": "2026-08-18T07:46:54.489Z"
+    },
+    {
+        "id": "596a7808-5ed8-4af2-a116-3047ff97b1af",
+        "scope": "semantic",
+        "key": "search_javascript_30_1787039214487",
+        "value": "JavaScript is the language of the web browser",
+        "tags": [
+            "javascript",
+            "web",
+            "browser"
+        ],
+        "missionId": null,
+        "source": "agent",
+        "importance": 3,
+        "accessCount": 0,
+        "lastAccessedAt": null,
+        "expiresAt": null,
+        "createdAt": "2026-08-18T07:46:54.488Z",
+        "updatedAt": "2026-08-18T07:46:54.488Z"
+    },
+    {
+        "id": "0e4d9dae-cbc6-49ef-9cf2-bf2928bfeccb",
+        "scope": "preference",
+        "key": "pref_theme_31_1787039214487",
+        "value": "User prefers dark theme",
+        "tags": [
+            "theme",
+            "ui"
+        ],
+        "missionId": null,
+        "source": "agent",
+        "importance": 2,
+        "accessCount": 0,
+        "lastAccessedAt": null,
+        "expiresAt": null,
+        "createdAt": "2026-08-18T07:46:54.488Z",
+        "updatedAt": "2026-08-18T07:46:54.488Z"
+    },
+    {
+        "id": "e977e18a-4b2d-4502-b747-34bbbf126ea0",
+        "scope": "semantic",
+        "key": "search_javascript_27_1787039214483",
+        "value": "JavaScript is the language of the web browser",
+        "tags": [
+            "javascript",
+            "web",
+            "browser"
+        ],
+        "missionId": null,
+        "source": "agent",
+        "importance": 3,
+        "accessCount": 0,
+        "lastAccessedAt": null,
+        "expiresAt": null,
+        "createdAt": "2026-08-18T07:46:54.484Z",
+        "updatedAt": "2026-08-18T07:46:54.484Z"
+    },
+    {
+        "id": "03687c16-2524-47b4-8728-150930f4dc64",
+        "scope": "preference",
+        "key": "pref_theme_28_1787039214484",
+        "value": "User prefers dark theme",
+        "tags": [
+            "theme",
+            "ui"
+        ],
+        "missionId": null,
+        "source": "agent",
+        "importance": 2,
+        "accessCount": 0,
+        "lastAccessedAt": null,
+        "expiresAt": null,
+        "createdAt": "2026-08-18T07:46:54.484Z",
+        "updatedAt": "2026-08-18T07:46:54.484Z"
+    },
+    {
+        "id": "f9342ea0-a1b2-4a30-9b75-99296e8b003c",
+        "scope": "preference",
+        "key": "pref_theme_25_1787039214479",
+        "value": "User prefers dark theme",
+        "tags": [
+            "theme",
+            "ui"
+        ],
+        "missionId": null,
+        "source": "agent",
+        "importance": 2,
+        "accessCount": 0,
+        "lastAccessedAt": null,
+        "expiresAt": null,
+        "createdAt": "2026-08-18T07:46:54.480Z",
+        "updatedAt": "2026-08-18T07:46:54.480Z"
+    },
+    {
+        "id": "feda34d3-1bc6-417a-98a1-d69a303047eb",
+        "scope": "semantic",
+        "key": "search_javascript_24_1787039214478",
+        "value": "JavaScript is the language of the web browser",
+        "tags": [
+            "javascript",
+            "web",
+            "browser"
+        ],
+        "missionId": null,
+        "source": "agent",
+        "importance": 3,
+        "accessCount": 0,
+        "lastAccessedAt": null,
+        "expiresAt": null,
+        "createdAt": "2026-08-18T07:46:54.479Z",
+        "updatedAt": "2026-08-18T07:46:54.479Z"
+    },
+    {
+        "id": "9e85f156-3bd6-4cac-a93e-a0d0deab150a",
+        "scope": "preference",
+        "key": "pref_theme_22_1787039214474",
+        "value": "User prefers dark theme",
+        "tags": [
+            "theme",
+            "ui"
+        ],
+        "missionId": null,
+        "source": "agent",
+        "importance": 2,
+        "accessCount": 0,
+        "lastAccessedAt": null,
+        "expiresAt": null,
+        "createdAt": "2026-08-18T07:46:54.475Z",
+        "updatedAt": "2026-08-18T07:46:54.475Z"
+    },
+    {
+        "id": "863e142f-0bef-48eb-b2a8-b2894b0e8393",
+        "scope": "semantic",
+        "key": "search_javascript_21_1787039214474",
+        "value": "JavaScript is the language of the web browser",
+        "tags": [
+            "javascript",
+            "web",
+            "browser"
+        ],
+        "missionId": null,
+        "source": "agent",
+        "importance": 3,
+        "accessCount": 0,
+        "lastAccessedAt": null,
+        "expiresAt": null,
+        "createdAt": "2026-08-18T07:46:54.474Z",
+        "updatedAt": "2026-08-18T07:46:54.474Z"
+    },
+    {
+        "id": "ff1bdcf9-1303-4191-a6ee-ffbe4dd4a73a",
+        "scope": "preference",
+        "key": "pref_theme_19_1787039214470",
+        "value": "User prefers dark theme",
+        "tags": [
+            "theme",
+            "ui"
+        ],
+        "missionId": null,
+        "source": "agent",
+        "importance": 2,
+        "accessCount": 0,
+        "lastAccessedAt": null,
+        "expiresAt": null,
+        "createdAt": "2026-08-18T07:46:54.471Z",
+        "updatedAt": "2026-08-18T07:46:54.471Z"
+    },
+    {
+        "id": "d780192f-dbda-4669-b9a1-c99b44eef9c2",
+        "scope": "semantic",
+        "key": "search_javascript_18_1787039214470",
+        "value": "JavaScript is the language of the web browser",
+        "tags": [
+            "javascript",
+            "web",
+            "browser"
+        ],
+        "missionId": null,
+        "source": "agent",
+        "importance": 3,
+        "accessCount": 0,
+        "lastAccessedAt": null,
+        "expiresAt": null,
+        "createdAt": "2026-08-18T07:46:54.470Z",
+        "updatedAt": "2026-08-18T07:46:54.470Z"
+    },
+    {
+        "id": "9422edf9-1ba0-4606-8ea3-5d5ea01294de",
+        "scope": "preference",
+        "key": "pref_theme_16_1787039214467",
+        "value": "User prefers dark theme",
+        "tags": [
+            "theme",
+            "ui"
+        ],
+        "missionId": null,
+        "source": "agent",
+        "importance": 2,
+        "accessCount": 0,
+        "lastAccessedAt": null,
+        "expiresAt": null,
+        "createdAt": "2026-08-18T07:46:54.468Z",
+        "updatedAt": "2026-08-18T07:46:54.468Z"
+    },
+    {
+        "id": "797727e6-867e-41cb-8604-ba3e9be66a5b",
+        "scope": "semantic",
+        "key": "search_javascript_15_1787039214467",
+        "value": "JavaScript is the language of the web browser",
+        "tags": [
+            "javascript",
+            "web",
+            "browser"
+        ],
+        "missionId": null,
+        "source": "agent",
+        "importance": 3,
+        "accessCount": 0,
+        "lastAccessedAt": null,
+        "expiresAt": null,
+        "createdAt": "2026-08-18T07:46:54.467Z",
+        "updatedAt": "2026-08-18T07:46:54.467Z"
+    },
+    {
+        "id": "1075e420-d5b2-4384-b913-ef2f6eee3ea1",
+        "scope": "preference",
+        "key": "pref_theme_13_1787039214464",
+        "value": "User prefers dark theme",
+        "tags": [
+            "theme",
+            "ui"
+        ],
+        "missionId": null,
+        "source": "agent",
+        "importance": 2,
+        "accessCount": 0,
+        "lastAccessedAt": null,
+        "expiresAt": null,
+        "createdAt": "2026-08-18T07:46:54.465Z",
+        "updatedAt": "2026-08-18T07:46:54.465Z"
+    },
+    {
+        "id": "f3b1d891-e958-4b65-8f54-b5da1accc682",
+        "scope": "semantic",
+        "key": "search_javascript_12_1787039214463",
+        "value": "JavaScript is the language of the web browser",
+        "tags": [
+            "javascript",
+            "web",
+            "browser"
+        ],
+        "missionId": null,
+        "source": "agent",
+        "importance": 3,
+        "accessCount": 0,
+        "lastAccessedAt": null,
+        "expiresAt": null,
+        "createdAt": "2026-08-18T07:46:54.464Z",
+        "updatedAt": "2026-08-18T07:46:54.464Z"
+    },
+    {
+        "id": "77a75a8b-d8a4-47e5-a1f3-a7c6119497fc",
+        "scope": "preference",
+        "key": "pref_theme_10_1787039214459",
+        "value": "User prefers dark theme",
+        "tags": [
+            "theme",
+            "ui"
+        ],
+        "missionId": null,
+        "source": "agent",
+        "importance": 2,
+        "accessCount": 0,
+        "lastAccessedAt": null,
+        "expiresAt": null,
+        "createdAt": "2026-08-18T07:46:54.460Z",
+        "updatedAt": "2026-08-18T07:46:54.460Z"
+    },
+    {
+        "id": "e59326fc-946b-4ecb-98db-70ce91153ade",
+        "scope": "semantic",
+        "key": "search_javascript_9_1787039214458",
+        "value": "JavaScript is the language of the web browser",
+        "tags": [
+            "javascript",
+            "web",
+            "browser"
+        ],
+        "missionId": null,
+        "source": "agent",
+        "importance": 3,
+        "accessCount": 0,
+        "lastAccessedAt": null,
+        "expiresAt": null,
+        "createdAt": "2026-08-18T07:46:54.459Z",
+        "updatedAt": "2026-08-18T07:46:54.459Z"
+    },
+    {
+        "id": "0139a814-850a-4697-828d-3db49c89baf3",
+        "scope": "episodic",
+        "key": "list_mission_2_7_1787039214454",
+        "value": "result 2",
+        "tags": [],
+        "missionId": null,
+        "source": "agent",
+        "importance": 3,
+        "accessCount": 0,
+        "lastAccessedAt": null,
+        "expiresAt": null,
+        "createdAt": "2026-08-18T07:46:54.455Z",
+        "updatedAt": "2026-08-18T07:46:54.455Z"
+    },
+    {
+        "id": "ce73dadf-2ab0-4a01-9c8d-d15ed09bf311",
+        "scope": "episodic",
+        "key": "list_mission_1_6_1787039214453",
+        "value": "result 1",
+        "tags": [],
+        "missionId": null,
+        "source": "agent",
+        "importance": 3,
+        "accessCount": 0,
+        "lastAccessedAt": null,
+        "expiresAt": null,
+        "createdAt": "2026-08-18T07:46:54.454Z",
+        "updatedAt": "2026-08-18T07:46:54.454Z"
+    },
+    {
+        "id": "23798e93-6e7d-433f-ac15-375c237d0a01",
+        "scope": "semantic",
+        "key": "update_test_5_1787039214449",
+        "value": "new value",
+        "tags": [
+            "new-tag-1",
+            "new-tag-2"
+        ],
+        "missionId": null,
+        "source": "agent",
+        "importance": 4,
+        "accessCount": 0,
+        "lastAccessedAt": null,
+        "expiresAt": null,
+        "createdAt": "2026-08-18T07:46:54.450Z",
+        "updatedAt": "2026-08-18T07:46:54.451Z"
+    },
+    {
+        "id": "31c978dd-2f0d-40e3-a39c-7f690996cdb2",
+        "scope": "preference",
+        "key": "get_test_4_1787039214446",
+        "value": "User prefers dark mode",
+        "tags": [],
+        "missionId": null,
+        "source": "agent",
+        "importance": 3,
+        "accessCount": 0,
+        "lastAccessedAt": null,
+        "expiresAt": null,
+        "createdAt": "2026-08-18T07:46:54.448Z",
+        "updatedAt": "2026-08-18T07:46:54.448Z"
+    },
+    {
+        "id": "bea9b678-d871-4821-8fd7-564767771d8a",
+        "scope": "episodic",
+        "key": "mission_linked_2_1787039214443",
+        "value": "Mission result data",
+        "tags": [],
+        "missionId": null,
+        "source": "agent",
+        "importance": 3,
+        "accessCount": 0,
+        "lastAccessedAt": null,
+        "expiresAt": null,
+        "createdAt": "2026-08-18T07:46:54.444Z",
+        "updatedAt": "2026-08-18T07:46:54.444Z"
+    },
+    {
+        "id": "02ed2482-74e6-48c7-8252-98143176cc18",
+        "scope": "semantic",
+        "key": "crud_full_1_1787039214431",
+        "value": {
+            "fact": "TypeScript is a typed superset of JavaScript"
+        },
+        "tags": [
+            "typescript",
+            "programming"
+        ],
+        "missionId": null,
+        "source": "system",
+        "importance": 5,
+        "accessCount": 0,
+        "lastAccessedAt": null,
+        "expiresAt": null,
+        "createdAt": "2026-08-18T07:46:54.441Z",
+        "updatedAt": "2026-08-18T07:46:54.441Z"
+    }
+]
+
+=== TEST 14: GET /permissions ===
+[
+    {
+        "capability": "screenshot",
+        "status": "undefined",
+        "risk": "low"
+    },
+    {
+        "capability": "mouse_move",
+        "status": "undefined",
+        "risk": "medium"
+    },
+    {
+        "capability": "mouse_click",
+        "status": "undefined",
+        "risk": "high"
+    },
+    {
+        "capability": "mouse_scroll",
+        "status": "undefined",
+        "risk": "low"
+    },
+    {
+        "capability": "key_type",
+        "status": "undefined",
+        "risk": "high"
+    },
+    {
+        "capability": "key_press",
+        "status": "undefined",
+        "risk": "medium"
+    },
+    {
+        "capability": "clipboard_read",
+        "status": "undefined",
+        "risk": "medium"
+    },
+    {
+        "capability": "clipboard_write",
+        "status": "undefined",
+        "risk": "high"
+    },
+    {
+        "capability": "filesystem_read",
+        "status": "undefined",
+        "risk": "low"
+    },
+    {
+        "capability": "filesystem_write",
+        "status": "undefined",
+        "risk": "medium"
+    },
+    {
+        "capability": "filesystem_delete",
+        "status": "undefined",
+        "risk": "critical"
+    },
+    {
+        "capability": "shell_execute",
+        "status": "undefined",
+        "risk": "critical"
+    },
+    {
+        "capability": "app_launch",
+        "status": "undefined",
+        "risk": "medium"
+    },
+    {
+        "capability": "app_close",
+        "status": "undefined",
+        "risk": "high"
+    },
+    {
+        "capability": "window_list",
+        "status": "undefined",
+        "risk": "low"
+    },
+    {
+        "capability": "window_focus",
+        "status": "undefined",
+        "risk": "medium"
+    },
+    {
+        "capability": "window_info",
+        "status": "undefined",
+        "risk": "low"
+    }
+]
+
+=== TEST 15: GET /capabilities ===
+{
+    "error": {
+        "code": "NOT_FOUND",
+        "message": "Route GET /capabilities not found",
+        "requestId": "fc897cf3-a824-4f4d-a437-15c2b0daf737"
+    }
+}
+
+=== TEST 16: GET /voice/status ===
+{
+    "availableProviders": [
+        "browser"
+    ],
+    "activeProvider": "browser",
+    "capabilities": [
+        "stt",
+        "tts"
+    ],
+    "availableVoices": [
+        {
+            "id": "browser-default",
+            "name": "Browser Default",
+            "language": "*",
+            "gender": "neutral"
+        }
+    ]
+}
+
+=== TEST 17: GET /approvals ===
+{
+    "items": [
+        {
+            "id": "284c0686-1a77-4d77-a3b1-71ee83233035",
+            "missionId": "test-mission-auth-model",
+            "toolName": "shell_execute",
+            "capability": "shell_execute",
+            "riskLevel": "critical",
+            "status": "pending",
+            "reason": "Tool 'shell_execute' requires capability 'shell_execute' which is not yet granted. Admin decision needed.",
+            "toolInput": {},
+            "expiresAt": "2026-08-18T07:52:13.518Z",
+            "createdAt": "2026-08-18T07:47:13.518Z",
+            "updatedAt": "2026-08-18T07:47:13.518Z"
+        }
+    ],
+    "total": 1,
+    "limit": 50,
+    "offset": 0
+}
+
+=== TEST 18: GET /mcp/servers ===
+[]
+
+=== TEST 19: GET /mobile/admin/clients ===
+[
+    {
+        "id": "03fdee0c-8986-4136-94e4-7e8630037588",
+        "name": "android client",
+        "platform": "android",
+        "apiKey": "6742136d...",
+        "enabled": true,
+        "lastSeenAt": null,
+        "createdAt": "2026-08-18T07:46:58.615Z",
+        "updatedAt": "2026-08-18T07:46:58.615Z"
+    },
+    {
+        "id": "239b4ae3-4d5f-4997-bf56-03cb7f216414",
+        "name": "web client",
+        "platform": "web",
+        "apiKey": "babdbd1e...",
+        "enabled": true,
+        "lastSeenAt": null,
+        "createdAt": "2026-08-18T07:46:58.615Z",
+        "updatedAt": "2026-08-18T07:46:58.615Z"
+    },
+    {
+        "id": "c2d13dc5-e797-4975-bd3f-2046c7ab5338",
+        "name": "ios client",
+        "platform": "ios",
+        "apiKey": "90ba994e...",
+        "enabled": true,
+        "lastSeenAt": null,
+        "createdAt": "2026-08-18T07:46:58.614Z",
+        "updatedAt": "2026-08-18T07:46:58.614Z"
+    },
+    {
+        "id": "8e9854f6-77ba-42d1-8413-c86bfca4da42",
+        "name": "Regen Test",
+        "platform": "ios",
+        "apiKey": "47b0e14a...",
+        "enabled": true,
+        "lastSeenAt": "2026-08-18T07:46:58.610Z",
+        "createdAt": "2026-08-18T07:46:58.608Z",
+        "updatedAt": "2026-08-18T07:46:58.611Z"
+    },
+    {
+        "id": "6c7886d8-6c5b-437a-9dc9-4c6e14a07f37",
+        "name": "Enable Test",
+        "platform": "web",
+        "apiKey": "f7468522...",
+        "enabled": true,
+        "lastSeenAt": "2026-08-18T07:46:58.607Z",
+        "createdAt": "2026-08-18T07:46:58.603Z",
+        "updatedAt": "2026-08-18T07:46:58.607Z"
+    },
+    {
+        "id": "2d9db8a9-045e-4beb-9ee0-bca805e4d05b",
+        "name": "Revoke Test",
+        "platform": "android",
+        "apiKey": "5584a934...",
+        "enabled": false,
+        "lastSeenAt": null,
+        "createdAt": "2026-08-18T07:46:58.601Z",
+        "updatedAt": "2026-08-18T07:46:58.602Z"
+    },
+    {
+        "id": "dd7d40f0-1dc8-41d8-95a1-57bcc79ebb5d",
+        "name": "Test iPhone",
+        "platform": "ios",
+        "apiKey": "c0ffba34...",
+        "enabled": true,
+        "lastSeenAt": "2026-08-18T07:46:58.599Z",
+        "createdAt": "2026-08-18T07:46:58.596Z",
+        "updatedAt": "2026-08-18T07:46:58.599Z"
+    }
+]
+
+=== TEST 20: GET /missions/nonexistent-id (structured error) ===
+{
+    "error": {
+        "code": "MISSION_NOT_FOUND",
+        "message": "Mission nonexistent-id not found",
+        "requestId": "fd138d6c-e38a-4dca-b2c0-c105969d7283"
+    }
+}
+
+=== TEST 21: POST /permissions (Phase 4) ===
+{
+    "error": {
+        "code": "NOT_FOUND",
+        "message": "Route POST /permissions not found",
+        "requestId": "aa66a90e-3238-4265-a991-4d3997ee759d"
+    }
+}
+
+=== TEST 22: POST /capabilities (approval creation) ===
+{
+    "error": {
+        "code": "NOT_FOUND",
+        "message": "Route POST /capabilities not found",
+        "requestId": "9dc475d7-ba35-4dbb-9456-910f7f1aeb35"
+    }
+}
+
+=== KILLING SERVER ===
+Done

@@ -1,0 +1,326 @@
+     1→---
+     2→Task ID: local-llm-crossplatform
+     3→Agent: main
+     4→Task: Cross-platform local LLM integration (Windows / Linux / macOS)
+     5→
+     6→Work Log:
+     7→- Created LocalLLMProvider with auto-detection: probes Ollama (11434), LM Studio (1234), mlx-vlm (8080) in order, connects to first live server
+     8→- Updated modelProvider factory: 'local' provider joins 'gemini' and 'groq'
+     9→- Created /agent/local-llm/health (probes all backends) and /agent/local-llm/status (config + install docs) routes
+    10→- Updated agent route with provider validation: ['gemini', 'groq', 'local']
+    11→- Created mini-services/local-llm/ with cross-platform scripts:
+    12→  - start-server.sh (Linux/macOS): auto-detects OS, picks Ollama or MLX, pulls models, waits for ready
+    13→  - stop-server.sh: graceful then force kill, also tries process-name fallback
+    14→  - health-server.sh: curl-based health check with model listing
+    15→  - start-server.ps1 (Windows PowerShell): Ollama + LM Studio support, model pulling, process management
+    16→  - stop-server.ps1: Windows process kill with fallback
+    17→  - health-server.ps1: PowerShell health check
+    18→  - README.md: Quick start for all 3 OSes, backend comparison table, model recommendations by RAM
+    19→- Added 'local-llm' as service #21 in serviceCatalog (cross-platform entry, port 11434 default)
+    20→- Created .env.example with LOCAL_LLM_* vars (all blank for auto-detect)
+    21→- Updated .gitignore for local-llm runtime files and model weights
+    22→- TypeScript verified: zero new errors
+    23→
+    24→Stage Summary:
+    25→- Local LLM is now cross-platform: Windows (Ollama/LM Studio), Linux (Ollama), macOS (Ollama/mlx-vlm)
+    26→- Zero config needed: auto-detects running server, auto-selects model name
+    27→- JARVIS phone clients (iOS/Android) connect to the PC server via Tailscale — phone doesn't run the model
+    28→- Usage: POST /agent/run { missionId, provider: 'local' } — that's it
+    29→
+    30→---
+    31→Task ID: 5
+    32→Agent: main
+    33→Task: OpenJarvis Phase 5 — Voice System
+    34→
+    35→Work Log:
+    36→- Created voice provider abstraction: `VoiceProvider` interface with `transcribe()`, `synthesize()`, `getVoices()`
+    37→- Implemented `BrowserRelayProvider`: always available, no API key, client-side STT/TTS acknowledgment
+    38→- Implemented `GeminiVoiceProvider`: STT via Gemini multimodal audio input, audio MIME type detection (WAV/MP3/OGG/WebM)
+    39→- Implemented `GroqVoiceProvider`: STT via Groq Whisper API (`whisper-large-v3-turbo`), language code conversion
+    40→- Both server-side adapters honestly return `TTS_NOT_SUPPORTED` — browser handles TTS via SpeechSynthesis
+    41→- Created `voiceManager.ts`: provider factory, session CRUD, status transitions, transcript management
+    42→- Voice session state machine: 5 states (idle/listening/processing/speaking/error) with guarded transitions
+    43→- Added voice REST routes: `GET /voice/status`, `POST /voice/provider`, `POST /voice/stt`, `POST /voice/tts`, CRUD `/voice/sessions`, transcript, status updates
+    44→- Added WebSocket voice events: `subscribe:voice`, `voice:transcript`, `voice:status` for real-time relay
+    45→- Updated `.env.example` with voice variables: VOICE_PROVIDER, VOICE_LANGUAGE, VOICE_TTS_VOICE, VOICE_MAX_AUDIO_SIZE, WS_PORT
+    46→- Created frontend `VoiceControl` component: mic button with pulse animation, 20-bar audio level visualization, real-time interim transcript, TTS toggle, transcript history with clear
+    47→- Voice → mission bridge: browser STT transcript creates real mission via `createMission` + `runAgent` API calls
+    48→- Updated frontend API client with 9 voice functions (status, provider switch, STT, TTS, sessions CRUD, transcript, status)
+    49→- Updated TypeScript types with voice types (VoiceStatus, STTResponse, TTSResponse, VoiceSession, VoiceTranscriptEntry)
+    50→- 41/41 Phase 5 tests pass, 110/110 total tests pass (Phases 1-5)
+    51→
+    52→Stage Summary:
+    53→- Phase 5 code-complete
+    54→- 110/110 tests passing
+    55→- Voice provider abstraction mirrors ModelProvider pattern
+    56→- Browser-native STT/TTS works immediately (no API keys needed)
+    57→- Gemini/Groq STT adapters ready (blocked on API keys for E2E testing)
+    58→- Voice sessions with guarded state machine and transcript persistence
+    59→- Frontend voice control integrated into dashboard left panel
+    60→- BUILD_STATE.md updated with all Phase 5 acceptance criteria
+    61→
+    62→---
+    63→Task ID: 2
+    64→Agent: main
+    65→Task: OpenJarvis Phase 3-4 Build
+    66→
+    67→Work Log:
+    68→- Phase 3 UI: Added Socket.IO WebSocket server on port 3002 to Express backend
+    69→- Phase 3 UI: Created eventBus to broadcast mission_events after every DB write
+    70→- Phase 3 UI: Built 12 new/modified frontend files (8 components, 3 lib files, 1 hook)
+    71→- Phase 3 UI: Main dashboard with 3-panel layout (goal+state | timeline | tabbed views)
+    72→- Phase 3 UI: Agent state indicator driven by real mission status via WebSocket
+    73→- Phase 3 UI: Advanced views: Missions, Tools, Memory, Settings (all live data)
+    74→- Phase 3 UI: Connection banner shows real error state when backend is down
+    75→- Phase 3 UI: Dark/light/system theme via next-themes
+    76→- Phase 4 Computer Control: Created permission system with 17 capabilities
+    77→- Phase 4 Computer Control: Hard-block list enforced (filesystem_delete, shell_execute return requires_approval)
+    78→- Phase 4 Computer Control: Permission grants checked at execution time, not just at connection
+    79→- Phase 4 Computer Control: 17 computer-control tools with real schemas (screenshot, mouse, keyboard, clipboard, filesystem, shell, window, app)
+    80→- Phase 4 Computer Control: Verification loop architecture (screenshot_diff for UI tools, output_check for others)
+    81→- Phase 4 Computer Control: GUI-dependent tools return honest ENVIRONMENT_UNAVAILABLE, not fake success
+    82→- Phase 4 Computer Control: Permission API endpoints wired into Express + frontend API client
+    83→- Phase 4 Computer Control: 23/23 Phase 4 tests pass
+    84→- All tests pass: 69/69 across Phases 1-4
+    85→
+    86→Stage Summary:
+    87→- Phases 0-4 are code-complete
+    88→- 69/69 tests passing
+    89→- 17 computer-control tools ready for desktop environment
+    90→- Permission system with hard-block protection
+    91→- Verification loop architecture in place
+    92→- Tauri desktop shell and mobile (React Native) deferred per spec
+    93→- GUI tools honestly fail in headless sandbox — no fake successes
+    94→
+    95→---
+    96→Task ID: 6
+    97→Agent: main
+    98→Task: OpenJarvis Phase 6 — Memory System
+    99→
+   100→Work Log:
+   101→- Migrated MemoryEntry schema: added tags (JSON array), missionId (FK to missions), source (agent/user/system/import), importance (1-5), accessCount, lastAccessedAt, expiresAt, updatedAt
+   102→- Created MemoryAssociation table with from/to relations, strength (0-1), unique constraint on pairs
+   103→- Rewrote memoryService with 15+ methods: CRUD, search (keyword + relevance scoring), recallForContext, touch, consolidate, purgeExpired, getStats, createAssociation, getAssociated, bulkRemove, removeByScope, listByMission
+   104→- Built MemoryContextBuilder (agent/memory/contextBuilder.ts): formats relevant memories as `<memory-context>` XML block for system prompt injection, groups by scope with labels, respects token/entry limits, auto-touches recalled memories
+   105→- Created 4 agent memory tools (agent/memory/memoryTools.ts): memory_store, memory_recall, memory_search, memory_forget — all low risk, full JSON Schema input/output definitions
+   106→- Wired context_retrieval stage in agent loop to MemoryContextBuilder — builds memory context from goal before first model call
+   107→- Enhanced memory_update stage to store episodic results with goal-derived tags, missionId linkage, and source tracking
+   108→- Rewrote memory REST API (routes/memory.ts): GET /memory/search, GET /memory/stats, GET /memory/scopes, GET /memory/:id, GET /memory/:id/associations, POST /memory (enhanced), PATCH /memory/:id, POST /memory/consolidate, POST /memory/purge-expired, POST /memory/bulk-delete
+   109→- Updated frontend types (openjarvis-types.ts): MemoryScope now 5 scopes, added MemorySource, MemorySearchResult, MemoryStats, enhanced MemoryEntry
+   110→- Updated API client (openjarvis-api.ts): searchMemory, getMemoryStats, getMemoryById, updateMemory, consolidateMemory, purgeExpiredMemory, bulkDeleteMemory
+   111→- Rewrote MemoryTab component: search bar, scope filter dropdown, create form (key/value/scope/tags/importance), stats panel, consolidate button, purge button, importance stars, tag badges, source/access display, group-hover delete
+   112→- Fixed Phase 1 test (memory update API changed from positional to named {value} param)
+   113→- Fixed SQLite compatibility: removed Prisma `or` filter for null date, moved expiry filtering to application layer
+   114→- Fixed search scoring: require text relevance > 0 before including results (prevents importance/recency alone from surfacing irrelevant entries)
+   115→- Fixed DB query ordering: use createdAt desc instead of importance desc to avoid missing recent entries in search
+   116→
+   117→Stage Summary:
+   118→- Phase 6 complete with 46/46 tests passing
+   119→- 156/156 total tests pass (Phase 1-6)
+   120→- Key architecture: keyword search with relevance scoring, context injection into agent prompt, 4 agent tools, memory lifecycle management
+   121→- BUILD_STATE.md updated with Phase 6 completion and 11 acceptance criteria checked
+   122→\n---\nTask ID: 7\nAgent: main\nTask: OpenJarvis Phase 7 — Mobile API Layer\n\nWork Log:\n- Added mobile_clients table: name, platform (ios/android/web), unique apiKey, enabled, lastSeenAt\n- Created mobile client service: register, authenticate, revoke, enable, regenerateApiKey, list, delete\n- Built API key auth middleware: requireMobileAuth() — validates X-API-Key header or api_key query param, optional mode\n- Created pagination utility: parsePagination (page/limit clamping) + buildPaginatedResponse (data + metadata envelope)\n- Created mobile types: PaginatedRequest/Response, MobileClient, MobileMissionSummary, MobileAgentRunResponse\n- Built versioned mobile API at /mobile/v1/ with 10 endpoints:\n  - POST /register (open), GET /missions (paginated summary), GET /missions/:id (detail with event count),\n  - GET /missions/:id/events (paginated), GET /missions/:id/events/stream (SSE),\n  - GET /memory (paginated), GET /memory/search, GET /tools (lightweight),\n  - POST /agent/run (combined create+start), GET /health\n- Built admin routes at /mobile/admin/clients: list, revoke, enable, regenerate, delete\n- SSE event stream: sends existing events, polls for new, auto-timeout at 5min, no WebSocket dependency\n- Added unauthorized() error factory to errors.ts\n- Added Mobile API info card to Settings tab in frontend\n- React Native app shell deferred — no mobile SDK/toolchain in sandbox\n\nStage Summary:\n- Phase 7 complete with 22/22 tests passing\n- 178/178 total tests pass (Phase 1-7)\n- Key architecture: versioned API, API key auth, pagination, SSE streaming, client management\n- BUILD_STATE.md updated with Phase 7 completion and 9 acceptance criteria checked
+   123→
+   124→---
+   125→Task ID: 7b
+   126→Agent: main
+   127→Task: OpenJarvis Phase 7 — React Native Mobile Client
+   128→
+   129→Work Log:
+   130→- Initialized Expo SDK 57 project with React Native 0.86, React 19
+   131→- Installed dependencies: @react-navigation/native, bottom-tabs, native-stack, react-native-screens, safe-area-context, async-storage
+   132→- Built API client layer (src/api/client.ts): OpenJarvisClient class with loadConfig, register, health, listMissions, getMission, createMission, listEvents, runAgent, listMemory, searchMemory, listTools, SSE streamEvents with ReadableStream parsing, AbortController support
+   133→- Built API types (src/api/types.ts): 17 types mirroring backend /mobile/v1 contract — PaginatedRequest/Response, MobileClient, MissionSummary/Detail, MissionEvent, AgentRunResponse, MemoryEntry, MemorySearchResponse, ToolSummary, HealthResponse, ApiError
+   134→- Built formatting utilities (src/utils/formatters.ts): timeAgo, formatDateTime, truncate, statusColor, riskColor, riskLabel, formatNumber, stageLabel
+   135→- Built theme system (src/theme/index.ts): Colors (dark-first), Spacing, Radius, FontSize constants
+   136→- Built common UI components (src/components/common.tsx): Badge, Button, EmptyState, SectionHeader, ListItem, LoadingSpinner
+   137→- Built Screen wrapper component with safe area and optional scroll
+   138→- Built AppContext (src/store/AppContext.tsx): global state for client config, registration, server URL, logout/refresh
+   139→- Built 6 screens:
+   140→  - SetupScreen: server URL config → device registration (2-step first-run flow)
+   141→  - MissionsScreen: paginated mission cards with status badges, tool call/token stats, timeAgo, load more
+   142→  - MissionDetailScreen: mission info, 4-stat cards (calls/tokens/events/risk), event timeline with SSE live streaming, connector lines, stage labels
+   143→  - AgentScreen: multiline goal input (500 char), run/stop/reset buttons, live SSE progress list with stage labels
+   144→  - MemoryScreen: search bar, horizontal scope filter chips (all/working/episodic/semantic/preference/preference/project), memory cards with importance stars, tags, scope badges
+   145→  - ToolsScreen: tool catalog with name, description, risk level badges
+   146→  - SettingsScreen: server URL config with save, health check dot, device info, disconnect button
+   147→- Built navigation: bottom tabs (Missions/Agent/Memory/Tools/Settings) + stack navigator for MissionDetail
+   148→- Built App.tsx root: NavigationContainer with dark theme, AppProvider + AppGate (setup vs main)
+   149→- Wrote 55 unit tests across 3 test suites:
+   150→  - formatters.test.ts (31 tests): timeAgo (6), truncate (4), statusColor (5), riskColor (5), riskLabel (1), formatNumber (4), stageLabel (2), formatDateTime (1), plus edge cases
+   151→  - apiClient.test.ts (21 tests): Config Management (7), HTTP Requests (4), API Endpoints (9), SSE Streaming (3), ApiClientError (1)
+   152→  - types.test.ts (3 tests): barrel exports, ApiClientError instanceof, module loading
+   153→- All tests pass: 55/55 mobile + 178/178 backend = 233 total
+   154→
+   155→Stage Summary:
+   156→- Phase 7 React Native mobile client is code-complete
+   157→- 55/55 mobile tests, 178/178 backend tests — all green
+   158→- 233 total tests across the full OpenJarvis project
+   159→- Key architecture: Expo SDK 57, API key auth, SSE streaming, AsyncStorage persistence, 5-tab navigation
+   160→- Mobile app connects to existing /mobile/v1 backend endpoints (no backend changes needed)
+   161→- BUILD_STATE.md updated with Phase 7 mobile completion
+   162→
+   163→---
+   164→Task ID: 8
+   165→Agent: main
+   166→Task: OpenJarvis Phase 8 — MCP / Plugin System
+   167→
+   168→Work Log:
+   169→- Added McpServer table: name (unique), transport (stdio|sse|in-process), command, args (JSON array), url, env (JSON object), enabled, status (disconnected|connecting|connected|error), lastError, toolCount, connectedAt
+   170→- Added McpTool table: serverId FK, name (namespaced "mcp__servername__toolname"), mcpName (original), description, inputSchema (JSON), riskLevel (default medium), enabled; unique constraint on (serverId, mcpName)
+   171→- Created MCP types (src/mcp/types.ts): JSON-RPC 2.0 request/response, MCP protocol types (initialize, listTools, callTool, tool definition), server config, transport interface, plugin manager types
+   172→- Built McpProtocolClient (src/mcp/mcpClient.ts): JSON-RPC 2.0 over transport, initialize with client info, listTools, callTool with typed responses, McpError class
+   173→- Built 3 transport implementations (src/mcp/transports.ts):
+   174→  - StdioTransport: spawns child process, stdin/stdout JSON-RPC, stderr logging, 10s connect timeout, 30s request timeout, pending request map with timeout cleanup
+   175→  - SseTransport: HTTP SSE connect, parses endpoint event, POST for requests, session ID tracking
+   176→  - InProcessTransport: in-memory tool collection, synchronous JSON-RPC handling, perfect for testing and built-in plugins
+   177→- Built MCP Plugin Manager (src/mcp/pluginManager.ts):
+   178→  - Server CRUD (DB-backed): createServer, listServers, getServer, updateServer, deleteServer with validation (transport/command/url requirements)
+   179→  - Connection lifecycle: connectServer (transport creation → initialize → listTools → syncTools → status update), disconnectServer, error handling with status tracking
+   180→  - Tool sync: _syncTools deletes old tools, creates new McpTool records with namespaced names (mcp__servername__toolname)
+   181→  - Tool bridging: buildToolHandlers() creates ToolHandler[] from all connected MCP servers, each handler calls client.callTool() and extracts text content from MCP response
+   182→  - Status: getStatus returns totalServers, connected, error, totalMcpTools counts
+   183→  - In-process registration: registerInProcess for testing/built-in plugins
+   184→- Built REST API (src/routes/mcp.ts): 8 endpoints
+   185→  - GET/POST /mcp/servers (list, create), GET/PATCH/DELETE /mcp/servers/:id (CRUD)
+   186→  - POST /mcp/servers/:id/connect, /mcp/servers/:id/disconnect (lifecycle)
+   187→  - GET /mcp/servers/:id/tools, GET /mcp/tools (tool listing)
+   188→  - GET /mcp/status (system status)
+   189→- Wired /mcp routes into index.ts Express app
+   190→- 36/36 Phase 8 tests pass covering: MCP types (3), In-Process Transport (9), Protocol Client (4), Plugin Manager CRUD (9), In-Process Connect (4), buildToolHandlers (3), Status (1), McpError (1)
+   191→
+   192→Stage Summary:
+   193→- Phase 8 complete with 36/36 tests passing
+   194→- 269 total tests pass (214 backend + 55 mobile)
+   195→- Key architecture: JSON-RPC 2.0 over 3 transports, DB-backed plugin registry, namespaced tool bridging into existing ToolRegistry
+   196→- MCP tools default to "medium" risk level (external code)
+   197→- Stdio transport ready for npx/node based MCP servers (e.g. @anthropic/mcp-server-*), SSE transport ready for remote MCP servers
+   198→- BUILD_STATE.md updated with Phase 8 completion
+   199→
+   200→---
+   201→Task ID: 10
+   202→Agent: main
+   203→Task: OpenJarvis Phase 10 — Approval Workflow & Human-in-the-Loop
+   204→
+   205→Work Log:
+   206→- Added ApprovalRequest table: missionId, toolName, capability, riskLevel (default medium), status (pending|approved|rejected|expired|cancelled), reason, toolInput (JSON), resolvedBy, resolvedAt, response, expiresAt, with indexes on status/riskLevel/expiresAt/missionId
+   207→- Added ApprovalRule table: name (unique), description, enabled, matchRiskLevels (JSON array), matchToolNames (JSON array with wildcard support), matchCapabilities (JSON array), action (auto_approve|auto_reject|require_manual), priority (higher wins)
+   208→- Ran prisma db push to create new tables
+   209→- Fixed Prisma client resolution: @prisma/client was resolving to root Next.js project's client (User/Post tables). Changed db.ts to import from local `../../node_modules/.prisma/client/index.js`
+   210→- Created approvalService (src/services/approvalService.ts): full CRUD for requests + rules, approve/reject/cancel lifecycle, expiry cleanup, stats, rule-based auto-approval engine with priority, pattern matching (wildcard *), combined conditions
+   211→- Created approvalGate (src/services/approvalGate.ts): checkApprovalGate() called by agent loop before tool execution, determines if tool needs approval based on: (1) auto-approval rules (highest priority first), (2) hard-blocked capabilities (filesystem_delete, shell_execute), (3) risk level (high/critical). Returns {proceed, approvalId, status, reason}. Also includes waitForApprovalDecision() polling function.
+   212→- Modified agent loop (agentLoop.ts): before each tool execution, calls checkApprovalGate(). If waiting_approval, sets mission to waiting_approval status, records risk_check stage, polls for decision. On approved: resumes. On rejected/expired/cancelled: feeds error back to model as tool result so it can adapt.
+   213→- Created approval REST routes (src/routes/approval.ts): 11 endpoints — GET/POST approvals, GET stats, GET pending, POST expire, GET/:id, POST :id/approve, POST :id/reject, POST :id/cancel, GET/PATCH/DELETE rules
+   214→- Wired /approvals routes into index.ts Express app
+   215→- Added WebSocket approval events: subscribe:approvals, subscribe:mission:approvals, unsubscribe variants. eventBus.emit broadcasts approval:created and approval:resolved to global and mission-specific rooms
+   216→- Added frontend types (openjarvis-types.ts): ApprovalRequest, ApprovalRequestList, ApprovalStats, ApprovalRule, WsApprovalEvent
+   217→- Added frontend API client (openjarvis-api.ts): 11 approval functions — getApprovals, getPendingApprovals, getApprovalStats, getApproval, approveRequest, rejectRequest, cancelRequest, expirePendingApprovals, getApprovalRules, createApprovalRule, updateApprovalRule, deleteApprovalRule
+   218→- Created ApprovalQueue component (approval-queue.tsx): pending/history tabs, stats bar (pending/approved/rejected/expired), ApprovalCard with risk badge, expandable tool input, approve/reject/cancel buttons, reject-with-reason input, auto-poll every 5s
+   219→- Integrated ApprovalQueue into dashboard page.tsx as 5th tab (Approvals) with red badge counter
+   220→- 44/44 Phase 10 tests pass, 258/258 total tests pass (Phases 1-10)
+   221→
+   222→Stage Summary:
+   223→- Phase 10 complete with 44/44 tests passing
+   224→- 258 total backend tests pass across 8 test files (previously 214)
+   225→- Key architecture: approval gate pattern in agent loop, rule-based auto-approval engine with priority ordering, DB-backed request lifecycle, WebSocket real-time notifications
+   226→- Mission state machine's `waiting_approval` status now fully functional with real tool-gating logic
+   227→- Rules support: risk level matching, tool name exact/wildcard matching, capability matching, combined conditions, priority ordering, disabled state
+   228→- Approval TTL defaults to 300s (5 min), configurable per request
+   229→- Frontend shows approval queue as a tab with pending count badge
+   230→---
+   231→Task ID: 10
+   232→Agent: main
+   233→Task: Implement Phase 10 Authorization Model ("The admin is the policy")
+   234→
+   235→Work Log:
+   236→- Explored existing codebase: found Phase 10 approval workflow existed but lacked the core Authorization Model
+   237→- Added `capability_grants` table to Prisma schema with proper indexing
+   238→- Created `capabilityRegistry` service (DB-backed, replaces in-memory PermissionManager)
+   239→- Rewrote `approvalGate.ts` to implement the 3-state authorization flow: allowed→execute, denied→block, undefined→ask
+   240→- Updated `approvalService.approve()` to support `alwaysAllow` option (creates permanent grant)
+   241→- Added `/capabilities` REST routes (CRUD + statuses + revoke-all)
+   242→- Updated `/permissions` routes to use DB-backed registry
+   243→- Updated `/approvals/:id/approve` route to accept `alwaysAllow` body param
+   244→- Updated frontend: `ApprovalQueue` now has "Approve Once" + "Always Allow" buttons + "Registry" tab
+   245→- Added `CapabilityRegistryPanel` component showing all 17 capabilities with status
+   246→- Added API client functions and TypeScript types for capability grants
+   247→- Wrote 31 new Authorization Model tests covering: CRUD, 3-state check, scoped grants, scope context, gate integration, approve-once vs always-allow, immediate revocation
+   248→- Fixed 1 existing test that relied on pre-authorization-model behavior
+   249→- Full test suite: 289 pass, 0 fail
+   250→
+   251→Stage Summary:
+   252→- The Authorization Model is now fully implemented per spec
+   253→- Core principle: "JARVIS has no opinions about what it should or shouldn't do beyond what you've configured"
+   254→- Three states: undefined (pause+ask), allowed (execute), denied (block)
+   255→- "Always Allow" button creates permanent grants so admin is only asked once per capability
+   256→- Revocation takes immediate effect including for in-progress missions
+   257→- Scoped grants support (permanent, mission, session) with scope context (pathPrefix, domain)
+   258→- All 289 tests pass
+   259→
+   260→---
+   261→Task ID: 16
+   262→Agent: main
+   263→Task: OpenJarvis Phase 16 — The Sovereign Stack: Self-Hosted Tool Suite
+   264→
+   265→Work Log:
+   266→- Added `service_instances` and `service_backups` tables to Prisma schema (migration: phase16_service_instances)
+   267→- Created `serviceCatalog.ts`: 20 services with full metadata (name, displayName, group, repoUrl, replaces, hostname, imageTag, resource weight, RAM/CPU/disk estimates, port, mobile app info, backup priority, backup volumes, special notes)
+   268→- Created `serviceManager.ts`: core service lifecycle service with deploy, staged update (pull → health-check → apply → re-verify → auto-rollback), restart, stop, health check (docker inspect + HTTP), backup (docker volume archiving), restore, rollback
+   269→- Created 4 Docker Compose files:
+   270→  - `compose/group-a.yml`: Stirling-PDF, Immich (+Postgres+Redis), Upscayl, Whisper, LocalSend, Caddy
+   271→  - `compose/group-b.yml`: Audiblez, Rembg, Spleeter, pyVideoTrans, OCRmyPDF (all on-demand with profiles)
+   272→  - `compose/group-c.yml`: Vaultwarden, Nextcloud (+MariaDB), Pi-hole, Home Assistant, SearXNG
+   273→  - `compose/group-d.yml`: AppFlowy, Cal.com (+Postgres+Redis), NocoDB, Listmonk (+Postgres), Formbricks (+Postgres)
+   274→- Created `compose/caddy/Caddyfile`: 20 internal hostnames (*.internal), Tailscale-only binding documentation
+   275→- Created 6 service lifecycle tools (`src/agent/tools/service-lifecycle/index.ts`): deploy_service (medium), update_service (medium), restart_service (low), backup_service (low), check_service_health (low), rollback_service (high)
+   276→- Added 6 service lifecycle capabilities to `permissions/types.ts`: service_deploy, service_update, service_restart, service_backup, service_health_check, service_rollback
+   277→- Destructive actions (volume deletion, force-recreate) are NOT exposed as tools — only admin can do them
+   278→- Created `/services` REST routes (13 endpoints): list, resources, get, deploy, update, restart, stop, rollback, health (single + all), backup (create + list), restore
+   279→- Wired service routes into `index.ts` Express app
+   280→- Added WebSocket service subscriptions: `subscribe:services`, `service:status_changed`, `service:health_alert` events
+   281→- Updated eventBus to broadcast service:* events
+   282→- Added `capability` field to `ToolHandler` interface in `types.ts`
+   283→- Changed `CAPABILITY_RISK` type from `Record<Capability, ...>` to `Record<string, ...>` to accommodate new capabilities
+   284→- Created `BUILD_STATE.md` with: architecture decisions, resource estimates, go/no-go assessment, open risks, implementation status
+   285→- Created 28 Phase 16 tests: service catalog (7), resource estimation (3), service manager seed (5), lifecycle tools (5), permission tiering (4), resource report (2), backup listing (2)
+   286→- All 28 tests pass
+   287→
+   288→Stage Summary:
+   289→- Phase 16 code-complete (infrastructure layer)
+   290→- 20 services defined across 4 deployment groups with resource profiles
+   291→- 6 new tools registered for agent use, gated by the existing authorization model
+   292→- Staged update flow with automatic rollback on health check failure
+   293→- Destructive actions are architecturally impossible via tools (no `service_delete_volume` capability)
+   294→- Backup system with restore-tested flag and second-location storage target field
+   295→- Single-disk backup risk explicitly flagged in BUILD_STATE.md
+   296→- Mobile apps documented: Immich, Bitwarden, Nextcloud, Home Assistant (all with pairing instructions)
+   297→- SearXNG confirmed as single instance (Phase 14 reuse)
+   298→- Home Assistant explicitly noted as empty shell
+   299→- Real deployment requires: Docker on PC, Tailscale on PC+phone, second storage for real backups
+   300→
+   301→---
+   302→Task ID: deploy-oracle-cloud
+   303→Agent: main
+   304→Task: Create complete Oracle Cloud Free Tier deployment configuration ($0 hosting)
+   305→
+   306→Work Log:
+   307→- Explored project structure: Next.js frontend + Bun/Express API backend, SQLite dev DB, 14 Prisma models
+   308→- Created multi-stage Dockerfile: frontend-builder (Node 20) → api-builder (Bun + Prisma) → runner (Node 20 + tini)
+   309→- Created docker-compose.yml: 4 services (PostgreSQL 16, App, Nginx, Certbot) with health checks and resource limits
+   310→- Created production Prisma schema (deploy/prisma-production/schema.prisma) with PostgreSQL provider + @db.Text annotations
+   311→- Created Nginx reverse proxy config: gzip, security headers, all API route proxies, WebSocket upgrade, SSL-ready blocks
+   312→- Created .env.production template with all env vars documented
+   313→- Created start.sh: runs Prisma migrations, starts API (3001) + WebSocket (3002) + Next.js (3000), graceful shutdown
+   314→- Created deploy/oracle-setup.sh: one-click server setup (Docker, Git, Certbot, firewall, 4GB swap)
+   315→- Created deploy/init-db.sh: database initialization verification script
+   316→- Created .dockerignore: optimized build context (excludes mobile, desktop-tray, tests, etc.)
+   317→- Updated next.config.ts: added serverActions bodySizeLimit
+   318→- Created DEPLOY.md: full deployment guide (7 phases, HTTPS setup, troubleshooting, architecture diagram)
+   319→
+   320→Stage Summary:
+   321→- Complete production deployment stack for Oracle Cloud Free Tier ($0/month forever)
+   322→- Architecture: Nginx (80/443) → Next.js (3000) + Express API (3001) + WebSocket (3002) → PostgreSQL (5432)
+   323→- Key files: Dockerfile, docker-compose.yml, deploy/, .env.production, DEPLOY.md, start.sh, .dockerignore
+   324→- Auto-swaps Prisma schema from SQLite (dev) to PostgreSQL (prod) during Docker build
+   325→
+   326→

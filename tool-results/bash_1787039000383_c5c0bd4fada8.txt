@@ -1,0 +1,575 @@
+tests/phase10-auth-model.test.ts:
+/home/z/my-project/mini-services/openjarvis-api/tests/phase10-auth-model.test.ts:28:30
+(fail) Authorization Model — Capability Registry CRUD > creates a permanent allow grant [11.82ms]
+/home/z/my-project/mini-services/openjarvis-api/tests/phase10-auth-model.test.ts:28:30
+(fail) Authorization Model — Capability Registry CRUD > creates a permanent deny grant [1.92ms]
+/home/z/my-project/mini-services/openjarvis-api/tests/phase10-auth-model.test.ts:28:30
+(fail) Authorization Model — Capability Registry CRUD > creates a scoped grant with context [0.94ms]
+/home/z/my-project/mini-services/openjarvis-api/tests/phase10-auth-model.test.ts:28:30
+(fail) Authorization Model — Capability Registry CRUD > creates a mission-scoped grant [0.69ms]
+/home/z/my-project/mini-services/openjarvis-api/tests/phase10-auth-model.test.ts:28:30
+(fail) Authorization Model — Capability Registry CRUD > lists grants with filters [0.64ms]
+/home/z/my-project/mini-services/openjarvis-api/tests/phase10-auth-model.test.ts:28:30
+(fail) Authorization Model — Capability Registry CRUD > updates a grant [0.60ms]
+/home/z/my-project/mini-services/openjarvis-api/tests/phase10-auth-model.test.ts:28:30
+(fail) Authorization Model — Capability Registry CRUD > revokes a grant [0.53ms]
+/home/z/my-project/mini-services/openjarvis-api/tests/phase10-auth-model.test.ts:28:30
+(fail) Authorization Model — Capability Registry CRUD > revokes all grants for a capability [1.16ms]
+/home/z/my-project/mini-services/openjarvis-api/tests/phase10-auth-model.test.ts:28:30
+(fail) Authorization Model — Capability Registry CRUD > gets all capability statuses [0.73ms]
+/home/z/my-project/mini-services/openjarvis-api/tests/phase10-auth-model.test.ts:141:30
+(fail) Authorization Model — Three-State Check > returns UNDEFINED for capability with no grant [0.99ms]
+/home/z/my-project/mini-services/openjarvis-api/tests/phase10-auth-model.test.ts:141:30
+(fail) Authorization Model — Three-State Check > returns ALLOWED for explicitly granted capability [0.59ms]
+/home/z/my-project/mini-services/openjarvis-api/tests/phase10-auth-model.test.ts:141:30
+(fail) Authorization Model — Three-State Check > returns DENIED for explicitly denied capability [0.72ms]
+/home/z/my-project/mini-services/openjarvis-api/tests/phase10-auth-model.test.ts:141:30
+(fail) Authorization Model — Three-State Check > undefined is NOT the same as denied [0.56ms]
+/home/z/my-project/mini-services/openjarvis-api/tests/phase10-auth-model.test.ts:193:30
+(fail) Authorization Model — Scoped Grants > mission-scoped grant only applies to that mission [0.70ms]
+/home/z/my-project/mini-services/openjarvis-api/tests/phase10-auth-model.test.ts:193:30
+(fail) Authorization Model — Scoped Grants > mission-scoped grant overrides permanent grant for that mission [0.54ms]
+/home/z/my-project/mini-services/openjarvis-api/tests/phase10-auth-model.test.ts:237:30
+(fail) Authorization Model — Scope Context > pathPrefix scope matches correctly [0.59ms]
+/home/z/my-project/mini-services/openjarvis-api/tests/phase10-auth-model.test.ts:237:30
+(fail) Authorization Model — Scope Context > grant without scope context matches everything [0.55ms]
+/home/z/my-project/mini-services/openjarvis-api/tests/phase10-auth-model.test.ts:237:30
+(fail) Authorization Model — Scope Context > domain scope matches URLs [0.66ms]
+/home/z/my-project/mini-services/openjarvis-api/tests/phase10-auth-model.test.ts:296:30
+(fail) Authorization Model — Approval Gate Integration > capability ALLOWED in registry → gate proceeds without asking [0.66ms]
+/home/z/my-project/mini-services/openjarvis-api/tests/phase10-auth-model.test.ts:296:30
+(fail) Authorization Model — Approval Gate Integration > capability DENIED in registry → gate blocks immediately [0.66ms]
+/home/z/my-project/mini-services/openjarvis-api/tests/phase10-auth-model.test.ts:296:30
+(fail) Authorization Model — Approval Gate Integration > capability UNDEFINED → gate creates approval request (pause and ask) [0.51ms]
+/home/z/my-project/mini-services/openjarvis-api/tests/phase10-auth-model.test.ts:296:30
+(fail) Authorization Model — Approval Gate Integration > tool without capability uses risk-level fallback (low → proceed) [0.90ms]
+/home/z/my-project/mini-services/openjarvis-api/tests/phase10-auth-model.test.ts:296:30
+(fail) Authorization Model — Approval Gate Integration > tool without capability but high risk → pause and ask [0.56ms]
+/home/z/my-project/mini-services/openjarvis-api/tests/phase10-auth-model.test.ts:296:30
+(fail) Authorization Model — Approval Gate Integration > auto-approval rule still overrides registry (highest priority) [1.22ms]
+/home/z/my-project/mini-services/openjarvis-api/tests/phase10-auth-model.test.ts:403:30
+(fail) Authorization Model — Approve Once vs Always Allow > approve once does NOT create a capability grant [0.76ms]
+/home/z/my-project/mini-services/openjarvis-api/tests/phase10-auth-model.test.ts:403:30
+(fail) Authorization Model — Approve Once vs Always Allow > always allow creates a permanent capability grant [0.56ms]
+/home/z/my-project/mini-services/openjarvis-api/tests/phase10-auth-model.test.ts:403:30
+(fail) Authorization Model — Approve Once vs Always Allow > after always-allow, subsequent gate checks proceed without asking [0.93ms]
+/home/z/my-project/mini-services/openjarvis-api/tests/phase10-auth-model.test.ts:403:30
+(fail) Authorization Model — Approve Once vs Always Allow > approval for tool without capability cannot create grant (no-op) [0.41ms]
+/home/z/my-project/mini-services/openjarvis-api/tests/phase10-auth-model.test.ts:495:30
+(fail) Authorization Model — Immediate Revocation > revoking a grant immediately blocks the capability [1.07ms]
+/home/z/my-project/mini-services/openjarvis-api/tests/phase10-auth-model.test.ts:495:30
+(fail) Authorization Model — Immediate Revocation > changing a grant from allowed to denied takes immediate effect [0.66ms]
+/home/z/my-project/mini-services/openjarvis-api/tests/phase10-auth-model.test.ts:495:30
+(fail) Authorization Model — Immediate Revocation > gate respects revocation mid-mission [0.44ms]
+tests/phase2.test.ts:
+(pass) Phase 2 — Mission State Machine > allows valid transition: draft → queued [0.09ms]
+(pass) Phase 2 — Mission State Machine > allows valid transition: queued → running [0.03ms]
+(pass) Phase 2 — Mission State Machine > allows valid transition: running → completed [0.01ms]
+(pass) Phase 2 — Mission State Machine > allows valid transition: running → blocked
+(pass) Phase 2 — Mission State Machine > allows valid transition: blocked → queued (retry)
+(pass) Phase 2 — Mission State Machine > rejects invalid transition: completed → running [0.06ms]
+(pass) Phase 2 — Mission State Machine > rejects invalid transition: draft → completed (skip states) [0.02ms]
+(pass) Phase 2 — Mission State Machine > rejects transition from terminal state: cancelled → running [0.01ms]
+(pass) Phase 2 — Mission State Machine > canTransition returns true for valid, false for invalid [0.05ms]
+(pass) Phase 2 — Mission State Machine > getAllowedTransitions returns correct states [0.07ms]
+(pass) Phase 2 — Tool Registry > registers and retrieves a tool [0.30ms]
+(pass) Phase 2 — Tool Registry > rejects duplicate tool names [0.05ms]
+(pass) Phase 2 — Tool Registry > executes a tool successfully [0.73ms]
+(pass) Phase 2 — Tool Registry > validates required input fields [0.10ms]
+(pass) Phase 2 — Tool Registry > handles tool not found [0.05ms]
+{"timestamp":"2026-08-18T07:43:20.001Z","level":"warn","requestId":"test","message":"Tool 'flaky' attempt 1 failed: transient failure"}
+{"timestamp":"2026-08-18T07:43:20.011Z","level":"warn","requestId":"test","message":"Tool 'flaky' attempt 2 failed: transient failure"}
+(pass) Phase 2 — Tool Registry > retries on transient failure and succeeds [30.68ms]
+{"timestamp":"2026-08-18T07:43:20.031Z","level":"warn","requestId":"test","message":"Tool 'always_fail' attempt 1 failed: permanent failure"}
+{"timestamp":"2026-08-18T07:43:20.042Z","level":"warn","requestId":"test","message":"Tool 'always_fail' attempt 2 failed: permanent failure"}
+{"timestamp":"2026-08-18T07:43:20.062Z","level":"warn","requestId":"test","message":"Tool 'always_fail' attempt 3 failed: permanent failure"}
+(pass) Phase 2 — Tool Registry > retries on transient failure and exhausts retries [31.00ms]
+{"timestamp":"2026-08-18T07:43:20.113Z","level":"warn","requestId":"test","message":"Tool 'slow' attempt 1 failed: Tool 'slow' timed out after 50ms"}
+(pass) Phase 2 — Tool Registry > times out a slow tool [50.94ms]
+(pass) Phase 2 — Tool Registry > produces audit log entries for every execution [0.31ms]
+(pass) Phase 2 — Tool Registry > getToolDefinitions returns correct shape for model provider [0.11ms]
+(fail) Phase 2 — Budget/Iteration Cap Guard > mission tracks token and tool call counters [2.68ms]
+(fail) Phase 2 — Full Event Trail (model-free path) > mission event trail records all stages [1.33ms]
+(fail) Phase 2 — Memory Integration > stores and retrieves agent working memory [2.01ms]
+tests/phase6.test.ts:
+(fail) Phase 6 — Memory System > MemoryService CRUD with enhanced fields > creates a memory with all new fields [1.94ms]
+/home/z/my-project/mini-services/openjarvis-api/tests/phase6.test.ts:62:40
+(fail) Phase 6 — Memory System > MemoryService CRUD with enhanced fields > creates a memory with missionId [1.52ms]
+(fail) Phase 6 — Memory System > MemoryService CRUD with enhanced fields > creates a memory with expiry [1.29ms]
+(fail) Phase 6 — Memory System > MemoryService CRUD with enhanced fields > gets a memory by scope and key [0.91ms]
+(fail) Phase 6 — Memory System > MemoryService CRUD with enhanced fields > updates a memory value, tags, and importance [1.12ms]
+/home/z/my-project/mini-services/openjarvis-api/tests/phase6.test.ts:125:40
+(fail) Phase 6 — Memory System > MemoryService CRUD with enhanced fields > lists memories by missionId [0.90ms]
+(fail) Phase 6 — Memory System > Memory Search > finds memories by keyword in value [0.90ms]
+(fail) Phase 6 — Memory System > Memory Search > finds memories by tag [0.78ms]
+(fail) Phase 6 — Memory System > Memory Search > filters by scope [1.69ms]
+(fail) Phase 6 — Memory System > Memory Search > respects min importance [0.80ms]
+(fail) Phase 6 — Memory System > Memory Search > filters by tags [1.39ms]
+(fail) Phase 6 — Memory System > Memory Search > returns results sorted by score [1.27ms]
+(fail) Phase 6 — Memory System > Memory Search > includes tag arrays in search results [0.86ms]
+(fail) Phase 6 — Memory System > Memory Search > includes importance and source in results [1.60ms]
+(fail) Phase 6 — Memory System > Recall for Context > returns relevant memories for a goal [1.34ms]
+(fail) Phase 6 — Memory System > Recall for Context > scopes recall to specified scopes [1.87ms]
+(fail) Phase 6 — Memory System > Recall for Context > respects the limit parameter [1.38ms]
+(fail) Phase 6 — Memory System > Touch / Access Tracking > increments accessCount on touch [0.95ms]
+(fail) Phase 6 — Memory System > Touch / Access Tracking > increments accessCount multiple times [0.90ms]
+(fail) Phase 6 — Memory System > Expiry and Purge > purges expired memories [0.87ms]
+(fail) Phase 6 — Memory System > Consolidation > merges duplicate scope+key memories [0.85ms]
+(fail) Phase 6 — Memory System > Memory Statistics > returns correct total count [0.93ms]
+(fail) Phase 6 — Memory System > Memory Statistics > breaks down by scope [0.68ms]
+(fail) Phase 6 — Memory System > Memory Statistics > breaks down by importance [0.59ms]
+(fail) Phase 6 — Memory System > Memory Statistics > breaks down by source [0.62ms]
+(fail) Phase 6 — Memory System > Memory Statistics > includes averageAccessCount [0.62ms]
+(fail) Phase 6 — Memory System > Memory Associations > creates an association between two memories [0.85ms]
+(fail) Phase 6 — Memory System > Memory Associations > rejects self-association [0.82ms]
+(fail) Phase 6 — Memory System > Memory Associations > retrieves associated memories [0.85ms]
+(fail) Phase 6 — Memory System > Memory Associations > retrieves associations in specific direction [1.61ms]
+(fail) Phase 6 — Memory System > MemoryContextBuilder > builds context from relevant memories [0.98ms]
+(fail) Phase 6 — Memory System > MemoryContextBuilder > returns empty context when query matches nothing [1.51ms]
+(fail) Phase 6 — Memory System > MemoryContextBuilder > respects maxEntries limit [0.87ms]
+(pass) Phase 6 — Memory System > Memory Agent Tools > registers 4 memory tools [0.09ms]
+      at <anonymous> (/home/z/my-project/mini-services/openjarvis-api/tests/phase6.test.ts:532:30)
+(fail) Phase 6 — Memory System > Memory Agent Tools > memory_store creates a memory entry [0.98ms]
+      at <anonymous> (/home/z/my-project/mini-services/openjarvis-api/tests/phase6.test.ts:548:30)
+(fail) Phase 6 — Memory System > Memory Agent Tools > memory_recall finds a stored memory [2.75ms]
+      at <anonymous> (/home/z/my-project/mini-services/openjarvis-api/tests/phase6.test.ts:557:30)
+(fail) Phase 6 — Memory System > Memory Agent Tools > memory_recall returns found=false for missing memory [0.83ms]
+      at <anonymous> (/home/z/my-project/mini-services/openjarvis-api/tests/phase6.test.ts:573:30)
+(fail) Phase 6 — Memory System > Memory Agent Tools > memory_search returns relevant results [1.75ms]
+      at <anonymous> (/home/z/my-project/mini-services/openjarvis-api/tests/phase6.test.ts:580:26)
+(fail) Phase 6 — Memory System > Memory Agent Tools > memory_forget deletes a memory [0.86ms]
+(pass) Phase 6 — Memory System > Memory Agent Tools > all tools have valid input schemas [0.09ms]
+(pass) Phase 6 — Memory System > Memory Agent Tools > all tools have low risk level [0.04ms]
+(fail) Phase 6 — Memory System > Bulk Operations > bulk deletes multiple memories [1.06ms]
+(fail) Phase 6 — Memory System > Bulk Operations > removeByScope deletes all in a scope [1.02ms]
+(pass) Phase 6 — Memory System > Validation > rejects invalid scope [0.14ms]
+(pass) Phase 6 — Memory System > Validation > rejects importance out of range [0.05ms]
+(pass) Phase 6 — Memory System > Validation > VALID_SCOPES and VALID_SOURCES are exported [0.05ms]
+tests/phase7.test.ts:
+(pass) Phase 7 — Mobile API Layer > Pagination Utility > parses default pagination params [0.10ms]
+(pass) Phase 7 — Mobile API Layer > Pagination Utility > parses custom page and limit [0.02ms]
+(pass) Phase 7 — Mobile API Layer > Pagination Utility > clamps page to minimum 1 [0.02ms]
+(pass) Phase 7 — Mobile API Layer > Pagination Utility > clamps limit to max 100 [0.02ms]
+(pass) Phase 7 — Mobile API Layer > Pagination Utility > clamps limit to minimum 1
+(pass) Phase 7 — Mobile API Layer > Pagination Utility > uses custom defaultLimit
+(pass) Phase 7 — Mobile API Layer > Pagination Utility > builds paginated response with correct metadata [0.08ms]
+(pass) Phase 7 — Mobile API Layer > Pagination Utility > builds response for last page [0.02ms]
+(pass) Phase 7 — Mobile API Layer > Pagination Utility > handles empty data [0.02ms]
+(fail) Phase 7 — Mobile API Layer > Mobile Client Service > registers a new client with API key [1.78ms]
+      at <anonymous> (/home/z/my-project/mini-services/openjarvis-api/tests/phase7.test.ts:119:26)
+(fail) Phase 7 — Mobile API Layer > Mobile Client Service > authenticates with valid API key [0.33ms]
+(fail) Phase 7 — Mobile API Layer > Mobile Client Service > returns null for invalid API key [1.23ms]
+(pass) Phase 7 — Mobile API Layer > Mobile Client Service > returns null for missing API key [0.10ms]
+(pass) Phase 7 — Mobile API Layer > Mobile Client Service > rejects invalid platform [0.13ms]
+(pass) Phase 7 — Mobile API Layer > Mobile Client Service > rejects missing name [0.04ms]
+(fail) Phase 7 — Mobile API Layer > Mobile Client Service > revokes a client [0.69ms]
+(fail) Phase 7 — Mobile API Layer > Mobile Client Service > re-enables a client [0.74ms]
+(fail) Phase 7 — Mobile API Layer > Mobile Client Service > regenerates API key [0.67ms]
+(fail) Phase 7 — Mobile API Layer > Mobile Client Service > lists all clients [1.21ms]
+(fail) Phase 7 — Mobile API Layer > Mobile Client Service > deletes a client [0.75ms]
+(fail) Phase 7 — Mobile API Layer > Mobile Client Service > supports all three platforms [0.75ms]
+(pass) Phase 7 — Mobile API Layer > Mobile Types > exports MOBILE_API_VERSION as v1 [0.06ms]
+tests/phase5.test.ts:
+(pass) Phase 5 — Voice System > VoiceManager initialization > initializes with browser provider by default [0.26ms]
+(pass) Phase 5 — Voice System > VoiceManager initialization > browser provider implements VoiceProvider interface [0.06ms]
+(pass) Phase 5 — Voice System > VoiceManager initialization > getAvailableProviders returns at least browser [0.03ms]
+(pass) Phase 5 — Voice System > BrowserRelayProvider > transcribe returns empty text (client-side STT) [0.26ms]
+(pass) Phase 5 — Voice System > BrowserRelayProvider > synthesize returns empty buffer (client-side TTS) [0.12ms]
+(pass) Phase 5 — Voice System > BrowserRelayProvider > getVoices returns browser-default placeholder [0.06ms]
+(pass) Phase 5 — Voice System > BrowserRelayProvider > respects language option in transcribe [0.04ms]
+(pass) Phase 5 — Voice System > VoiceError > creates error with code and message [0.07ms]
+(pass) Phase 5 — Voice System > VoiceError > creates error with provider name [0.01ms]
+(pass) Phase 5 — Voice System > Voice Sessions > creates a voice session with defaults [0.10ms]
+(pass) Phase 5 — Voice System > Voice Sessions > creates session with custom options [0.03ms]
+(pass) Phase 5 — Voice System > Voice Sessions > gets a session by ID [0.04ms]
+(pass) Phase 5 — Voice System > Voice Sessions > returns undefined for non-existent session [0.03ms]
+(pass) Phase 5 — Voice System > Voice Sessions > lists all sessions [0.05ms]
+(pass) Phase 5 — Voice System > Voice Sessions > deletes a session [0.03ms]
+(pass) Phase 5 — Voice System > Voice Sessions > delete returns false for non-existent session [0.02ms]
+(pass) Phase 5 — Voice System > Voice Sessions > adds a user transcript entry [0.08ms]
+(pass) Phase 5 — Voice System > Voice Sessions > adds an agent transcript entry [0.02ms]
+(pass) Phase 5 — Voice System > Voice Sessions > returns undefined when adding transcript to non-existent session [0.05ms]
+(pass) Phase 5 — Voice System > Voice Sessions > multiple transcript entries accumulate in order [0.04ms]
+(pass) Phase 5 — Voice System > Voice session status transitions > idle → listening is valid [0.10ms]
+(pass) Phase 5 — Voice System > Voice session status transitions > listening → processing is valid [0.26ms]
+(pass) Phase 5 — Voice System > Voice session status transitions > processing → speaking is valid [0.03ms]
+(pass) Phase 5 — Voice System > Voice session status transitions > speaking → idle is valid [0.03ms]
+(pass) Phase 5 — Voice System > Voice session status transitions > error → idle is valid (recovery) [0.02ms]
+(pass) Phase 5 — Voice System > Voice session status transitions > idle → processing is INVALID (must go through listening) [0.03ms]
+(pass) Phase 5 — Voice System > Voice session status transitions > idle → speaking is INVALID [0.02ms]
+(pass) Phase 5 — Voice System > Voice session status transitions > listening → idle is valid (cancel) [0.02ms]
+(pass) Phase 5 — Voice System > Voice session status transitions > listening → error is valid [0.03ms]
+(pass) Phase 5 — Voice System > Voice session status transitions > processing → idle is valid (cancel) [0.02ms]
+(pass) Phase 5 — Voice System > Voice session status transitions > processing → error is valid [0.03ms]
+(pass) Phase 5 — Voice System > Voice session status transitions > returns undefined for non-existent session [0.02ms]
+(pass) Phase 5 — Voice System > Voice session status transitions > status update changes lastActivityAt [0.03ms]
+(pass) Phase 5 — Voice System > Provider Factory > creates browser provider without API keys [0.07ms]
+(pass) Phase 5 — Voice System > Provider Factory > throws VoiceError for unknown provider [0.04ms]
+(pass) Phase 5 — Voice System > Provider Factory > throws VoiceError for gemini without key [0.08ms]
+(pass) Phase 5 — Voice System > Provider Factory > throws VoiceError for groq without key [0.05ms]
+(pass) Phase 5 — Voice System > Provider Switching > switches active provider [0.05ms]
+(pass) Phase 5 — Voice System > Provider Switching > throws when switching to unregistered provider [0.05ms]
+(pass) Phase 5 — Voice System > Multiple Sessions > sessions are independent [0.08ms]
+(pass) Phase 5 — Voice System > Multiple Sessions > deleting one session does not affect others [0.05ms]
+tests/phase10.test.ts:
+/home/z/my-project/mini-services/openjarvis-api/tests/phase10.test.ts:24:30
+(fail) Phase 10 — Approval Request CRUD > creates an approval request [1.10ms]
+/home/z/my-project/mini-services/openjarvis-api/tests/phase10.test.ts:24:30
+(fail) Phase 10 — Approval Request CRUD > gets an approval request by ID [0.68ms]
+/home/z/my-project/mini-services/openjarvis-api/tests/phase10.test.ts:24:30
+(fail) Phase 10 — Approval Request CRUD > throws when getting non-existent approval request [0.95ms]
+/home/z/my-project/mini-services/openjarvis-api/tests/phase10.test.ts:24:30
+(fail) Phase 10 — Approval Request CRUD > lists approval requests [0.58ms]
+/home/z/my-project/mini-services/openjarvis-api/tests/phase10.test.ts:24:30
+(fail) Phase 10 — Approval Request CRUD > lists with status filter [0.56ms]
+/home/z/my-project/mini-services/openjarvis-api/tests/phase10.test.ts:24:30
+(fail) Phase 10 — Approval Request CRUD > lists with missionId filter [0.56ms]
+/home/z/my-project/mini-services/openjarvis-api/tests/phase10.test.ts:24:30
+(fail) Phase 10 — Approval Request CRUD > lists with riskLevel filter [0.53ms]
+/home/z/my-project/mini-services/openjarvis-api/tests/phase10.test.ts:24:30
+(fail) Phase 10 — Approval Request CRUD > supports pagination [0.57ms]
+/home/z/my-project/mini-services/openjarvis-api/tests/phase10.test.ts:124:30
+(fail) Phase 10 — Approval Lifecycle > approves a pending request [5.76ms]
+/home/z/my-project/mini-services/openjarvis-api/tests/phase10.test.ts:124:30
+(fail) Phase 10 — Approval Lifecycle > rejects a pending request [0.76ms]
+/home/z/my-project/mini-services/openjarvis-api/tests/phase10.test.ts:124:30
+(fail) Phase 10 — Approval Lifecycle > cancels a pending request [0.64ms]
+/home/z/my-project/mini-services/openjarvis-api/tests/phase10.test.ts:124:30
+(fail) Phase 10 — Approval Lifecycle > prevents approving an already-approved request [0.54ms]
+/home/z/my-project/mini-services/openjarvis-api/tests/phase10.test.ts:124:30
+(fail) Phase 10 — Approval Lifecycle > prevents rejecting an already-rejected request [0.58ms]
+/home/z/my-project/mini-services/openjarvis-api/tests/phase10.test.ts:124:30
+(fail) Phase 10 — Approval Lifecycle > prevents cancelling a non-pending request [0.50ms]
+/home/z/my-project/mini-services/openjarvis-api/tests/phase10.test.ts:124:30
+(fail) Phase 10 — Approval Lifecycle > gets pending approvals for a mission [0.60ms]
+/home/z/my-project/mini-services/openjarvis-api/tests/phase10.test.ts:124:30
+(fail) Phase 10 — Approval Lifecycle > expires stale pending requests [0.86ms]
+/home/z/my-project/mini-services/openjarvis-api/tests/phase10.test.ts:210:30
+(fail) Phase 10 — Approval Rules Engine > creates an approval rule [1.18ms]
+/home/z/my-project/mini-services/openjarvis-api/tests/phase10.test.ts:210:30
+(fail) Phase 10 — Approval Rules Engine > rejects duplicate rule names [1.53ms]
+/home/z/my-project/mini-services/openjarvis-api/tests/phase10.test.ts:210:30
+(fail) Phase 10 — Approval Rules Engine > lists rules [0.75ms]
+/home/z/my-project/mini-services/openjarvis-api/tests/phase10.test.ts:210:30
+(fail) Phase 10 — Approval Rules Engine > updates a rule [0.76ms]
+/home/z/my-project/mini-services/openjarvis-api/tests/phase10.test.ts:210:30
+(fail) Phase 10 — Approval Rules Engine > deletes a rule [0.78ms]
+/home/z/my-project/mini-services/openjarvis-api/tests/phase10.test.ts:210:30
+(fail) Phase 10 — Approval Rules Engine > auto-approves based on risk level rule [7.19ms]
+/home/z/my-project/mini-services/openjarvis-api/tests/phase10.test.ts:210:30
+(fail) Phase 10 — Approval Rules Engine > auto-rejects based on tool name pattern [0.73ms]
+/home/z/my-project/mini-services/openjarvis-api/tests/phase10.test.ts:210:30
+(fail) Phase 10 — Approval Rules Engine > matches tool name exactly [1.81ms]
+/home/z/my-project/mini-services/openjarvis-api/tests/phase10.test.ts:210:30
+(fail) Phase 10 — Approval Rules Engine > matches capability rules [0.66ms]
+/home/z/my-project/mini-services/openjarvis-api/tests/phase10.test.ts:210:30
+(fail) Phase 10 — Approval Rules Engine > higher priority rule wins [0.60ms]
+/home/z/my-project/mini-services/openjarvis-api/tests/phase10.test.ts:210:30
+(fail) Phase 10 — Approval Rules Engine > disabled rules are skipped [0.51ms]
+/home/z/my-project/mini-services/openjarvis-api/tests/phase10.test.ts:210:30
+(fail) Phase 10 — Approval Rules Engine > require_manual rule blocks auto-approval [0.52ms]
+/home/z/my-project/mini-services/openjarvis-api/tests/phase10.test.ts:210:30
+(fail) Phase 10 — Approval Rules Engine > rule with no conditions matches everything [0.46ms]
+/home/z/my-project/mini-services/openjarvis-api/tests/phase10.test.ts:380:30
+(fail) Phase 10 — Approval Gate > allows low-risk tools without approval [0.68ms]
+/home/z/my-project/mini-services/openjarvis-api/tests/phase10.test.ts:380:30
+(fail) Phase 10 — Approval Gate > tools WITH undefined capability pause and ask (Authorization Model: undefined ≠ allowed) [0.48ms]
+/home/z/my-project/mini-services/openjarvis-api/tests/phase10.test.ts:380:30
+(fail) Phase 10 — Approval Gate > requires approval for hard-blocked capabilities [0.47ms]
+/home/z/my-project/mini-services/openjarvis-api/tests/phase10.test.ts:380:30
+(fail) Phase 10 — Approval Gate > requires approval for high-risk tools [0.53ms]
+/home/z/my-project/mini-services/openjarvis-api/tests/phase10.test.ts:380:30
+(fail) Phase 10 — Approval Gate > requires approval for critical-risk tools [0.45ms]
+/home/z/my-project/mini-services/openjarvis-api/tests/phase10.test.ts:380:30
+(fail) Phase 10 — Approval Gate > auto-approve rule overrides hard-block [6.57ms]
+/home/z/my-project/mini-services/openjarvis-api/tests/phase10.test.ts:380:30
+(fail) Phase 10 — Approval Gate > auto-reject rule blocks tool execution [0.58ms]
+/home/z/my-project/mini-services/openjarvis-api/tests/phase10.test.ts:380:30
+(fail) Phase 10 — Approval Gate > creates DB record for approval request [0.56ms]
+/home/z/my-project/mini-services/openjarvis-api/tests/phase10.test.ts:521:30
+(fail) Phase 10 — Stats & Edge Cases > returns correct stats [6.76ms]
+/home/z/my-project/mini-services/openjarvis-api/tests/phase10.test.ts:521:30
+(fail) Phase 10 — Stats & Edge Cases > returns zero stats when empty [1.55ms]
+/home/z/my-project/mini-services/openjarvis-api/tests/phase10.test.ts:521:30
+(fail) Phase 10 — Stats & Edge Cases > uses default TTL for approval requests [0.55ms]
+/home/z/my-project/mini-services/openjarvis-api/tests/phase10.test.ts:521:30
+(fail) Phase 10 — Stats & Edge Cases > respects custom TTL [0.47ms]
+/home/z/my-project/mini-services/openjarvis-api/tests/phase10.test.ts:521:30
+(fail) Phase 10 — Stats & Edge Cases > approval with no optional fields works [0.54ms]
+/home/z/my-project/mini-services/openjarvis-api/tests/phase10.test.ts:521:30
+(fail) Phase 10 — Stats & Edge Cases > approve/reject with no response works [0.43ms]
+/home/z/my-project/mini-services/openjarvis-api/tests/phase10.test.ts:521:30
+(fail) Phase 10 — Stats & Edge Cases > combined condition rules work (risk + tool name) [0.37ms]
+tests/phase1.test.ts:
+(pass) Phase 1 — Health Check > GET /health reflects real DB connectivity [1.58ms]
+(fail) Phase 1 — Mission CRUD > creates a mission with required fields [0.96ms]
+(fail) Phase 1 — Mission CRUD > reads a mission by ID [2.97ms]
+(fail) Phase 1 — Mission CRUD > updates a mission status and plan [1.14ms]
+(fail) Phase 1 — Mission CRUD > lists all missions [1.33ms]
+(fail) Phase 1 — Mission CRUD > deletes a mission [1.09ms]
+(fail) Phase 1 — Mission Events > creates an event for a mission [0.77ms]
+(fail) Phase 1 — Mission Events > lists events for a mission [0.70ms]
+(fail) Phase 1 — Mission Events > throws on event for nonexistent mission [0.73ms]
+(fail) Phase 1 — Tool CRUD > creates a tool [1.07ms]
+      at <anonymous> (/home/z/my-project/mini-services/openjarvis-api/tests/phase1.test.ts:145:24)
+(fail) Phase 1 — Tool CRUD > prevents duplicate tool names [1.65ms]
+(fail) Phase 1 — Tool CRUD > gets a tool by name [0.90ms]
+(fail) Phase 1 — Tool CRUD > lists all tools [1.95ms]
+(fail) Phase 1 — Tool CRUD > updates a tool [0.99ms]
+(fail) Phase 1 — Tool CRUD > removes a tool [0.93ms]
+(fail) Phase 1 — Memory CRUD > creates a memory entry [0.91ms]
+(fail) Phase 1 — Memory CRUD > retrieves by scope and key [0.94ms]
+(fail) Phase 1 — Memory CRUD > lists by scope [0.85ms]
+(fail) Phase 1 — Memory CRUD > updates value [1.17ms]
+(fail) Phase 1 — Memory CRUD > deletes a memory entry [0.91ms]
+(pass) Phase 1 — Structured Error Format > notFound error has code, message, requestId [0.32ms]
+(pass) Phase 1 — Structured Error Format > badRequest error has code, message, requestId [0.10ms]
+(pass) Phase 1 — Structured Error Format > internalError has statusCode 500 [0.05ms]
+tests/phase4.test.ts:
+(pass) Phase 4 — Permission Manager > nothing is granted by default [0.08ms]
+(pass) Phase 4 — Permission Manager > granting a capability makes check pass [0.07ms]
+(pass) Phase 4 — Permission Manager > revoking a capability makes check fail [0.03ms]
+(pass) Phase 4 — Permission Manager > hard-blocked capabilities always return requires_approval [0.02ms]
+(pass) Phase 4 — Permission Manager > hard-blocked capabilities are correctly enforced [0.03ms]
+(pass) Phase 4 — Permission Manager > getAllCapabilities returns all 17 capabilities with status [0.09ms]
+(pass) Phase 4 — Permission Manager > permission checks happen at execution time, not just at connection time [0.02ms]
+(pass) Phase 4 — Hard-Block List Enforcement > filesystem_delete returns requires_approval even without permission grant [0.22ms]
+(pass) Phase 4 — Hard-Block List Enforcement > shell_execute returns requires_approval even without permission grant [0.14ms]
+(pass) Phase 4 — Hard-Block List Enforcement > filesystem_delete returns requires_approval even IF permission is granted [0.13ms]
+(pass) Phase 4 — Filesystem Tools (real in sandbox) > filesystem_read can read a real file [0.39ms]
+(pass) Phase 4 — Filesystem Tools (real in sandbox) > filesystem_read returns not_found for missing file [0.13ms]
+(pass) Phase 4 — Filesystem Tools (real in sandbox) > filesystem_read lists directories [0.17ms]
+(pass) Phase 4 — Filesystem Tools (real in sandbox) > filesystem_write can write a real file [0.71ms]
+(pass) Phase 4 — Filesystem Tools (real in sandbox) > filesystem_read fails without permission [0.22ms]
+(pass) Phase 4 — Verification Loop > getVerificationMethod returns screenshot_diff for mouse_click [0.04ms]
+(pass) Phase 4 — Verification Loop > getVerificationMethod returns screenshot_diff for key_type
+(pass) Phase 4 — Verification Loop > getVerificationMethod returns skip for non-UI tools [0.02ms]
+(pass) Phase 4 — Verification Loop > output_check verification passes when expected string is in output [0.19ms]
+(pass) Phase 4 — Verification Loop > output_check verification fails when expected string is missing [0.06ms]
+(pass) Phase 4 — Capability Risk Levels > screenshot is low risk [0.01ms]
+(pass) Phase 4 — Capability Risk Levels > mouse_click and key_type are high risk [0.02ms]
+(pass) Phase 4 — Capability Risk Levels > filesystem_delete and shell_execute are critical risk
+tests/phase8.test.ts:
+(pass) Phase 8 — MCP Types > defines McpTransport as a union of valid transports [0.03ms]
+(pass) Phase 8 — MCP Types > defines McpServerStatus as expected values [0.04ms]
+(pass) Phase 8 — MCP Types > JSON-RPC request shape is valid [0.04ms]
+(pass) Phase 8 — In-Process Transport > starts disconnected [0.12ms]
+(pass) Phase 8 — In-Process Transport > connects and reports connected [0.09ms]
+(pass) Phase 8 — In-Process Transport > handles initialize request [0.23ms]
+(pass) Phase 8 — In-Process Transport > handles tools/list request [0.08ms]
+(pass) Phase 8 — In-Process Transport > handles tools/call request [0.08ms]
+(pass) Phase 8 — In-Process Transport > handles tools/call with add [0.08ms]
+(pass) Phase 8 — In-Process Transport > returns error for unknown tool [0.05ms]
+(pass) Phase 8 — In-Process Transport > returns error for unknown method [0.05ms]
+(pass) Phase 8 — In-Process Transport > disconnects cleanly [0.04ms]
+(pass) Phase 8 — In-Process Transport > throws when sending while disconnected [0.07ms]
+(pass) Phase 8 — MCP Protocol Client > initializes and stores server info [0.27ms]
+(pass) Phase 8 — MCP Protocol Client > lists tools via protocol client [0.15ms]
+(pass) Phase 8 — MCP Protocol Client > calls tools via protocol client [0.15ms]
+(pass) Phase 8 — MCP Protocol Client > throws McpError on protocol error [0.19ms]
+/home/z/my-project/mini-services/openjarvis-api/tests/phase8.test.ts:242:40
+(fail) Phase 8 — Plugin Manager > Server CRUD > creates a stdio server [1.01ms]
+/home/z/my-project/mini-services/openjarvis-api/tests/phase8.test.ts:242:40
+(fail) Phase 8 — Plugin Manager > Server CRUD > creates an sse server [0.61ms]
+/home/z/my-project/mini-services/openjarvis-api/tests/phase8.test.ts:242:40
+(fail) Phase 8 — Plugin Manager > Server CRUD > rejects duplicate names [0.58ms]
+/home/z/my-project/mini-services/openjarvis-api/tests/phase8.test.ts:242:40
+(fail) Phase 8 — Plugin Manager > Server CRUD > rejects stdio without command [0.48ms]
+/home/z/my-project/mini-services/openjarvis-api/tests/phase8.test.ts:242:40
+(fail) Phase 8 — Plugin Manager > Server CRUD > rejects sse without url [0.42ms]
+/home/z/my-project/mini-services/openjarvis-api/tests/phase8.test.ts:242:40
+(fail) Phase 8 — Plugin Manager > Server CRUD > rejects invalid transport [0.44ms]
+/home/z/my-project/mini-services/openjarvis-api/tests/phase8.test.ts:242:40
+(fail) Phase 8 — Plugin Manager > Server CRUD > lists servers [0.46ms]
+/home/z/my-project/mini-services/openjarvis-api/tests/phase8.test.ts:242:40
+(fail) Phase 8 — Plugin Manager > Server CRUD > gets a server by ID [0.57ms]
+/home/z/my-project/mini-services/openjarvis-api/tests/phase8.test.ts:242:40
+(fail) Phase 8 — Plugin Manager > Server CRUD > updates a server [0.51ms]
+/home/z/my-project/mini-services/openjarvis-api/tests/phase8.test.ts:242:40
+(fail) Phase 8 — Plugin Manager > Server CRUD > deletes a server [0.47ms]
+/home/z/my-project/mini-services/openjarvis-api/tests/phase8.test.ts:242:40
+(fail) Phase 8 — Plugin Manager > In-Process Connect > connects an in-process server with tools [0.50ms]
+/home/z/my-project/mini-services/openjarvis-api/tests/phase8.test.ts:242:40
+(fail) Phase 8 — Plugin Manager > In-Process Connect > synced tools have namespaced names [0.50ms]
+/home/z/my-project/mini-services/openjarvis-api/tests/phase8.test.ts:242:40
+(fail) Phase 8 — Plugin Manager > In-Process Connect > lists tools for a specific server [0.51ms]
+/home/z/my-project/mini-services/openjarvis-api/tests/phase8.test.ts:242:40
+(fail) Phase 8 — Plugin Manager > In-Process Connect > disconnects a connected server [0.49ms]
+/home/z/my-project/mini-services/openjarvis-api/tests/phase8.test.ts:242:40
+(fail) Phase 8 — Plugin Manager > buildToolHandlers > returns ToolHandler[] for connected servers [0.46ms]
+/home/z/my-project/mini-services/openjarvis-api/tests/phase8.test.ts:242:40
+(fail) Phase 8 — Plugin Manager > buildToolHandlers > executes a built-in tool handler and returns correct result [0.49ms]
+/home/z/my-project/mini-services/openjarvis-api/tests/phase8.test.ts:242:40
+(fail) Phase 8 — Plugin Manager > buildToolHandlers > handles tool errors gracefully [0.43ms]
+/home/z/my-project/mini-services/openjarvis-api/tests/phase8.test.ts:242:40
+(fail) Phase 8 — Plugin Manager > Status > returns correct status counts [0.42ms]
+/home/z/my-project/mini-services/openjarvis-api/tests/phase8.test.ts:242:40
+(fail) Phase 8 — Plugin Manager > McpError > has correct properties [0.44ms]
+(fail) Authorization Model — Capability Registry CRUD > creates a permanent allow grant [11.82ms]
+(fail) Authorization Model — Capability Registry CRUD > creates a permanent deny grant [1.92ms]
+(fail) Authorization Model — Capability Registry CRUD > creates a scoped grant with context [0.94ms]
+(fail) Authorization Model — Capability Registry CRUD > creates a mission-scoped grant [0.69ms]
+(fail) Authorization Model — Capability Registry CRUD > lists grants with filters [0.64ms]
+(fail) Authorization Model — Capability Registry CRUD > updates a grant [0.60ms]
+(fail) Authorization Model — Capability Registry CRUD > revokes a grant [0.53ms]
+(fail) Authorization Model — Capability Registry CRUD > revokes all grants for a capability [1.16ms]
+(fail) Authorization Model — Capability Registry CRUD > gets all capability statuses [0.73ms]
+(fail) Authorization Model — Three-State Check > returns UNDEFINED for capability with no grant [0.99ms]
+(fail) Authorization Model — Three-State Check > returns ALLOWED for explicitly granted capability [0.59ms]
+(fail) Authorization Model — Three-State Check > returns DENIED for explicitly denied capability [0.72ms]
+(fail) Authorization Model — Three-State Check > undefined is NOT the same as denied [0.56ms]
+(fail) Authorization Model — Scoped Grants > mission-scoped grant only applies to that mission [0.70ms]
+(fail) Authorization Model — Scoped Grants > mission-scoped grant overrides permanent grant for that mission [0.54ms]
+(fail) Authorization Model — Scope Context > pathPrefix scope matches correctly [0.59ms]
+(fail) Authorization Model — Scope Context > grant without scope context matches everything [0.55ms]
+(fail) Authorization Model — Scope Context > domain scope matches URLs [0.66ms]
+(fail) Authorization Model — Approval Gate Integration > capability ALLOWED in registry → gate proceeds without asking [0.66ms]
+(fail) Authorization Model — Approval Gate Integration > capability DENIED in registry → gate blocks immediately [0.66ms]
+(fail) Authorization Model — Approval Gate Integration > capability UNDEFINED → gate creates approval request (pause and ask) [0.51ms]
+(fail) Authorization Model — Approval Gate Integration > tool without capability uses risk-level fallback (low → proceed) [0.90ms]
+(fail) Authorization Model — Approval Gate Integration > tool without capability but high risk → pause and ask [0.56ms]
+(fail) Authorization Model — Approval Gate Integration > auto-approval rule still overrides registry (highest priority) [1.22ms]
+(fail) Authorization Model — Approve Once vs Always Allow > approve once does NOT create a capability grant [0.76ms]
+(fail) Authorization Model — Approve Once vs Always Allow > always allow creates a permanent capability grant [0.56ms]
+(fail) Authorization Model — Approve Once vs Always Allow > after always-allow, subsequent gate checks proceed without asking [0.93ms]
+(fail) Authorization Model — Approve Once vs Always Allow > approval for tool without capability cannot create grant (no-op) [0.41ms]
+(fail) Authorization Model — Immediate Revocation > revoking a grant immediately blocks the capability [1.07ms]
+(fail) Authorization Model — Immediate Revocation > changing a grant from allowed to denied takes immediate effect [0.66ms]
+(fail) Authorization Model — Immediate Revocation > gate respects revocation mid-mission [0.44ms]
+(fail) Phase 2 — Budget/Iteration Cap Guard > mission tracks token and tool call counters [2.68ms]
+(fail) Phase 2 — Full Event Trail (model-free path) > mission event trail records all stages [1.33ms]
+(fail) Phase 2 — Memory Integration > stores and retrieves agent working memory [2.01ms]
+(fail) Phase 6 — Memory System > MemoryService CRUD with enhanced fields > creates a memory with all new fields [1.94ms]
+(fail) Phase 6 — Memory System > MemoryService CRUD with enhanced fields > creates a memory with missionId [1.52ms]
+(fail) Phase 6 — Memory System > MemoryService CRUD with enhanced fields > creates a memory with expiry [1.29ms]
+(fail) Phase 6 — Memory System > MemoryService CRUD with enhanced fields > gets a memory by scope and key [0.91ms]
+(fail) Phase 6 — Memory System > MemoryService CRUD with enhanced fields > updates a memory value, tags, and importance [1.12ms]
+(fail) Phase 6 — Memory System > MemoryService CRUD with enhanced fields > lists memories by missionId [0.90ms]
+(fail) Phase 6 — Memory System > Memory Search > finds memories by keyword in value [0.90ms]
+(fail) Phase 6 — Memory System > Memory Search > finds memories by tag [0.78ms]
+(fail) Phase 6 — Memory System > Memory Search > filters by scope [1.69ms]
+(fail) Phase 6 — Memory System > Memory Search > respects min importance [0.80ms]
+(fail) Phase 6 — Memory System > Memory Search > filters by tags [1.39ms]
+(fail) Phase 6 — Memory System > Memory Search > returns results sorted by score [1.27ms]
+(fail) Phase 6 — Memory System > Memory Search > includes tag arrays in search results [0.86ms]
+(fail) Phase 6 — Memory System > Memory Search > includes importance and source in results [1.60ms]
+(fail) Phase 6 — Memory System > Recall for Context > returns relevant memories for a goal [1.34ms]
+(fail) Phase 6 — Memory System > Recall for Context > scopes recall to specified scopes [1.87ms]
+(fail) Phase 6 — Memory System > Recall for Context > respects the limit parameter [1.38ms]
+(fail) Phase 6 — Memory System > Touch / Access Tracking > increments accessCount on touch [0.95ms]
+(fail) Phase 6 — Memory System > Touch / Access Tracking > increments accessCount multiple times [0.90ms]
+(fail) Phase 6 — Memory System > Expiry and Purge > purges expired memories [0.87ms]
+(fail) Phase 6 — Memory System > Consolidation > merges duplicate scope+key memories [0.85ms]
+(fail) Phase 6 — Memory System > Memory Statistics > returns correct total count [0.93ms]
+(fail) Phase 6 — Memory System > Memory Statistics > breaks down by scope [0.68ms]
+(fail) Phase 6 — Memory System > Memory Statistics > breaks down by importance [0.59ms]
+(fail) Phase 6 — Memory System > Memory Statistics > breaks down by source [0.62ms]
+(fail) Phase 6 — Memory System > Memory Statistics > includes averageAccessCount [0.62ms]
+(fail) Phase 6 — Memory System > Memory Associations > creates an association between two memories [0.85ms]
+(fail) Phase 6 — Memory System > Memory Associations > rejects self-association [0.82ms]
+(fail) Phase 6 — Memory System > Memory Associations > retrieves associated memories [0.85ms]
+(fail) Phase 6 — Memory System > Memory Associations > retrieves associations in specific direction [1.61ms]
+(fail) Phase 6 — Memory System > MemoryContextBuilder > builds context from relevant memories [0.98ms]
+(fail) Phase 6 — Memory System > MemoryContextBuilder > returns empty context when query matches nothing [1.51ms]
+(fail) Phase 6 — Memory System > MemoryContextBuilder > respects maxEntries limit [0.87ms]
+(fail) Phase 6 — Memory System > Memory Agent Tools > memory_store creates a memory entry [0.98ms]
+(fail) Phase 6 — Memory System > Memory Agent Tools > memory_recall finds a stored memory [2.75ms]
+(fail) Phase 6 — Memory System > Memory Agent Tools > memory_recall returns found=false for missing memory [0.83ms]
+(fail) Phase 6 — Memory System > Memory Agent Tools > memory_search returns relevant results [1.75ms]
+(fail) Phase 6 — Memory System > Memory Agent Tools > memory_forget deletes a memory [0.86ms]
+(fail) Phase 6 — Memory System > Bulk Operations > bulk deletes multiple memories [1.06ms]
+(fail) Phase 6 — Memory System > Bulk Operations > removeByScope deletes all in a scope [1.02ms]
+(fail) Phase 7 — Mobile API Layer > Mobile Client Service > registers a new client with API key [1.78ms]
+(fail) Phase 7 — Mobile API Layer > Mobile Client Service > authenticates with valid API key [0.33ms]
+(fail) Phase 7 — Mobile API Layer > Mobile Client Service > returns null for invalid API key [1.23ms]
+(fail) Phase 7 — Mobile API Layer > Mobile Client Service > revokes a client [0.69ms]
+(fail) Phase 7 — Mobile API Layer > Mobile Client Service > re-enables a client [0.74ms]
+(fail) Phase 7 — Mobile API Layer > Mobile Client Service > regenerates API key [0.67ms]
+(fail) Phase 7 — Mobile API Layer > Mobile Client Service > lists all clients [1.21ms]
+(fail) Phase 7 — Mobile API Layer > Mobile Client Service > deletes a client [0.75ms]
+(fail) Phase 7 — Mobile API Layer > Mobile Client Service > supports all three platforms [0.75ms]
+(fail) Phase 10 — Approval Request CRUD > creates an approval request [1.10ms]
+(fail) Phase 10 — Approval Request CRUD > gets an approval request by ID [0.68ms]
+(fail) Phase 10 — Approval Request CRUD > throws when getting non-existent approval request [0.95ms]
+(fail) Phase 10 — Approval Request CRUD > lists approval requests [0.58ms]
+(fail) Phase 10 — Approval Request CRUD > lists with status filter [0.56ms]
+(fail) Phase 10 — Approval Request CRUD > lists with missionId filter [0.56ms]
+(fail) Phase 10 — Approval Request CRUD > lists with riskLevel filter [0.53ms]
+(fail) Phase 10 — Approval Request CRUD > supports pagination [0.57ms]
+(fail) Phase 10 — Approval Lifecycle > approves a pending request [5.76ms]
+(fail) Phase 10 — Approval Lifecycle > rejects a pending request [0.76ms]
+(fail) Phase 10 — Approval Lifecycle > cancels a pending request [0.64ms]
+(fail) Phase 10 — Approval Lifecycle > prevents approving an already-approved request [0.54ms]
+(fail) Phase 10 — Approval Lifecycle > prevents rejecting an already-rejected request [0.58ms]
+(fail) Phase 10 — Approval Lifecycle > prevents cancelling a non-pending request [0.50ms]
+(fail) Phase 10 — Approval Lifecycle > gets pending approvals for a mission [0.60ms]
+(fail) Phase 10 — Approval Lifecycle > expires stale pending requests [0.86ms]
+(fail) Phase 10 — Approval Rules Engine > creates an approval rule [1.18ms]
+(fail) Phase 10 — Approval Rules Engine > rejects duplicate rule names [1.53ms]
+(fail) Phase 10 — Approval Rules Engine > lists rules [0.75ms]
+(fail) Phase 10 — Approval Rules Engine > updates a rule [0.76ms]
+(fail) Phase 10 — Approval Rules Engine > deletes a rule [0.78ms]
+(fail) Phase 10 — Approval Rules Engine > auto-approves based on risk level rule [7.19ms]
+(fail) Phase 10 — Approval Rules Engine > auto-rejects based on tool name pattern [0.73ms]
+(fail) Phase 10 — Approval Rules Engine > matches tool name exactly [1.81ms]
+(fail) Phase 10 — Approval Rules Engine > matches capability rules [0.66ms]
+(fail) Phase 10 — Approval Rules Engine > higher priority rule wins [0.60ms]
+(fail) Phase 10 — Approval Rules Engine > disabled rules are skipped [0.51ms]
+(fail) Phase 10 — Approval Rules Engine > require_manual rule blocks auto-approval [0.52ms]
+(fail) Phase 10 — Approval Rules Engine > rule with no conditions matches everything [0.46ms]
+(fail) Phase 10 — Approval Gate > allows low-risk tools without approval [0.68ms]
+(fail) Phase 10 — Approval Gate > tools WITH undefined capability pause and ask (Authorization Model: undefined ≠ allowed) [0.48ms]
+(fail) Phase 10 — Approval Gate > requires approval for hard-blocked capabilities [0.47ms]
+(fail) Phase 10 — Approval Gate > requires approval for high-risk tools [0.53ms]
+(fail) Phase 10 — Approval Gate > requires approval for critical-risk tools [0.45ms]
+(fail) Phase 10 — Approval Gate > auto-approve rule overrides hard-block [6.57ms]
+(fail) Phase 10 — Approval Gate > auto-reject rule blocks tool execution [0.58ms]
+(fail) Phase 10 — Approval Gate > creates DB record for approval request [0.56ms]
+(fail) Phase 10 — Stats & Edge Cases > returns correct stats [6.76ms]
+(fail) Phase 10 — Stats & Edge Cases > returns zero stats when empty [1.55ms]
+(fail) Phase 10 — Stats & Edge Cases > uses default TTL for approval requests [0.55ms]
+(fail) Phase 10 — Stats & Edge Cases > respects custom TTL [0.47ms]
+(fail) Phase 10 — Stats & Edge Cases > approval with no optional fields works [0.54ms]
+(fail) Phase 10 — Stats & Edge Cases > approve/reject with no response works [0.43ms]
+(fail) Phase 10 — Stats & Edge Cases > combined condition rules work (risk + tool name) [0.37ms]
+(fail) Phase 1 — Mission CRUD > creates a mission with required fields [0.96ms]
+(fail) Phase 1 — Mission CRUD > reads a mission by ID [2.97ms]
+(fail) Phase 1 — Mission CRUD > updates a mission status and plan [1.14ms]
+(fail) Phase 1 — Mission CRUD > lists all missions [1.33ms]
+(fail) Phase 1 — Mission CRUD > deletes a mission [1.09ms]
+(fail) Phase 1 — Mission Events > creates an event for a mission [0.77ms]
+(fail) Phase 1 — Mission Events > lists events for a mission [0.70ms]
+(fail) Phase 1 — Mission Events > throws on event for nonexistent mission [0.73ms]
+(fail) Phase 1 — Tool CRUD > creates a tool [1.07ms]
+(fail) Phase 1 — Tool CRUD > prevents duplicate tool names [1.65ms]
+(fail) Phase 1 — Tool CRUD > gets a tool by name [0.90ms]
+(fail) Phase 1 — Tool CRUD > lists all tools [1.95ms]
+(fail) Phase 1 — Tool CRUD > updates a tool [0.99ms]
+(fail) Phase 1 — Tool CRUD > removes a tool [0.93ms]
+(fail) Phase 1 — Memory CRUD > creates a memory entry [0.91ms]
+(fail) Phase 1 — Memory CRUD > retrieves by scope and key [0.94ms]
+(fail) Phase 1 — Memory CRUD > lists by scope [0.85ms]
+(fail) Phase 1 — Memory CRUD > updates value [1.17ms]
+(fail) Phase 1 — Memory CRUD > deletes a memory entry [0.91ms]
+(fail) Phase 8 — Plugin Manager > Server CRUD > creates a stdio server [1.01ms]
+(fail) Phase 8 — Plugin Manager > Server CRUD > creates an sse server [0.61ms]
+(fail) Phase 8 — Plugin Manager > Server CRUD > rejects duplicate names [0.58ms]
+(fail) Phase 8 — Plugin Manager > Server CRUD > rejects stdio without command [0.48ms]
+(fail) Phase 8 — Plugin Manager > Server CRUD > rejects sse without url [0.42ms]
+(fail) Phase 8 — Plugin Manager > Server CRUD > rejects invalid transport [0.44ms]
+(fail) Phase 8 — Plugin Manager > Server CRUD > lists servers [0.46ms]
+(fail) Phase 8 — Plugin Manager > Server CRUD > gets a server by ID [0.57ms]
+(fail) Phase 8 — Plugin Manager > Server CRUD > updates a server [0.51ms]
+(fail) Phase 8 — Plugin Manager > Server CRUD > deletes a server [0.47ms]
+(fail) Phase 8 — Plugin Manager > In-Process Connect > connects an in-process server with tools [0.50ms]
+(fail) Phase 8 — Plugin Manager > In-Process Connect > synced tools have namespaced names [0.50ms]
+(fail) Phase 8 — Plugin Manager > In-Process Connect > lists tools for a specific server [0.51ms]
+(fail) Phase 8 — Plugin Manager > In-Process Connect > disconnects a connected server [0.49ms]
+(fail) Phase 8 — Plugin Manager > buildToolHandlers > returns ToolHandler[] for connected servers [0.46ms]
+(fail) Phase 8 — Plugin Manager > buildToolHandlers > executes a built-in tool handler and returns correct result [0.49ms]
+(fail) Phase 8 — Plugin Manager > buildToolHandlers > handles tool errors gracefully [0.43ms]
+(fail) Phase 8 — Plugin Manager > Status > returns correct status counts [0.42ms]
+(fail) Phase 8 — Plugin Manager > McpError > has correct properties [0.44ms]
+ 124 pass
+ 165 fail
+Ran 289 tests across 9 files. [447.00ms]

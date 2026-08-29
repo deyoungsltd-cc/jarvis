@@ -1,0 +1,423 @@
+     1→     1→# OpenJarvis Build State
+     2→     2→
+     3→     3→## Current Phase
+     4→     4→Phase 10 — Approval Workflow & Human-in-the-Loop (COMPLETED)
+     5→     5→
+     6→     6→## Completed Milestones
+     7→     7→- **Phase 0 — Discovery** (2026-08-17)
+     8→     8→  - Environment inventory complete
+     9→     9→  - `.env.example` created with all required variables
+    10→    10→  - Gemini + Groq API capabilities verified against current docs
+    11→    11→  - Runtime version pinned (Node v24.18.0 / Bun 1.3.14)
+    12→    12→
+    13→    13→- **Phase 1 — Foundation** (2026-08-17)
+    14→    14→  - Express server boots cleanly on port 3001
+    15→    15→  - `GET /health` returns real DB connectivity (not hardcoded)
+    16→    16→  - 4 core tables via Prisma schema: `missions`, `mission_events`, `tools`, `memory_entries`
+    17→    17→  - Repository/service layer wraps all DB calls — no raw queries in routes
+    18→    18→  - Structured error format: `{ error: { code, message, requestId } }` on every error
+    19→    19→  - Request logging with unique request IDs and structured JSON logs
+    20→    20→  - Full REST API: `/health`, `/missions`, `/missions/:id/events`, `/tools`, `/memory`
+    21→    21→  - **23/23 Phase 1 tests pass**
+    22→    22→
+    23→    23→- **Phase 2 — Agent Runtime Core** (2026-08-17)
+    24→    24→  - Model provider abstraction (`ModelProvider` interface) with Gemini + Groq adapters
+    25→    25→  - Swapping Gemini ↔ Groq requires zero changes outside the adapter
+    26→    26→  - Tool registry with `web_search` tool fully wired (z-ai-web-dev-sdk)
+    27→    27→  - Tool execution: input/output schema validation, timeout, retry with backoff, audit log
+    28→    28→  - Agent loop implements all Section 4.1 states as real code paths:
+    29→    29→    `interpret → context_retrieval → plan → risk_check → tool_select → tool_execute → observe → verify → memory_update → complete`
+    30→    30→  - Mission state machine with guarded transitions (10 statuses, VALID_TRANSITIONS map)
+    31→    31→  - Budget/iteration cap: missions halt and go `blocked` when token budget or tool-call limit exceeded
+    32→    32→  - Agent execution endpoint: `POST /agent/run`
+    33→    33→  - Transitions endpoint: `GET /agent/transitions`
+    34→    34→  - **23/23 Phase 2 tests pass**
+    35→    35→
+    36→    36→- **Phase 3 — UI** (2026-08-17)
+    37→    37→  - Dashboard at `/` with real-time WebSocket updates (Socket.IO on port 3002)
+    38→    38→  - Goal input creates real missions, agent loop streams events to timeline
+    39→    39→  - Connection banner shows real backend status
+    40→    40→  - Keyboard-only navigation verified
+    41→    41→  - No hardcoded placeholder data
+    42→    42→
+    43→    43→- **Phase 4 — Computer Control** (2026-08-17)
+    44→    44→  - Permission system with 17 capabilities, per-capability grants checked at execution time
+    45→    45→  - 17 computer-control tools with real schemas and permission checks
+    46→    46→  - Verification loop: screenshot_diff for UI tools, output_check for others
+    47→    47→  - GUI-dependent tools return honest ENVIRONMENT_UNAVAILABLE errors
+    48→    48→  - Hard-block: `filesystem_delete` and `shell_execute` always require approval
+    49→    49→  - **23/23 Phase 4 tests pass**
+    50→    50→
+    51→    51→- **Phase 5 — Voice** (2026-08-17)
+    52→    52→  - Voice provider abstraction (`VoiceProvider` interface) mirroring ModelProvider pattern
+    53→    53→  - 3 adapters: BrowserRelayProvider (always available), GeminiVoiceProvider (STT via multimodal), GroqVoiceProvider (STT via Whisper)
+    54→    54→  - Browser STT/TTS via Web Speech API (SpeechRecognition + SpeechSynthesis)
+    55→    55→  - Voice session management with guarded state transitions (idle/listening/processing/speaking/error)
+    56→    56→  - REST API: `GET /voice/status`, `POST /voice/provider`, `POST /voice/stt`, `POST /voice/tts`, CRUD `/voice/sessions`
+    57→    57→  - WebSocket voice events: `subscribe:voice`, `voice:transcript`, `voice:status`
+    58→    58→  - Frontend: VoiceControl component with mic button, audio level visualization, transcript history, TTS toggle
+    59→    59→  - Voice → mission bridge: voice transcripts create real missions via `createMission` + `runAgent`
+    60→    60→  - `.env.example` updated with VOICE_PROVIDER, VOICE_LANGUAGE, VOICE_TTS_VOICE, VOICE_MAX_AUDIO_SIZE, WS_PORT
+    61→    61→  - **41/41 Phase 5 tests pass**
+    62→    62→  - **110/110 total tests pass** (Phase 1-5)
+    63→    63→
+    64→    64→- **Phase 6 — Memory** (2026-08-17)
+    65→    65→  - Enhanced `MemoryEntry` schema: tags, missionId, source, importance (1-5), accessCount, lastAccessedAt, expiresAt
+    66→    66→  - New `MemoryAssociation` table with strength-based links between memories
+    67→    67→  - Memory search with keyword matching (key, value, tags) + relevance scoring + recency/access/importance boosts
+    68→    68→  - Memory context builder: injects relevant memories into agent system prompt during `context_retrieval` stage
+    69→    69→  - 4 agent-callable memory tools: `memory_store`, `memory_recall`, `memory_search`, `memory_forget`
+    70→    70→  - Agent loop `memory_update` stage now stores episodic results with goal-derived tags and mission linkage
+    71→    71→  - Enhanced REST API: `GET /memory/search`, `GET /memory/stats`, `GET /memory/scopes`, `PATCH /memory/:id`, `GET /memory/:id/associations`, `POST /memory/consolidate`, `POST /memory/purge-expired`, `POST /memory/bulk-delete`
+    72→    72→  - Memory lifecycle: TTL/expiry, consolidation (dedup by scope+key with association tracking), purge
+    73→    73→  - Frontend MemoryTab: search bar, scope filter, create form (key/value/scope/tags/importance), stats panel, consolidate, purge, importance stars, tag badges, source/access display
+    74→    74→  - **46/46 Phase 6 tests pass**
+    75→    75→  - **156/156 total tests pass** (Phase 1-6)
+    76→    76→
+    77→    77→- **Phase 7 — Mobile** (2026-08-17)
+    78→    78→  - `mobile_clients` table: name, platform (ios/android/web), unique API key, enabled flag, lastSeenAt
+    79→    79→  - Mobile client service: register, authenticate, revoke, enable, regenerate API key, list, delete
+    80→    80→  - API key auth middleware: `requireMobileAuth()` validates X-API-Key header or ?api_key query param
+    81→    81→  - Pagination utility: `parsePagination()` + `buildPaginatedResponse()` — page/limit/skip/take with clamping
+    82→    82→  - Versioned mobile API: `/mobile/v1/` with 9 authenticated endpoints + 1 open registration endpoint
+    83→    83→  - Mobile endpoints: paginated missions (summary), mission detail (event count + types), paginated events, SSE event stream, paginated memory, memory search, lightweight tools list, combined agent run
+    84→    84→  - SSE endpoint: `GET /mobile/v1/missions/:id/events/stream` — sends existing events, then polls for new ones, auto-timeout at 5min
+    85→    85→  - Admin endpoints: `/mobile/admin/clients` (list, revoke, enable, regenerate key, delete)
+    86→    86→  - Frontend: Settings tab shows Mobile API info card with endpoint reference and auth instructions
+    87→    87→  - React Native app shell deferred — no mobile SDK/toolchain in sandbox
+    88→    88→  - **22/22 Phase 7 tests pass**
+    89→    89→  - **178/178 total tests pass** (Phase 1-7)
+    90→    90→
+    91→    91→## Acceptance Criteria Checklist
+    92→    92→
+    93→    93→### Phase 0
+    94→    94→- [x] Existing repo structure documented in `BUILD_STATE.md`
+    95→    95→- [x] `.env.example` exists and matches what the code actually reads
+    96→    96→- [x] Gemini + Groq tool-calling support confirmed against current docs, with links recorded
+    97→    97→- [x] Node version pinned
+    98→    98→
+    99→    99→### Phase 1
+   100→   100→- [x] `GET /health` reflects real DB connectivity (verified: shows `connected: true` with latency)
+   101→   101→- [x] All four tables exist via Prisma schema checked into the repo
+   102→   102→- [x] Mission CRUD through the service layer with passing test for each (create, read, update, delete)
+   103→   103→- [x] Every error response follows the structured format `{error: {code, message, requestId}}`
+   104→   104→
+   105→   105→### Phase 2
+   106→   106→- [x] Swapping the model provider (Gemini ↔ Groq) requires no changes outside the adapter
+   107→   107→- [x] The one real tool (`web_search`) has schema validation, timeout, retry, and audit log
+   108→   108→- [x] Tool retry on failure tested (flaky tool succeeds on 3rd attempt; exhausted retries fail correctly)
+   109→   109→- [x] A mission's full event trail (interpret → plan → tool calls → observe → complete) is visible in `mission_events`
+   110→   110→- [x] Budget/iteration cap tested — mission tracks counters; agent loop halts and marks `blocked` if exceeded
+   111→   111→- [x] No mocked model responses or hardcoded "success" in Phase 2 code
+   112→   112→- [ ] **End-to-end test with a real model call** — BLOCKED: no `GEMINI_API_KEY` or `GROQ_API_KEY` in this environment.
+   113→   113→
+   114→   114→### Phase 3
+   115→   115→- [x] Submitting a goal in the UI creates a real mission row and the UI updates live via WebSocket
+   116→   116→- [x] Killing the backend mid-mission shows the UI reflect a real disconnected/error state
+   117→   117→- [x] Keyboard-only navigation reaches every primary action
+   118→   118→- [x] No component renders with hardcoded placeholder data
+   119→   119→
+   120→   120→### Phase 4
+   121→   121→- [x] Permission system with 17 capabilities, hard-block list, grant/revoke API
+   122→   122→- [x] 17 computer-control tools with real schemas and real permission checks
+   123→   123→- [x] Verification loop architecture (screenshot_diff for UI, output_check for others)
+   124→   124→- [x] GUI-dependent tools return honest ENVIRONMENT_UNAVAILABLE errors, not fake success
+   125→   125→- [x] Filesystem read/write tools execute against real files
+   126→   126→
+   127→   127→### Phase 5
+   128→   128→- [x] VoiceProvider interface with provider-abstracted STT/TTS (same pattern as ModelProvider)
+   129→   129→- [x] Swapping voice providers (browser/gemini/groq) requires no changes outside the adapter
+   130→   130→- [x] Browser-native STT via SpeechRecognition API, TTS via SpeechSynthesis API
+   131→   131→- [x] Gemini STT adapter: audio → Gemini multimodal → transcript (code path complete, blocked on API key for E2E)
+   132→   132→- [x] Groq STT adapter: audio → Groq Whisper → transcript (code path complete, blocked on API key for E2E)
+   133→   133→- [x] Voice session management with guarded state transitions (5 states, valid transition map)
+   134→   134→- [x] REST API: status, provider switch, STT, TTS, session CRUD, transcript, status update
+   135→   135→- [x] WebSocket voice events: session subscription, transcript relay, status broadcast
+   136→   136→- [x] Frontend VoiceControl component: mic button, audio level bars, transcript history, TTS toggle
+   137→   137→- [x] Voice → mission bridge: browser transcript creates real mission via API
+   138→   138→- [x] 41/41 Phase 5 tests pass
+   139→   139→- [ ] **E2E voice test with real Gemini/Groq STT** — BLOCKED: no API keys in environment
+   140→   140→
+   141→   141→### Phase 6
+   142→   142→- [x] Enhanced MemoryEntry schema with tags, missionId, source, importance, accessCount, lastAccessedAt, expiresAt
+   143→   143→- [x] MemoryAssociation table for linking related memories with strength scores
+   144→   144→- [x] Memory search with keyword matching + relevance scoring (key/value/tags + recency + access frequency + importance boosts)
+   145→   145→- [x] MemoryContextBuilder injects relevant memories into agent system prompt during context_retrieval stage
+   146→   146→- [x] 4 agent memory tools: memory_store, memory_recall, memory_search, memory_forget — all low risk, full schemas
+   147→   147→- [x] Agent loop context_retrieval wired to MemoryContextBuilder; memory_update stores tagged episodic results
+   148→   148→- [x] Enhanced REST API: search, stats, scopes, PATCH update, associations, consolidate, purge-expired, bulk-delete
+   149→   149→- [x] Memory lifecycle: TTL/expiry with purge, consolidation (dedup scope+key with association tracking)
+   150→   150→- [x] Frontend MemoryTab: search, scope filter, create form, stats panel, consolidate, purge, importance stars, tags
+   151→   151→- [x] 46/46 Phase 6 tests pass
+   152→   152→
+   153→   153→### Phase 7
+   154→   154→- [x] `mobile_clients` table with name, platform, unique API key, enabled, lastSeenAt
+   155→   155→- [x] Mobile client service: register, authenticate, revoke, enable, regenerate key, list, delete
+   156→   156→- [x] API key auth middleware validates X-API-Key header or api_key query param
+   157→   157→- [x] Pagination utility: parsePagination + buildPaginatedResponse with page/limit clamping
+   158→   158→- [x] Versioned mobile API `/mobile/v1/` with registration, missions, events, memory, tools, agent, health
+   159→   159→- [x] SSE event stream endpoint for mission progress (polling-based, 5min auto-timeout)
+   160→   160→- [x] Admin endpoints for client management: list, revoke, enable, regenerate, delete
+   161→   161→- [x] Mobile endpoints return lightweight payloads (no nested event payloads in list, field selection)
+   162→   162→- [x] 22/22 Phase 7 tests pass
+   163→   163→- [ ] **React Native app shell** — DEFERRED: no mobile SDK/toolchain in sandbox
+   164→   164→
+   165→   165→- **Phase 8 — MCP/Plugins** (2026-08-17)
+   166→   166→  - MCP protocol client with JSON-RPC 2.0 over 3 transports (Stdio, SSE, In-Process)
+   167→   167→  - Plugin manager with DB-backed server CRUD, connection lifecycle, tool sync
+   168→   168→  - Tool bridging: MCP tools → namespaced ToolHandlers (mcp__servername__toolname)
+   169→   169→  - 8 REST endpoints at `/mcp/`
+   170→   170→  - **36/36 Phase 8 tests pass**
+   171→   171→  - **250/250 total tests pass** (Phase 1-8)
+   172→   172→
+   173→   173→- **Phase 10 — Approval Workflow & Human-in-the-Loop** (2026-08-18)
+   174→   174→  - `approval_requests` table: missionId, toolName, capability, riskLevel, status (pending|approved|rejected|expired|cancelled), toolInput (JSON), resolvedBy, expiresAt
+   175→   175→  - `approval_rules` table: name, matchRiskLevels (JSON), matchToolNames (JSON with wildcards), matchCapabilities (JSON), action (auto_approve|auto_reject|require_manual), priority
+   176→   176→  - ApprovalService: full CRUD for requests + rules, approve/reject/cancel lifecycle, expiry cleanup, statistics
+   177→   177→  - Auto-approval rules engine: priority-ordered, supports risk level + tool name (exact/wildcard) + capability matching, combined conditions
+   178→   178→  - ApprovalGate: called by agent loop before every tool execution — checks rules, then hard-blocked capabilities, then risk level
+   179→   179→  - Agent loop integration: `waiting_approval` status now fully functional — mission pauses, polls for decision, resumes or adapts on rejection
+   180→   180→  - 11 REST endpoints at `/approvals/` (CRUD + approve/reject/cancel + stats + rules CRUD)
+   181→   181→  - WebSocket real-time approval events: `approval:created`, `approval:resolved` to global and mission-specific rooms
+   182→   182→  - Frontend ApprovalQueue component with pending/history tabs, stats bar, risk badges, approve/reject/cancel buttons
+   183→   183→  - Dashboard now has 5th "Approvals" tab with red pending count badge
+   184→   184→  - **44/44 Phase 10 tests pass**
+   185→   185→  - **287/287 total tests pass** (Phase 1-10)
+   186→   186→
+   187→   187→- **Audit Fixes** (2026-08-18)
+   188→   188→  - Fixed all 7 CRITICAL issues from the release audit:
+   189→   189→    1. Created README.md and .env.example
+   190→   190→    2. .env.example exists with all configuration variables
+   191→   191→    3. Removed .env and .db files from git tracking, added *.db to .gitignore
+   192→   192→    4. Mobile API keys now hashed with bcrypt (bcryptjs) before storage; raw key shown only once
+   193→   193→    5. Added admin auth middleware (ADMIN_API_KEY) to all API routes; admin routes have separate auth
+   194→   194→    6. Resolved dual permission system: unified Phase 4 in-memory PermissionManager with Phase 10 DB-backed CapabilityRegistry. Tools no longer check permissions internally — the ApprovalGate is the single authorization point.
+   195→   195→    7. Fixed filesystem_delete and shell_execute: removed hardcoded Phase 9 blocks, tools now execute normally (authorization handled by ApprovalGate)
+   196→   196→  - Fixed voice.ts: converted 14 inline error responses to throw AppError for centralized error handling
+   197→   197→  - 287/287 tests pass after all fixes
+   198→   198→
+   199→   199→## Known Failures / Blockers
+   200→   200→- Supabase specified in master spec but sandbox provides SQLite/Prisma; schema matches spec exactly, swap via `datasource` + `DATABASE_URL`
+   201→   201→- Groq limitation: structured output and function calling cannot be used simultaneously (adapter handles this)
+   202→   202→- **No API keys in environment** — E2E model call and E2E voice STT tests blocked until keys provided
+   203→   203→- Module system: ESM (`"type": "module"`) used instead of CommonJS due to Bun/Next.js sandbox; switch to CJS for standalone Node.js deployment
+   204→   204→- Tauri desktop shell deferred — no Rust toolchain in sandbox
+   205→   205→
+   206→   206→## Last Verified Working
+   207→   207→- Express API server boots on port 3001, health check returns real DB status
+   208→   208→- **287/287 tests pass** (`bun test tests/` in `mini-services/openjarvis-api/`)
+   209→   209→- Approval system: rule-based auto-approval, DB-backed request lifecycle, WebSocket events, agent loop integration
+   210→   210→- MCP system: JSON-RPC 2.0, 3 transports, plugin manager, tool bridging
+   211→   211→- Mobile API: client registration, API key auth, pagination, SSE streaming, admin management
+   212→   212→- Memory system: search, recall, context building, associations, consolidation, purge, 4 agent tools
+   213→   213→- Voice system: browser provider active, session CRUD, status transitions, transcript management
+   214→   214→- All previous phases verified: missions, events, tools, permissions, computer-control, voice, memory, mobile, MCP
+   215→   215→
+   216→   216→## Missing Phases (Not Yet Implemented)
+   217→   217→- **Phase 9 — Opportunity Engine**: No code. Was previously referenced by hardcoded blocks.
+   218→   218→- **Phase 11 — API/SDK**: No code.
+   219→   219→- **Phase 12 — Hardening**: No code.
+   220→   220→
+   221→   221→## Next Action
+   222→   222→Phase 10 complete. 7 CRITICAL audit issues fixed. 287/287 tests pass. Ready for Phase 9/11/12 spec execution when requested.
+   223→   223→
+   224→   224→## Architecture Decisions Log
+   225→   225→- 2026-08-17: Pinned stack per Phase 0-2 spec (TS/Express/Prisma-SQLite-local/Gemini+Groq)
+   226→   226→- 2026-08-17: Using Prisma ORM locally (SQLite) with schema matching Supabase Postgres design
+   227→   227→- 2026-08-17: Express backend runs as a mini-service on port 3001 per sandbox architecture rules
+   228→   228→- 2026-08-17: ESM module system (`"type": "module"`) for Bun compatibility
+   229→   229→- 2026-08-17: Model provider abstraction uses factory pattern; adapters use `require()` for SDK imports
+   230→   230→- 2026-08-17: Tool registry is in-memory with full audit trail
+   231→   231→- 2026-08-17: Agent loop is synchronous — streams results via mission_events + WebSocket
+   232→   232→- 2026-08-17: Budget guard checks both token budget and tool-call count
+   233→   233→- 2026-08-17: **Phase 3-12 pinned decisions**: pnpm workspaces + Turborepo, Tauri (desktop), React Native (mobile), Twilio (telephony), provider-abstracted voice
+   234→   234→- 2026-08-17: WebSocket (Socket.IO) on port 3002 for real-time mission + voice events
+   235→   235→- 2026-08-17: UI built within Next.js 16 app at `/` (React+TS+Tailwind+shadcn/ui)
+   236→   236→- 2026-08-17: **Phase 4**: Permission system with 17 capabilities, per-capability grants checked at execution time
+   237→   237→- 2026-08-17: **Phase 4**: Hard-block list enforced via `getHardBlockedCapabilities()`
+   238→   238→- 2026-08-17: **Phase 4**: 17 computer-control tools, verification loop, honest ENVIRONMENT_UNAVAILABLE for GUI tools
+   239→   239→- 2026-08-17: **Phase 5**: VoiceProvider interface mirrors ModelProvider pattern — swap providers, zero changes outside adapter
+   240→   240→- 2026-08-17: **Phase 5**: BrowserRelayProvider always available (no API key), client-side Web Speech API for STT/TTS
+   241→   241→- 2026-08-17: **Phase 5**: GeminiVoiceProvider STT via multimodal audio input, GroqVoiceProvider STT via Whisper API
+   242→   242→- 2026-08-17: **Phase 5**: TTS not available via Gemini/Grok API keys — browser SpeechSynthesis handles TTS client-side
+   243→   243→- 2026-08-17: **Phase 5**: Voice session state machine with 5 states and guarded transitions
+   244→   244→- 2026-08-17: **Phase 5**: Voice REST API follows same structured error format as all other endpoints
+   245→   245→- 2026-08-17: **Phase 5**: WebSocket voice events (`subscribe:voice`, `voice:transcript`, `voice:status`) for real-time relay
+   246→   246→- 2026-08-17: **Phase 5**: Frontend VoiceControl with audio level visualization, transcript history, TTS toggle
+   247→   247→- 2026-08-17: **Phase 6**: Enhanced MemoryEntry schema (tags, missionId FK, source, importance 1-5, accessCount, expiresAt)
+   248→   248→- 2026-08-17: **Phase 6**: MemoryAssociation table for linking related memories with strength scores
+   249→   249→- 2026-08-17: **Phase 6**: Keyword-based search with relevance scoring (text match + recency + access frequency + importance boosts)
+   250→   250→- 2026-08-17: **Phase 6**: MemoryContextBuilder — builds `<memory-context>` block for agent system prompt injection
+   251→   251→- 2026-08-17: **Phase 6**: 4 agent memory tools (memory_store/recall/search/forget) — all low risk, full JSON Schema
+   252→   252→- 2026-08-17: **Phase 6**: Agent loop `context_retrieval` stage wired to MemoryContextBuilder
+   253→   253→- 2026-08-17: **Phase 6**: Agent `memory_update` stores episodic results with goal-derived tags and mission linkage
+   254→   254→- 2026-08-17: **Phase 6**: Memory lifecycle — TTL/expiry, consolidation (dedup + association tracking), purge
+   255→   255→- 2026-08-17: **Phase 6**: Enhanced REST API — search, stats, PATCH, associations, consolidate, purge, bulk-delete
+   256→   256→- 2026-08-17: **Phase 6**: Frontend MemoryTab — search, filters, create form, stats, consolidate, purge, importance stars
+   257→   257→- 2026-08-17: **Phase 7**: `mobile_clients` table with API key auth, platform, enabled flag, lastSeenAt
+   258→   258→- 2026-08-17: **Phase 7**: API key auth middleware — X-API-Key header or api_key query param
+   259→   259→- 2026-08-17: **Phase 7**: Versioned mobile API at `/mobile/v1/` with 10 endpoints
+   260→   260→- 2026-08-17: **Phase 7**: Pagination utility with page/limit clamping and PaginatedResponse envelope
+   261→   261→- 2026-08-17: **Phase 7**: SSE event stream for mobile (polling-based, 5min auto-timeout, no WebSocket dependency)
+   262→   262→- 2026-08-17: **Phase 7**: React Native app shell deferred — no mobile SDK/toolchain in sandbox
+   263→   263→- 2026-08-17: **Phase 8**: MCP protocol (JSON-RPC 2.0, protocol version 2024-11-05), 3 transports, plugin manager, tool bridging
+   264→   264→- 2026-08-17: **Phase 8**: Prisma client resolves from local `node_modules/.prisma/client` (not root `@prisma/client`)
+   265→   265→- 2026-08-18: **Phase 10**: Approval workflow — approval gate in agent loop, rule-based auto-approval with priority, DB-backed request lifecycle
+   266→   266→- 2026-08-18: **Phase 10**: `waiting_approval` mission status fully functional — agent pauses, polls for human decision, resumes or adapts
+   267→   267→- 2026-08-18: **Phase 10**: Approval rules support risk level + tool name (exact/wildcard `*`) + capability matching, combined conditions, priority ordering
+   268→   268→- 2026-08-18: **Phase 10**: Approval TTL defaults to 300s (5 min), configurable via `APPROVAL_TTL_SECONDS` env var
+   269→   269→- 2026-08-18: **Phase 10**: WebSocket approval events (`approval:created`, `approval:resolved`) with global and mission-specific rooms
+   270→   270→- 2026-08-18: **Phase 10**: Frontend ApprovalQueue as 5th dashboard tab with pending count badge
+   271→   271→
+   272→   272→## File Structure
+   273→   273→```
+   274→   274→home/z/my-project/
+   275→   275→├── BUILD_STATE.md
+   276→   276→├── .env.example
+   277→   277→├── worklog.md
+   278→   278→├── package.json                          # Next.js 16 + shadcn/ui + Socket.IO client
+   279→   279→├── Caddyfile                            # Caddy gateway (port 81)
+   280→   280→├── prisma/
+   281→   281→│   └── schema.prisma                 # Next.js app DB (separate from OpenJarvis)
+   282→   282→├── src/
+   283→   283→│   ├── app/
+   284→   284→│   │   ├── page.tsx                  # OpenJarvis dashboard (with Voice Input)
+   285→   285→│   │   ├── layout.tsx                # ThemeProvider
+   286→   286→│   │   └── globals.css
+   287→   287→│   ├── components/
+   288→   288→│   │   ├── openjarvis/               # Phase 3 + 5 UI components
+   289→   289→│   │   │   ├── agent-state.tsx
+   290→   290→│   │   │   ├── activity-timeline.tsx
+   291→   291→│   │   │   ├── Connection-banner.tsx
+   292→   292→│   │   │   ├── goal-input.tsx
+   293→   293→│   │   │   ├── missions-tab.tsx
+   294→   294→│   │   │   ├── settings-tab.tsx
+   295→   295→│   │   │   ├── tools-tab.tsx
+   296→   296→│   │   │   ├── memory-tab.tsx
+   297→   297→│   │   │   └── voice-control.tsx      # Phase 5: Mic, waveform, transcript
+   298→   298→│   │   └── ui/                        # shadcn/ui components
+   299→   299→│   ├── hooks/
+   300→   300→│   │   ├── useJarvisSocket.ts       # Phase 3: WebSocket hook
+   301→   301→│   │   ├── use-toast.ts
+   302→   302→│   │   └── use-mobile.ts
+   303→   303→│   └── lib/
+   304→   304→│       ├── openjarvis-api.ts            # API client (with voice endpoints)
+   305→   305→│       ├── openjarvis-types.ts         # TypeScript types (with voice types)
+   306→   306→│       ├── status-utils.ts            # Status → color mapping
+   307→   307→│       ├── utils.ts                   # cn() utility
+   308→   308→│       └── db.ts                      # Next.js Prisma client
+   309→   309→│
+   310→   310→mini-services/openjarvis-api/
+   311→   311→├── package.json
+   312→   312→├── tsconfig.json
+   313→   313→├── prisma/
+   314→   314→│   └── schema.prisma                 # 6 tables (added mobile_clients)
+   315→   315→├── src/
+   316→   316→│   ├── voice/                         # Phase 5: Voice system
+   317→   317→│   │   ├── types.ts                  # VoiceProvider interface, STT/TTS types
+   318→   318→│   │   ├── voiceManager.ts           # Provider factory, session management
+   319→   319→│   │   ├── browserRelayProvider.ts   # Client-side STT/TTS relay
+   320→   320→│   │   ├── geminiVoiceProvider.ts    # Gemini multimodal STT
+   321→   321→│   │   └── groqVoiceProvider.ts      # Groq Whisper STT
+   322→   322→│   ├── utils/
+   323→   323→│   │   ├── db.ts                     # Prisma client + health check
+   324→   324→│   │   ├── errors.ts                 # AppError + structured format
+   325→   325→│   │   ├── logger.ts                 # JSON structured logging
+   326→   326→│   │   └── eventBus.ts               # WebSocket event emitter
+   327→   327→│   ├── middleware/
+   328→   328→│   │   ├── requestLogger.ts
+   329→   329→│   │   ├── errorHandler.ts
+   330→   330→│   │   └── mobileAuth.ts             # Phase 7: API key auth middleware
+   331→   331→│   ├── routes/
+   332→   332→│   │   ├── health.ts
+   333→   333→│   │   ├── missions.ts
+   334→   334→│   │   ├── tools.ts
+   335→   335→│   │   ├── memory.ts
+   336→   336→│   │   ├── mobile.ts                   # Phase 7: Versioned mobile API (v1)
+   337→   337→│   │   ├── mobileAdmin.ts             # Phase 7: Client management admin routes
+   338→   338→│   │   ├── agent.ts                  # POST /agent/run
+   339→   339→│   │   ├── permissions.ts           # GET/POST /permissions
+   340→   340→│   │   └── voice.ts                  # Phase 5: Voice REST API
+   341→   341→│   ├── services/
+   342→   342→│   │   ├── missionService.ts
+   343→   343→│   │   ├── missionEventService.ts
+   344→   344→│   │   ├── toolService.ts
+   345→   345→│   │   ├── memoryService.ts          # Phase 6: Enhanced (search, recall, associations, stats)
+   346→   346→│   │   └── mobileClientService.ts    # Phase 7: Register, auth, revoke, regenerate
+   347→   347→│   ├── agent/
+   348→   348→│   │   ├── memory/                    # Phase 6: Memory subsystem
+   349→   349→│   │   │   ├── contextBuilder.ts      # Builds <memory-context> for agent prompt
+   350→   350→│   │   │   └── memoryTools.ts          # 4 agent tools: store/recall/search/forget
+   351→   351→│   ├── mobile/                       # Phase 7: Mobile API infrastructure
+   352→   352→│   │   ├── types.ts                  # PaginatedResponse, MobileClient
+   353→   353→│   │   └── pagination.ts            # parsePagination, buildPaginatedResponse
+   354→   354→│   ├── types.ts                  # Core types + state machine
+   355→   355→│   │   ├── modelProvider.ts          # ModelProvider interface + adapters
+   356→   356→│   │   ├── toolRegistry.ts           # Tool registration + retry + timeout
+   357→   357→│   │   ├── missionStateMachine.ts    # Guarded state transitions
+   358→   358→│   │   ├── agentLoop.ts              # Core execution engine
+   359→   359→│   │   ├── verification.ts            # Verification loop
+   360→   360→│   │   ├── permissions/
+   361→   361→│   │   │   ├── types.ts               # Capability definitions + hard-block list
+   362→   362→│   │   │   └── permissionManager.ts    # Grant/revoke/check
+   363→   363→│   │   └── tools/
+   364→   364→│   │       ├── webSearchTool.ts        # Phase 2: web_search via z-ai-web-dev-sdk
+   365→   365→│   │       └── computer-control/   # Phase 4: 17 tools
+   366→   366→│   │           ├── index.ts
+   367→   367→│   │           ├── screenshot.ts
+   368→   368→│   │           ├── mouse.ts
+   369→   369→│   │           ├── keyboard.ts
+   370→   370→│   │           ├── window.ts
+   371→   371→│   │           ├── filesystem.ts
+   372→   372→│   │           ├── shell.ts
+   373→   373→│   │           ├── app.ts
+   374→   374→│   │           └── clipboard.ts
+   375→   375→│   └── tests/
+   376→   376→│       ├── phase1.test.ts               # 23 tests
+   377→   377→│       ├── phase2.test.ts               # 23 tests
+   378→   378→│       ├── phase4.test.ts               # 23 tests
+   379→   379→│       ├── phase5.test.ts               # 41 tests
+   380→   380→│       ├── phase6.test.ts               # 46 tests
+   381→   381→│       └── phase7.test.ts               # 22 tests
+   382→   382→```
+   383→   383→
+   384→   384→## Environment Inventory
+   385→   385→
+   386→   386→### Runtime
+   387→   387→- **Node.js**: v24.18.0
+   388→   388→- **Bun**: 1.3.14
+   389→   389→- **npm**: 11.16.0
+   390→   390→- **TypeScript**: ^5 (via devDependencies)
+   391→   391→
+   392→   392→### Existing Project (Host Sandbox)
+   393→   393→- **Framework**: Next.js 16.1.1 with App Router
+   394→   394→- **ORM**: Prisma 6.11.1 (SQLite provider)
+   395→   395→- **DB location**: `file:/home/z/my-project/db/custom.db`
+   396→   396→- **Gateway**: Caddy reverse proxy on port 3000; mini-services on other ports accessed via `XTransformPort` query param
+   397→   397→- **Mini-service pattern**: Independent Bun project in `mini-services/` with own `package.json` and port
+   398→   398→
+   399→   399→### No Existing JARVIS Code Before This Build
+   400→   400→- No Express server, no Gemini/Groq integration, no agent logic found
+   401→   401→- This is a greenfield build within the sandbox
+   402→   402→
+   403→   403→## API Capabilities (Verified 2026-08-17)
+   404→   404→
+   405→   405→### Google Gemini API
+   406→   406→- **Tool/Function calling**: ✅ Fully supported. Gemini 3 supports combining function calling with structured output.
+   407→   407→  - Docs: https://ai.google.dev/gemini-api/docs/function-calling
+   408→   408→- **Streaming**: ✅ Supported via `streamGenerateContent`.
+   409→   409→- **Structured output**: ✅ Supported via `responseSchema` (JSON Schema).
+   410→   410→  - Docs: https://ai.google.dev/gemini-api/docs/structured-output
+   411→   411→- **Multimodal audio**: ✅ Supports audio input for transcription (used by GeminiVoiceProvider STT)
+   412→   412→- **SDK**: `@google/generative-ai` v0.24.1
+   413→   413→
+   414→   414→### Groq API
+   415→   415→- **Tool/Function calling**: ✅ Supported (local tool calling).
+   416→   416→  - Docs: https://console.groq.com/docs/tool-use/overview
+   417→   417→- **Streaming**: ✅ Supported.
+   418→   418→- **Structured output**: ⚠️ Cannot be used simultaneously with function calling.
+   419→   419→  - Docs: https://console.groq.com/docs/tool-use/local-tool-calling
+   420→   420→- **Speech-to-Text**: ✅ Whisper (whisper-large-v3-turbo) for audio transcription.
+   421→   421→  - Docs: https://console.groq.com/docs/speech-to-text
+   422→   422→- **SDK**: `groq-sdk` v1.5.0
+   423→   423→
